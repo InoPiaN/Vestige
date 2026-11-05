@@ -1,0 +1,21 @@
+config_version=5
+
+[application]
+config/name="Vestige — 잿불의 기록"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+config/description="A life ends. A story remains."
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=800
+window/size/window_width_override=1280
+window/size/window_height_override=800
+window/stretch/mode="canvas_items"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+textures/vram_compression/import_etc2_astc=true
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.047, 0.067, 0.063, 1)

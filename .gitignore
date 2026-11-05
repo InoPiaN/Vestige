@@ -1,0 +1,24 @@
+data/
+.DS_Store
+.tools/
+builds/
+desktop/.godot/
+
+# Local credentials and machine state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+node_modules/
+*.log
+__pycache__/
+*.pyc
+# Godot export credentials and editor-local state
+.godot/
+export_credentials.cfg
+# Temporary saves and recovery files
+*.tmp
+*.bak

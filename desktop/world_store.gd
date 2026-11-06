@@ -1,0 +1,61 @@
+extends RefCounted
+
+static func numbers(row: Dictionary, fields: Array) -> bool:
+	for key in fields:
+		var value=row.get(key)
+		if not (value is int or value is float) or not is_finite(float(value)): return false
+	return true
+
+static func pages_valid(pages: Variant) -> bool:
+	if not pages is Array: return false
+	for page in pages:
+		if not page is Dictionary or not numbers(page,["day"]) or not page.get("text") is String:
+			return false
+	return true
+
+static func valid(w: Dictionary) -> bool:
+	if w.get("version")!=1 or not numbers(w,["time","saved"]): return false
+	if w.time<0 or w.saved<0: return false
+	if not w.get("people") is Dictionary or not w.get("wolf") is Dictionary: return false
+	if not numbers(w.wolf,["x","y","hp","cooldown","warning","respawn"]): return false
+	if not w.get("books") is Array or not w.get("graves") is Array: return false
+	for book in w.books:
+		if not book is Dictionary or not book.get("author") is String or not book.get("last") is String or not pages_valid(book.get("pages")): return false
+	for grave in w.graves:
+		if not grave is Dictionary or not numbers(grave,["day","x","y"]) or not grave.get("name") is String or not grave.get("cause") is String: return false
+	for p in w.people.values():
+		if not p is Dictionary or not numbers(p,["x","y","age","limit","hp","stamina","attack","dodge","steps","ore","herb","sword","gold","skill","relic"]): return false
+		if not p.get("alive") is bool or not p.get("name") is String or not p.get("policy") is String: return false
+		if not p.get("events") is Array or not pages_valid(p.get("journal")): return false
+		for event in p.events:
+			if not event is String: return false
+		for key in ["look","equipment","belongings"]:
+			if p.has(key) and not p[key] is Dictionary: return false
+	return true
+
+static func read(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path): return {}
+	var file:=FileAccess.open(path,FileAccess.READ)
+	if file==null: return {}
+	var parser:=JSON.new()
+	if parser.parse(file.get_as_text())!=OK or not parser.data is Dictionary: return {}
+	return parser.data
+
+static func unsupported(w: Dictionary) -> bool:
+	return numbers(w,["version"]) and w.version>1
+
+# Write beside the destination. Replace each file only after its staging step succeeds.
+static func replace(w: Dictionary, path: String, previous: Dictionary) -> bool:
+	if not valid(w) or unsupported(previous): return false
+	var file:=FileAccess.open(path+".tmp",FileAccess.WRITE)
+	if file==null: return false
+	if not file.store_string(JSON.stringify(w,"",true,true)): return false
+	file.flush()
+	if file.get_error()!=OK: return false
+	file.close()
+	if not valid(read(path+".tmp")): return false
+	if valid(previous) or not FileAccess.file_exists(path+".bak"):
+		var source:=path if valid(previous) else path+".tmp"
+		if DirAccess.copy_absolute(source,path+".bak.tmp")!=OK: return false
+		if DirAccess.rename_absolute(path+".bak.tmp",path+".bak")!=OK: return false
+	return DirAccess.rename_absolute(path+".tmp",path)==OK

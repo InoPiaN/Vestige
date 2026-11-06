@@ -60,11 +60,16 @@ func start_server() -> void:
 	save_path="user://shared-world.json"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--world-file="): save_path=arg.trim_prefix("--world-file=")
-	world=Rules.load_world(save_path)
 	var net:=ENetMultiplayerPeer.new()
 	var error:=net.create_server(27180,8)
 	if error!=OK:
 		push_error("Server could not open UDP 27180: %s" % error)
+		get_tree().quit(1)
+		return
+	world=Rules.load_world(save_path,false)
+	if world.is_empty():
+		net.close()
+		push_error("서버 저장을 복원할 수 없습니다: "+save_path)
 		get_tree().quit(1)
 		return
 	multiplayer.multiplayer_peer=net
@@ -80,13 +85,22 @@ func disconnected(peer: int) -> void:
 		Rules.save_world(world,save_path)
 
 func request_single() -> void:
-	if FileAccess.file_exists(save_path): start_single()
+	if FileAccess.file_exists(save_path) or FileAccess.file_exists(save_path+".bak"): start_single()
 	else: open_dressing("first")
 
 func start_single() -> void:
 	mode="single"
 	me="local"
 	world=Rules.load_world(save_path)
+	if world.is_empty():
+		mode="menu"
+		var dialog:=AcceptDialog.new()
+		dialog.dialog_text="월드를 불러올 수 없습니다. 저장 파일과 백업, 게임 버전 및 쓰기 권한을 확인하세요."
+		add_child(dialog)
+		dialog.close_requested.connect(dialog.queue_free)
+		dialog.confirmed.connect(dialog.queue_free)
+		dialog.popup_centered()
+		return
 	if not world.people.has(me): Rules.born(world,me,input_name.text,chosen_look)
 	world.people[me].offline=false
 	menu.hide()
@@ -253,9 +267,13 @@ func interact() -> void:
 func _notification(what: int) -> void:
 	if what==NOTIFICATION_WM_CLOSE_REQUEST:
 		if mode=="single":
+			var was_offline: bool=world.people[me].offline
 			world.people[me].offline=true
-			Rules.save_world(world,save_path)
-		if mode=="server": Rules.save_world(world,save_path)
+			if not Rules.save_world(world,save_path):
+				world.people[me].offline=was_offline
+				message("저장하지 못했습니다. 디스크 공간과 권한을 확인한 뒤 다시 종료하세요.")
+				return
+		if mode=="server" and not Rules.save_world(world,save_path): return
 		get_tree().quit()
 
 func label_at(parent: Node,text: String,at: Vector2,size: int=16,color: Color=Color("c5c7b6")) -> Label:

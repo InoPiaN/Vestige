@@ -1,6 +1,7 @@
 extends RefCounted
 
 const CharacterMotion=preload("res://animation.gd")
+const Store=preload("res://world_store.gd")
 const DAY := 2880.0
 const PLACES := [
 	{"kind":"forge","name":"잿불 대장간","x":5,"y":7},
@@ -47,14 +48,14 @@ static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) 
 	w.people[id].look=clean_look(look)
 	outfit(w.people[id])
 
-static func die(w: Dictionary, id: String, cause: String) -> void:
+static func die(w: Dictionary, id: String, cause: String, day: int=0) -> void:
 	var p: Dictionary = w.people[id]
 	if not p.alive:
 		return
 	p.alive=false
 	p.offline=true
 	p.hp=0
-	w.graves.append({"name":p.name,"cause":cause,"day":int(w.time/DAY)+1,"x":p.x,"y":p.y})
+	w.graves.append({"name":p.name,"cause":cause,"day":day if day>0 else int(w.time/DAY)+1,"x":p.x,"y":p.y})
 	w.books.append({"author":p.name,"pages":p.journal.duplicate(true),"last":" ".join(p.events)})
 	p.events.append(cause+"으로 삶을 마쳤다.")
 
@@ -92,7 +93,7 @@ static func advance(w: Dictionary, seconds: float) -> void:
 			p.journal.append({"day":old_day+i+1,"text":" ".join(p.events) if not p.events.is_empty() else "별다른 일 없이 평온한 하루를 보냈다."})
 			p.events=[]
 			if p.age>=p.limit:
-				die(w,id,"노환")
+				die(w,id,"노환",old_day+i+1)
 				break
 	if w.wolf.hp<=0 and w.time>=w.wolf.respawn:
 		w.wolf.hp=50
@@ -285,24 +286,33 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		"grave": return "묘지"
 	return ""
 
-static func save_world(w: Dictionary, path: String) -> void:
-	w.saved=Time.get_unix_time_from_system()
-	var f:=FileAccess.open(path+".tmp",FileAccess.WRITE)
-	if f==null: return
-	f.store_string(JSON.stringify(w))
-	f.close()
-	if FileAccess.file_exists(path):
-		DirAccess.copy_absolute(path,path+".bak")
-	DirAccess.rename_absolute(path+".tmp",path)
+static func save_world(w: Dictionary, path: String, now: float=-1.0) -> bool:
+	return checkpoint(w,path,now,Store.read(path))
 
-static func load_world(path: String) -> Dictionary:
-	var w:=fresh()
-	if FileAccess.file_exists(path):
-		var data=JSON.parse_string(FileAccess.get_file_as_string(path))
-		if data is Dictionary and data.get("version",0)==1:
-			w=data
-			for p in w.people.values():
-				outfit(p)
-				p.offline=true
-			advance(w,maxf(0,Time.get_unix_time_from_system()-float(w.saved)))
+static func checkpoint(w: Dictionary, path: String, now: float, previous: Dictionary) -> bool:
+	if w.is_empty(): return false
+	if now<0: now=Time.get_unix_time_from_system()
+	var snapshot:=w.duplicate(false)
+	snapshot.saved=maxf(w.saved,now)
+	if not Store.replace(snapshot,path,previous):
+		push_error("월드 저장 실패: "+path)
+		return false
+	w.saved=snapshot.saved
+	return true
+
+static func load_world(path: String, simulate_absence: bool=true, now: float=-1.0) -> Dictionary:
+	if not FileAccess.file_exists(path) and not FileAccess.file_exists(path+".bak"): return fresh()
+	var primary:=Store.read(path)
+	if Store.unsupported(primary): return {}
+	var w:=primary.duplicate(true)
+	if not Store.valid(w):
+		w=Store.read(path+".bak")
+		if not Store.valid(w): return {}
+	if now<0: now=Time.get_unix_time_from_system()
+	for p in w.people.values():
+		outfit(p)
+		p.offline=true
+	if simulate_absence: advance(w,maxf(0,now-float(w.saved)))
+	# Commit both rewards and the processed timestamp before allowing play.
+	if not checkpoint(w,path,now,primary): return {}
 	return w

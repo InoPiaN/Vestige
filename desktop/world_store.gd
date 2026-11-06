@@ -14,7 +14,7 @@ static func pages_valid(pages: Variant) -> bool:
 	return true
 
 static func valid(w: Dictionary) -> bool:
-	if w.get("version")!=1 or not numbers(w,["time","saved"]): return false
+	if (w.get("version")!=1 and w.get("version")!=2) or not numbers(w,["time","saved"]): return false
 	if w.time<0 or w.saved<0: return false
 	if not w.get("people") is Dictionary or not w.get("wolf") is Dictionary: return false
 	if not numbers(w.wolf,["x","y","hp","cooldown","warning","respawn"]): return false
@@ -31,6 +31,31 @@ static func valid(w: Dictionary) -> bool:
 			if not event is String: return false
 		for key in ["look","equipment","belongings"]:
 			if p.has(key) and not p[key] is Dictionary: return false
+	if w.version==2: return history_valid(w)
+	return true
+
+static func history_valid(w: Dictionary) -> bool:
+	if not w.get("estate") is Dictionary or not w.get("cases") is Dictionary: return false
+	if not w.estate.get("owner") is String or not w.estate.get("shelf") is String: return false
+	for p in w.people.values():
+		if not p.get("life") is String or p.life.is_empty() or not p.get("notebook") is Dictionary: return false
+		for id in p.notebook:
+			if not w.cases.has(id) or not p.notebook[id] is Dictionary: return false
+			for note in p.notebook[id].values():
+				if not note is String: return false
+	for id in w.cases:
+		var c=w.cases[id]
+		if not c is Dictionary or not numbers(c,["x","y"]): return false
+		if not c.get("name") is String or not c.get("truth") is String or not c.get("resolved") is bool: return false
+		if id!=w.estate.owner: return false
+		if not w.graves.any(func(grave): return grave.get("case_id","")==id): return false
+		if not w.books.any(func(book): return book.get("case_id","")==id): return false
+	for book in w.books:
+		if book.has("case_id") and not w.cases.has(book.case_id): return false
+	for grave in w.graves:
+		if grave.has("case_id") and not w.cases.has(grave.case_id): return false
+	if not w.estate.owner.is_empty() and not w.cases.has(w.estate.owner):
+		if not w.people.values().any(func(person): return person.life==w.estate.owner and person.alive): return false
 	return true
 
 static func read(path: String) -> Dictionary:
@@ -42,7 +67,7 @@ static func read(path: String) -> Dictionary:
 	return parser.data
 
 static func unsupported(w: Dictionary) -> bool:
-	return numbers(w,["version"]) and w.version>1
+	return numbers(w,["version"]) and w.version>2
 
 # Write beside the destination. Replace each file only after its staging step succeeds.
 static func replace(w: Dictionary, path: String, previous: Dictionary) -> bool:

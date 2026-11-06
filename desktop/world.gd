@@ -2,11 +2,13 @@ extends RefCounted
 
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
+const Investigation=preload("res://investigation.gd")
 const DAY := 2880.0
 const PLACES := [
 	{"kind":"forge","name":"잿불 대장간","x":5,"y":7},
 	{"kind":"library","name":"기억의 서재","x":10,"y":4},
 	{"kind":"inn","name":"등불 여관","x":11,"y":11},
+	{"kind":"home","name":"언덕집 · 매입 8은화 / 일지 보관","x":7,"y":13},
 	{"kind":"grave","name":"이름의 묘지","x":4,"y":14},
 	{"kind":"ore","name":"철광맥","x":21,"y":5},
 	{"kind":"herb","name":"달빛 약초","x":22,"y":14},
@@ -38,7 +40,10 @@ static func outfit(p: Dictionary) -> void:
 	if not p.has("action"): p.action="idle"
 
 static func fresh() -> Dictionary:
-	return {"version":1,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":2,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+
+	Investigation.prepare(w)
+	return w
 
 static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) -> void:
 	if w.people.has(id) and w.people[id].alive:
@@ -47,6 +52,7 @@ static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) 
 
 	w.people[id].look=clean_look(look)
 	outfit(w.people[id])
+	Investigation.prepare_person(w.people[id])
 
 static func die(w: Dictionary, id: String, cause: String, day: int=0) -> void:
 	var p: Dictionary = w.people[id]
@@ -57,6 +63,7 @@ static func die(w: Dictionary, id: String, cause: String, day: int=0) -> void:
 	p.hp=0
 	w.graves.append({"name":p.name,"cause":cause,"day":day if day>0 else int(w.time/DAY)+1,"x":p.x,"y":p.y})
 	w.books.append({"author":p.name,"pages":p.journal.duplicate(true),"last":" ".join(p.events)})
+	Investigation.record_death(w,p,w.graves.back(),w.books.back())
 	p.events.append(cause+"으로 삶을 마쳤다.")
 
 static func advance(w: Dictionary, seconds: float) -> void:
@@ -109,7 +116,7 @@ static func walkable(v: Vector2) -> bool:
 	if v.x<1 or v.y<1 or v.x>29 or v.y>18:
 		return false
 	for t in PLACES:
-		if t.kind in ["forge","library","inn"]:
+		if t.kind in ["forge","library","inn","home"]:
 			if Rect2(t.x-1,t.y-1.5,2,1.9).has_point(v):
 				return false
 	return true
@@ -217,6 +224,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="investigate": return Investigation.investigate(w,p)
 	if kind=="dodge":
 		if p.stamina>=30 and p.dodge<=0:
 			p.stamina-=30
@@ -247,6 +255,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	var t:=nearby(p)
 	if t.is_empty(): return "시설이나 자원 가까이에서 E를 누르세요."
 	match t.kind:
+		"home": return Investigation.visit_house(w,p)
 		"ore":
 			if p.attack>0: return ""
 			if p.ore>=20: return "철광석 보관함이 가득 찼습니다."
@@ -309,7 +318,10 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		w=Store.read(path+".bak")
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
+	Investigation.prepare(w)
+	w.version=2
 	for p in w.people.values():
+		Investigation.prepare_person(p)
 		outfit(p)
 		p.offline=true
 	if simulate_absence: advance(w,maxf(0,now-float(w.saved)))

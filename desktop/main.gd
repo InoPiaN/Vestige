@@ -47,6 +47,15 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
+	if "--investigation-demo" in OS.get_cmdline_user_args():
+		save_path="user://investigation-demo.json"
+		if not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"):
+			if not Rules.save_world(preload("res://investigation_demo.gd").create(),save_path):
+				push_error("체험 월드를 만들 수 없습니다.")
+				return
+		start_single()
+		if mode=="single": message("마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다.")
+		return
 	if "--qa" in OS.get_cmdline_user_args():
 		DisplayServer.window_set_title("Vestige QA · 독립 시험 월드")
 		save_path="user://qa-world.json"
@@ -154,6 +163,7 @@ func register_player(token: String, display_name: String, look_json: String="{}"
 
 func send_snapshot(peer: int) -> void:
 	var snapshot: Dictionary=world.duplicate(true)
+	Rules.Investigation.redact(snapshot,peers[peer])
 	for id in snapshot.people:
 		if id!=peers[peer]:
 			snapshot.people[id].journal=[]
@@ -253,6 +263,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible or dressing.visible or bag.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
+		KEY_F: perform("investigate")
 		KEY_SPACE: perform("attack")
 		KEY_SHIFT: perform("dodge")
 		KEY_Q: perform("heal")
@@ -318,7 +329,7 @@ func build_ui() -> void:
 	label_at(menu,"V E S T I G E",Vector2(90,100),64,Color("e1d1a3"))
 	label_at(menu,"잿불의 기록",Vector2(95,183),24)
 	label_at(menu,"당신이 떠난 뒤에도,\n이곳의 삶은 계속된다.",Vector2(95,260),30)
-	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.3.2 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
+	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.4.0 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
 	input_name=LineEdit.new()
 	input_name.text="에단"
 	input_name.max_length=20
@@ -448,6 +459,10 @@ func refresh() -> void:
 	var t:=Rules.nearby(p)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
+	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 책장"
+	if t.get("kind") in ["home","grave"] or not Rules.Investigation.traces(world,p).is_empty():
+		prompt.text+="   F · 흔적 조사"
+
 func style_meter(bar: ProgressBar, color: Color) -> void:
 	var background:=StyleBoxFlat.new()
 	background.bg_color=Color("28342e")
@@ -458,7 +473,8 @@ func style_meter(bar: ProgressBar, color: Color) -> void:
 
 func message(text: String) -> void:
 	if text.is_empty(): return
-	if text=="서재": open_library()
+	if text.begins_with("조사 기록\n"): show_pages(text)
+	elif text=="서재": open_library()
 	elif text=="묘지": open_graves()
 	else:
 		notice.text=text
@@ -477,6 +493,10 @@ func open_journal() -> void:
 	for entry in p.journal: text+="제 %d일\n%s\n\n" % [entry.day,entry.text]
 	if p.journal.is_empty(): text+="아직 하루가 끝나지 않았습니다.\n생활을 맡긴 뒤 ‘하루 진행’으로 첫 기록을 확인할 수 있습니다.\n\n"
 	text+="오늘의 메모\n"+"\n".join(p.events)
+	if not p.notebook.is_empty():
+		text+="\n\n조사 수첩\n"
+		for notes in p.notebook.values():
+			for entry in notes.values(): text+=entry+"\n"
 	show_pages(text)
 
 func open_library() -> void:
@@ -484,6 +504,7 @@ func open_library() -> void:
 	if world.people[me].relic>0:
 		text+="약초사 이렌의 마지막 장\n\n“종소리가 멎은 지 사흘. 예배당에 약을 두고 간다.\n돌아오지 못하더라도, 누군가는 이 길을 걸을 것이다.”\n\n예배당에서 발견한 고정된 이야기 기록입니다.\n\n"
 	for book in world.books:
+		if not Rules.Investigation.may_read(world.people[me],book): continue
 		text+=book.author+"의 남겨진 일기\n"
 		for e in book.pages: text+="%d일 · %s\n" % [e.day,e.text]
 		text+=book.last+"\n\n"

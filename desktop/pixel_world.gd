@@ -251,7 +251,7 @@ func _draw() -> void:
 		var x: float=t.x*16
 		var y: float=t.y*16
 		match t.kind:
-			"forge","inn","library": house(x,y,t.kind)
+			"forge","inn","library","home": house(x,y,t.kind)
 			"grave":
 				for i in range(4):
 					box(x-18+i*12,y-7+(i%2)*9,8,13,"89917d")
@@ -283,6 +283,10 @@ func _draw() -> void:
 	hero(105+sin(clock*0.3)*8,135,{"steps":clock,"motion":1.0,"direction":"right" if cos(clock*0.3)>0 else "left","alive":true},true)
 	hero(208,210,{"steps":0,"alive":true},true)
 	if world.is_empty(): return
+	if world.people.has(player_id):
+		for trace in Rules.Investigation.traces(world,world.people[player_id]):
+			box(trace.x*16-3,trace.y*16+5,7,3,"877557")
+			box(trace.x*16-2,trace.y*16+4,3,2,"d6bd86")
 	var e: Dictionary=world.wolf
 	if e.hp>0:
 		var x: float=e.x*16

@@ -4,12 +4,14 @@ const Rules=preload("res://world.gd")
 var game: Node
 var requested:=false
 var started:=0
+var witness_case: bool="--witness" in OS.get_cmdline_user_args()
 func _initialize() -> void:
 	call_deferred("start")
 func start() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--fixture="):
-			var w:=preload("res://investigation_demo.gd").create()
+			var demo:=preload("res://investigation_demo.gd")
+			var w:=demo.murder() if witness_case else demo.create()
 			var traveler: Dictionary=w.people.local
 			w.people.erase("local")
 			w.people["c".repeat(48)]=traveler
@@ -41,7 +43,7 @@ func _process(_dt: float) -> bool:
 		return false
 	if not requested:
 		var pos:=Rules.pos(game.world.people[game.me])
-		var door:=Vector2(7,14)
+		var door:=Rules.Investigation.Witness.STATION if witness_case else Vector2(7,14)
 		if pos.distance_to(door)>0.5:
 			game.movement.rpc_id(1,(door-pos).normalized())
 			return false
@@ -50,10 +52,11 @@ func _process(_dt: float) -> bool:
 		game.command.rpc_id(1,"investigate")
 		return false
 	if not game.world.people[game.me].notebook.is_empty():
-		if not game.panel_text.text.contains("예배당"):
+		var expected: String="얼굴은 보지 못했어" if witness_case else "예배당"
+		if not game.panel_text.text.contains(expected) or (witness_case and JSON.stringify(game.world).contains("하렌")):
 			push_error("Shelf text did not reach investigator")
 			quit(1)
 		else:
-			print("PASS: ENet client opens shelf by proximity while remote truth stays hidden")
+			print("PASS: ENet investigator receives local evidence while case truth stays hidden")
 			quit()
 	return false

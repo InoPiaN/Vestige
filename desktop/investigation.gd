@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Witness=preload("res://witness.gd")
 const HOME := Vector2(7,13)
 const CEMETERY := Vector2(4,14)
 const PRICE := 8
@@ -42,9 +43,14 @@ static func record_death(w: Dictionary,p: Dictionary,grave: Dictionary,book: Dic
 	book.case_id=id
 
 static func evidence(c: Dictionary) -> String:
+	if c.has("roster"): return "핏자국 옆에서 %s 조각을 발견했다. 장터 상자 곁의 등불지기 미라에게 그날의 일을 물어보자." % c.trace_mark
 	if c.truth=="늑대와의 전투": return "찢긴 옷과 그 주위를 맴돈 늑대 발자국을 확인했다."
 	if c.truth=="노환": return "몸 곁의 유품은 가지런했고 다툰 흔적은 보이지 않았다."
 	return "사망 장소에서 망자의 소지품을 확인했다."
+
+static func has_witness(w: Dictionary) -> bool:
+	if w.has("witness_available"): return w.witness_available
+	return w.cases.get(w.estate.owner,{}).has("roster")
 
 static func traces(w: Dictionary,p: Dictionary) -> Array:
 	if w.has("visible_traces"): return w.visible_traces
@@ -64,8 +70,16 @@ static func investigate(w: Dictionary,p: Dictionary) -> String:
 		if near(p,Vector2(c.x,c.y)):
 			notes.scene=c.name+"의 현장 · "+evidence(c)
 			lines.append(notes.scene)
+		if c.has("roster") and near(p,Witness.STATION):
+			var testimony:=Witness.testify(c)
+			if not c.observation.is_empty(): notes.witness=testimony
+			lines.append(testimony)
 		if near(p,CEMETERY):
-			if notes.has("home") and notes.has("scene"):
+			if c.has("roster") and notes.has("home") and notes.has("scene"):
+				if notes.has("finding"): lines.append(notes.finding)
+				elif notes.has("witness"): lines.append(Witness.candidates(c))
+				else: lines.append("장터의 등불지기에게 그날 무엇을 보았는지 물어보자.")
+			elif notes.has("home") and notes.has("scene"):
 				notes.finding=c.name+"의 장례 기록을 단서와 대조했다. 확인된 사인: "+c.truth
 				if not c.resolved:
 					for grave in w.graves:
@@ -89,6 +103,7 @@ static func may_read(p: Dictionary,book: Dictionary) -> bool:
 
 static func redact(snapshot: Dictionary,viewer: String) -> void:
 	var p: Dictionary=snapshot.people[viewer]
+	snapshot.witness_available=has_witness(snapshot)
 	snapshot.visible_traces=traces(snapshot,p)
 	for id in snapshot.people.keys():
 		if id==viewer: continue

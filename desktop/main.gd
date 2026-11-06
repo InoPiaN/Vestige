@@ -47,10 +47,13 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	if "--investigation-demo" in OS.get_cmdline_user_args():
-		save_path="user://investigation-demo.json"
+	var murder_demo: bool="--witness-demo" in OS.get_cmdline_user_args()
+	if murder_demo or "--investigation-demo" in OS.get_cmdline_user_args():
+		save_path="user://witness-demo.json" if murder_demo else "user://investigation-demo.json"
 		if not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"):
-			if not Rules.save_world(preload("res://investigation_demo.gd").create(),save_path):
+			var demo=preload("res://investigation_demo.gd")
+			var opening: Dictionary=demo.murder() if murder_demo else demo.create()
+			if not Rules.save_world(opening,save_path):
 				push_error("체험 월드를 만들 수 없습니다.")
 				return
 		start_single()
@@ -260,6 +263,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		if bag.visible: bag.hide()
 		else: open_inventory()
 		return
+	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
+		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
+		return
 	if panel.visible or dressing.visible or bag.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
@@ -329,7 +335,7 @@ func build_ui() -> void:
 	label_at(menu,"V E S T I G E",Vector2(90,100),64,Color("e1d1a3"))
 	label_at(menu,"잿불의 기록",Vector2(95,183),24)
 	label_at(menu,"당신이 떠난 뒤에도,\n이곳의 삶은 계속된다.",Vector2(95,260),30)
-	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.4.0 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
+	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.4.1 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
 	input_name=LineEdit.new()
 	input_name.text="에단"
 	input_name.max_length=20
@@ -462,6 +468,7 @@ func refresh() -> void:
 	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 책장"
 	if t.get("kind") in ["home","grave"] or not Rules.Investigation.traces(world,p).is_empty():
 		prompt.text+="   F · 흔적 조사"
+	elif Rules.Investigation.has_witness(world) and Rules.Investigation.near(p,Rules.Investigation.Witness.STATION): prompt.text="F · 등불지기 미라에게 묻기"
 
 func style_meter(bar: ProgressBar, color: Color) -> void:
 	var background:=StyleBoxFlat.new()

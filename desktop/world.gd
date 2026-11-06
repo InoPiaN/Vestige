@@ -66,6 +66,24 @@ static func die(w: Dictionary, id: String, cause: String, day: int=0) -> void:
 	Investigation.record_death(w,p,w.graves.back(),w.books.back())
 	p.events.append(cause+"으로 삶을 마쳤다.")
 
+# Scripted NPC encounter. Clients cannot invoke it through the command API.
+static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: Vector2,roster: Array,damage: int) -> bool:
+	if not w.people.has(id) or damage<=0: return false
+	var victim: Dictionary=w.people[id]
+	if not victim.alive or w.estate.owner!=victim.life: return false
+	if pos(victim).distance_to(pos(attacker))>Investigation.Witness.REACH: return false
+	victim.hp=maxi(0,victim.hp-damage)
+	victim.hurt=0.22
+	if victim.hp>0: return false
+	var observation:=Investigation.Witness.observe(observer,pos(attacker),pos(victim),attacker.mark,PLACES,int(w.time/DAY)+1)
+	die(w,id,"칼에 의한 살해")
+	var c: Dictionary=w.cases[victim.life]
+	c.roster=roster.duplicate(true)
+	c.attacker=attacker.name
+	c.trace_mark=attacker.mark
+	c.observation=observation
+	return true
+
 static func advance(w: Dictionary, seconds: float) -> void:
 	var old_day := int(w.time / DAY)
 	w.time += maxf(0, seconds)
@@ -224,6 +242,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="identify": return Investigation.Witness.identify(w,p,value)
 	if kind=="investigate": return Investigation.investigate(w,p)
 	if kind=="dodge":
 		if p.stamina>=30 and p.dodge<=0:

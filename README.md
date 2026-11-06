@@ -1,19 +1,25 @@
-# Vestige · 설치형 도트 시제품 0.4.0
+# Vestige · 설치형 도트 시제품 0.4.1
 
 ## 바로 실행
 
-- Mac 최신: `builds/Vestige-0.4.0.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `builds/windows-0.4.0/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `builds/Vestige-0.4.1.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `builds/windows-0.4.1/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
+
+### 장터의 마지막 장부 (목격자 체험)
+
+Mac은 빌드 폴더의 **Play-Witness.command**, Windows는 **Play-Witness.cmd**로 엽니다. 실행 파일에 `-- --witness-demo`를 전달해도 됩니다. 조사 상태는 `witness-demo.json`에 저장됩니다.
+
+묘지에서 F로 장부지기 은결의 기록을 살핀 후, 언덕집 장부와 장터 동쪽의 현장 조각을 조사합니다. 장터 상자 옆 등불지기 미라에게 다가가 F로 말을 걸면 그날 직접 본 모습이 수첩에 남습니다. J로 단서를 비교하고 묘지에서 F를 누른 뒤 숫자 1 또는 2로 용의자를 지목합니다. 잘못 지목해도 기록을 재검토하고 다시 선택할 수 있습니다.
 
 ### 소율의 마지막 행적 (체험 월드)
 
 프로젝트 루트에서 다음 명령으로 독립 싱글 저장 `investigation-demo.json`을 열 수 있습니다. 일반 월드에서는 마을 서남쪽 언덕집 문 앞에서 E로 은화 8개에 집을 매입합니다. 이후 E를 누를 때마다 그때까지의 일지를 책장에 보관합니다.
 
 ```sh
-builds/Vestige-0.4.0.app/Contents/MacOS/Vestige -- --investigation-demo
+builds/Vestige-0.4.1.app/Contents/MacOS/Vestige -- --investigation-demo
 ```
 
 Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 실행합니다. 체험 월드는 약초꾼 소율이 예배당으로 떠난 뒤 새 여행자가 도착한 상태에서 시작합니다.
@@ -31,7 +37,7 @@ Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 �
 
 게임 오른쪽 ‘외형 · 장비’에서 가죽 갑옷·후드·망토·철검을 착용/해제하고 투구를 숨길 수 있습니다. 갑옷·후드·망토는 시작 외형 장비이며 방어력은 아직 없습니다. 철검은 제작 후 착용할 수 있고 착용할 때만 공격력 22가 적용됩니다(맨손 9). 기존 저장은 기본 외형과 보유 철검을 보존합니다.
 
-전체 진행 상태와 집·죽음 추적 시나리오는 [개발 목록](docs/DEVELOPMENT_ROADMAP.md)에 정리했습니다. 고정 주택 한 채의 소유·일지 보관과 사망 사건 조사를 구현했습니다. 건축·상속·살인 사건·주민 증언은 후속 작업입니다.
+전체 진행 상태와 집·죽음 추적 시나리오는 [개발 목록](docs/DEVELOPMENT_ROADMAP.md)에 정리했습니다. 고정 주택 한 채의 소유·일지 보관과 사망 사건 조사를 구현했습니다. 등불지기의 목격 증언으로 NPC 사건을 조사할 수 있습니다. 건축과 상속은 후속 작업입니다.
 
 ### 인벤토리
 
@@ -57,7 +63,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-builds/Vestige-0.4.0.app/Contents/MacOS/Vestige --headless -- --server
+builds/Vestige-0.4.1.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -93,7 +99,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.4.0.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.4.1.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

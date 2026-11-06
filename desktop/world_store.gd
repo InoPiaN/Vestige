@@ -47,6 +47,12 @@ static func history_valid(w: Dictionary) -> bool:
 		var c=w.cases[id]
 		if not c is Dictionary or not numbers(c,["x","y"]): return false
 		if not c.get("name") is String or not c.get("truth") is String or not c.get("resolved") is bool: return false
+		if c.truth=="칼에 의한 살해":
+			if not c.get("roster") is Array or c.roster.size()!=2 or not c.get("attacker") is String or not c.get("trace_mark") is String: return false
+			for suspect in c.roster:
+				if not suspect is Dictionary or not suspect.get("name") is String or not suspect.get("mark") is String: return false
+			if not c.get("observation") is Dictionary: return false
+			if not c.observation.is_empty() and (not numbers(c.observation,["day"]) or not c.observation.get("mark") is String): return false
 		if id!=w.estate.owner: return false
 		if not w.graves.any(func(grave): return grave.get("case_id","")==id): return false
 		if not w.books.any(func(book): return book.get("case_id","")==id): return false

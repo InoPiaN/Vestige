@@ -98,6 +98,8 @@ static func advance(w: Dictionary, seconds: float) -> void:
 		w.wolf.hp=50
 		w.wolf.x=25.0
 		w.wolf.y=10.0
+		w.wolf.warning=0.0
+		w.wolf.cooldown=0.0
 
 static func pos(p: Dictionary) -> Vector2:
 	return Vector2(p.x,p.y)
@@ -274,8 +276,8 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 			p.events.append("등불 여관에서 따뜻한 식사를 하고 쉬었다.")
 			return "체력을 모두 회복했습니다."
 		"ruin":
-			if w.wolf.hp>0: return "예배당을 지키는 늑대를 먼저 물리쳐야 합니다."
 			if p.relic>0: return "이미 조사한 장소입니다. 서재에서 발견한 기록을 읽어보세요."
+			if w.wolf.hp>0: return "예배당을 지키는 늑대를 먼저 물리쳐야 합니다."
 			p.relic=1
 			p.events.append("예배당에서 약초사 이렌의 마지막 일기와 낡은 유물을 찾았다.")
 			return "유물과 이렌의 기록을 발견했습니다. 서재에 돌아가 보세요."

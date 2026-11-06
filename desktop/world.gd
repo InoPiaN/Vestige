@@ -1,5 +1,6 @@
 extends RefCounted
 
+const CharacterMotion=preload("res://animation.gd")
 const DAY := 2880.0
 const PLACES := [
 	{"kind":"forge","name":"잿불 대장간","x":5,"y":7},
@@ -30,6 +31,10 @@ static func outfit(p: Dictionary) -> void:
 		if not p.equipment.get(slot,"none") in GEAR[slot]: p.equipment[slot]="none"
 	if p.sword<=0: p.equipment.weapon="none"
 	if not p.has("hide_helmet"): p.hide_helmet=false
+	if not p.has("direction"): p.direction="left" if p.get("facing",1)<0 else "down"
+	if not p.has("motion"): p.motion=0.0
+	if not p.has("hurt"): p.hurt=0.0
+	if not p.has("action"): p.action="idle"
 
 static func fresh() -> Dictionary:
 	return {"version":1,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
@@ -121,13 +126,18 @@ static func move(w: Dictionary, id: String, direction: Vector2, dt: float) -> vo
 	if walkable(next):
 		p.y=next.y
 	if d.length()>0:
-		p.steps+=dt*8
+		p.direction=CharacterMotion.direction(d)
 		p.facing=1 if d.x>=0 else -1
+	if pos(p).distance_to(old)>0.001:
+		p.steps+=pos(p).distance_to(old)*2.5
+		p.motion=0.12
 
 static func tick(w: Dictionary, dt: float) -> void:
 	advance(w,dt)
 	for p in w.people.values():
 		p.attack=maxf(0,p.attack-dt)
+		p.motion=maxf(0,p.get("motion",0.0)-dt)
+		p.hurt=maxf(0,p.get("hurt",0.0)-dt)
 		p.dodge=maxf(0,p.dodge-dt)
 		p.stamina=minf(100,p.stamina+dt*16)
 		if p.alive and p.offline:
@@ -135,11 +145,14 @@ static func tick(w: Dictionary, dt: float) -> void:
 			if p.policy=="work": destination=Vector2(5,8)
 			if p.policy=="gather": destination=Vector2(15,13)
 			if p.policy=="train": destination=Vector2(9,9)
-			var v:=pos(p).move_toward(destination,dt*1.1)
-			if walkable(v):
+			var previous:=pos(p)
+			var v:=previous.move_toward(destination,dt*1.1)
+			if walkable(v) and v.distance_to(previous)>0.001:
 				p.x=v.x
 				p.y=v.y
-			p.steps+=dt*3
+				p.steps+=v.distance_to(previous)*2.5
+				p.motion=0.12
+				p.direction=CharacterMotion.direction(v-previous)
 	var e: Dictionary=w.wolf
 	if e.hp<=0:
 		return
@@ -161,6 +174,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 		if e.warning<=0:
 			if nearest<1.6 and target.dodge<=0:
 				target.hp-=18
+				target.hurt=0.22
 				if target.hp<=0: die(w,target_id,"늑대와의 전투")
 			e.cooldown=1.3
 	elif nearest<1.2 and e.cooldown<=0:
@@ -214,8 +228,10 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if kind=="attack":
 		if p.attack>0 or p.stamina<12: return ""
 		p.attack=0.5
+		p.action="attack"
 		p.stamina-=12
 		if w.wolf.hp>0 and pos(p).distance_to(pos(w.wolf))<2:
+			if pos(p).distance_to(pos(w.wolf))>0.1: p.direction=CharacterMotion.direction(pos(w.wolf)-pos(p))
 			w.wolf.hp-=22 if p.equipment.weapon=="iron_sword" else 9
 			if w.wolf.hp<=0:
 				w.wolf.hp=0
@@ -232,6 +248,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 			if p.attack>0: return ""
 			if p.ore>=20: return "철광석 보관함이 가득 찼습니다."
 			p.attack=0.6
+			p.action="work"
 			p.ore+=1
 			p.events.append("북쪽 광맥에서 철광석을 채굴했다.")
 			return "철광석 +1 · 2개를 모아 대장간으로 돌아가세요."
@@ -239,6 +256,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 			if p.attack>0: return ""
 			if p.herb>=20: return "약초 보관함이 가득 찼습니다."
 			p.attack=0.6
+			p.action="work"
 			p.herb+=1
 			p.events.append("숲 가장자리에서 달빛 약초를 채집했다.")
 			return "달빛 약초 +1 · Q로 치료할 수 있습니다."

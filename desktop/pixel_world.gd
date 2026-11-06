@@ -1,5 +1,6 @@
 extends Node2D
 
+const CharacterMotion=preload("res://animation.gd")
 const Rules=preload("res://world.gd")
 var world: Dictionary={}
 var player_id: String=""
@@ -100,7 +101,16 @@ func house(x: float,y: float,type: String) -> void:
 
 func hero(x: float,y: float,p: Dictionary,other: bool=false) -> void:
 	if not p.get("alive",true): return
-	var bob:=int(p.get("steps",0))%2
+	var pose:=CharacterMotion.pose(p)
+	var mirror: float=-1.0 if pose.direction=="left" else 1.0
+	draw_set_transform(Vector2(roundf(x),roundf(y)),0,Vector2(mirror,1))
+	hero_pose(0,pose.bob,p,other,pose)
+	draw_set_transform(Vector2.ZERO)
+
+func hero_pose(x: float,y: float,p: Dictionary,other: bool,pose: Dictionary) -> void:
+	var bob: int=pose.stride
+	var side: bool=pose.direction in ["left","right"]
+	var back: bool=pose.direction=="up"
 	box(x-5,y+5,11,3,"18251f")
 	var look: Dictionary=Rules.clean_look(p.get("look",{"cloth":2 if other else 0}))
 	var gear: Dictionary=p.get("equipment",{"weapon":"iron_sword" if p.get("sword",0)>0 else "none"})
@@ -111,20 +121,22 @@ func hero(x: float,y: float,p: Dictionary,other: bool=false) -> void:
 		box(x-7,y-7,14,12,"263a42")
 		box(x-6,y-6,3,10,"55727c")
 		box(x+4,y-3,3,8,"55727c")
-	if p.get("dodge",0)>0: cloth="b8d4cb"
+	if pose.dodging: cloth="b8d4cb"
+	if pose.hurt: cloth="edd6b0"
 	# A 16x24 silhouette: swept hair, one steel pauldron, split cloak.
 	box(x-5,y-8,10,12,"222c2c")
 	box(x-4,y-7,8,10,cloth)
 	box(x-4,y-5,2,9,"45423a")
 	box(x+3,y-4,2,7,"45423a")
-	box(x-3,y+3,3,4+bob,"272c2c")
-	box(x+1,y+3,3,5-bob,"272c2c")
+	box(x-3,y+3+bob,3,4,"272c2c")
+	box(x+1,y+3-bob,3,4,"272c2c")
 	box(x-3,y+3,2,1,"8c7860")
 	box(x+1,y+3,2,1,"8c7860")
 	box(x-3,y-15,7,8,"292c2d")
 	box(x-2,y-12,5,4,"b88963")
 	box(x-1,y-12,4,2,skin)
 	box(x+2,y-11,1,1,"292c2d")
+	if not side: box(x-1,y-11,1,1,"292c2d")
 	box(x-4,y-15,8,3,hair)
 	box(x-2,y-17,5,3,hair)
 	box(x-2,y-16,4,1,"a48a59")
@@ -154,14 +166,51 @@ func hero(x: float,y: float,p: Dictionary,other: bool=false) -> void:
 	box(x+4,y-5,2,6,cloth)
 	box(x-6,y,2,2,skin)
 	box(x+4,y,2,2,skin)
+	# Back-facing layers cover the face and belt; side view narrows the torso.
+	if side:
+		box(x-4,y-6,3,7,"45423a")
+		box(x-2,y-12,3,4,hair)
+	if back:
+		box(x-3,y-14,7,7,hair)
+		if look.hair==1: box(x-4,y-13,8,11,hair)
+		if gear.get("head")=="hood" and not p.get("hide_helmet",false):
+			box(x-4,y-17,9,11,"354c50")
+			box(x-3,y-16,3,8,"55727c")
+		box(x-3,y-6,7,8,cloth if gear.get("body")!="leather" else "594432")
+		if gear.get("cloak")=="traveler":
+			box(x-5,y-7,11,12,"354c58")
+			box(x-4,y-6,3,10,"66868b")
+			box(x+1,y-5,1,9,"263a42")
+	var hand:=Vector2(x+5,y+1)
+	var tip:=Vector2(x+7,y-12)
+	if pose.phase=="strike":
+		if back:
+			hand=Vector2(x+4,y-10)
+			tip=Vector2(x+4,y-24)
+		elif side:
+			hand=Vector2(x+9,y-4)
+			tip=Vector2(x+23,y-4)
+		else:
+			hand=Vector2(x+4,y+5)
+			tip=Vector2(x+4,y+19)
+	elif pose.phase=="recover":
+		hand+=Vector2(2,-2)
+		tip+=Vector2(4,3)
+	if pose.phase!="idle":
+		draw_line(Vector2(x+4,y-5),hand,Color(cloth),2,false)
+	box(hand.x-1,hand.y-1,3,3,skin)
 	if gear.get("weapon")=="iron_sword":
-		box(x+7,y-10,2,12,"738e90")
-		box(x+7,y-10,1,11,"dce0c3")
-		box(x+7,y-12,1,2,"dce0c3")
-		box(x+5,y+2,6,2,"b89a5d")
-		box(x+7,y+4,2,3,"584637")
-	if p.get("attack",0)>0.25:
-		draw_arc(Vector2(x,y-3),17,-1.4,1.1,8,Color("f4dc99"),2)
+		# Integer raster lines keep the blade sharp through every pose.
+		draw_line(hand,tip,Color("738e90"),2,false)
+		draw_line(hand+Vector2(-1,0),tip+Vector2(-1,0),Color("dce0c3"),1,false)
+		var cross:=Vector2(3,0) if absf(tip.y-hand.y)>absf(tip.x-hand.x) else Vector2(0,3)
+		draw_line(hand-cross,hand+cross,Color("b89a5d"),2,false)
+	if pose.phase=="strike" and gear.get("weapon")=="iron_sword":
+		var center: float=-PI/2 if back else (0.0 if side else PI/2)
+		draw_arc(Vector2(x,y-3),19,center-0.65,center+0.65,6,Color("f4dc99"),1,false)
+	if pose.hurt:
+		box(x-9,y-10,2,2,"f2ddba")
+		box(x+9,y-7,2,2,"f2ddba")
 
 func ruin(x: float,y: float) -> void:
 	box(x-24,y-10,47,25,"4b5448")
@@ -231,7 +280,7 @@ func _draw() -> void:
 		box(191+i*11,197,9,9,"705c3c")
 		box(192+i*11,198,7,1,"a28b5a")
 	for i in range(4): lamp(65+i*58,158)
-	hero(105+sin(clock*0.3)*8,135,{"steps":clock,"alive":true},true)
+	hero(105+sin(clock*0.3)*8,135,{"steps":clock,"motion":1.0,"direction":"right" if cos(clock*0.3)>0 else "left","alive":true},true)
 	hero(208,210,{"steps":0,"alive":true},true)
 	if world.is_empty(): return
 	var e: Dictionary=world.wolf

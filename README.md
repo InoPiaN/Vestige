@@ -1,9 +1,9 @@
-# Vestige · 설치형 도트 시제품 0.3.1
+# Vestige · 설치형 도트 시제품 0.3.2
 
 ## 바로 실행
 
-- Mac 최신: `builds/Vestige-0.3.1.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `builds/windows-0.3.1/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `builds/Vestige-0.3.2.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `builds/windows-0.3.2/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
@@ -40,7 +40,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-builds/Vestige-0.3.1.app/Contents/MacOS/Vestige --headless -- --server
+builds/Vestige-0.3.2.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -76,7 +76,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.3.1.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.3.2.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

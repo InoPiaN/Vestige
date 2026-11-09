@@ -9,6 +9,13 @@ var title: Label
 var put_button: Button
 var take_button: Button
 var signature:=""
+var current_world: Dictionary={}
+var current_person: Dictionary={}
+var remains_mode:=false
+var remains_id:=""
+var chooser: OptionButton
+var stored_heading: Label
+var hint: Label
 func _ready() -> void:
 	position=Vector2(160,80)
 	size=Vector2(960,640)
@@ -18,9 +25,14 @@ func _ready() -> void:
 	style.set_border_width_all(2)
 	add_theme_stylebox_override("panel",style)
 	title=label("집 보관함",Vector2(28,20))
-	button("닫기 · B / ESC",Vector2(770,20),hide)
+	button("닫기 · ESC",Vector2(770,20),hide)
 	label("소지품",Vector2(28,80))
-	label("집에 남겨진 물건",Vector2(500,80))
+	stored_heading=label("집에 남겨진 물건",Vector2(500,80))
+	chooser=OptionButton.new()
+	chooser.position=Vector2(500,75)
+	chooser.size=Vector2(430,38)
+	chooser.item_selected.connect(func(i): remains_id=chooser.get_item_metadata(i); signature=""; refresh(current_world,current_person))
+	add_child(chooser)
 	carried=list_at(Vector2(28,120))
 	stored=list_at(Vector2(500,120))
 	put_button=button("선택한 물품 1개 보관 →",Vector2(28,460),func(): transfer(false))
@@ -28,7 +40,7 @@ func _ready() -> void:
 	feedback=label("",Vector2(28,520))
 	feedback.size=Vector2(900,45)
 	feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	label("착용 중인 장비를 보관하면 벗습니다. 집에 보관한 물건은 죽어도 남습니다.\n증거물은 I의 별도 보관 버튼을 사용합니다. 싱글은 이 창에서 시간이 멈춥니다.",Vector2(28,580))
+	hint=label("착용 중인 장비를 보관하면 벗습니다. 집에 보관한 물건은 죽어도 남습니다.\n증거물은 I의 별도 보관 버튼을 사용합니다. 싱글은 이 창에서 시간이 멈춥니다.",Vector2(28,580))
 	hide()
 func label(text: String,at: Vector2) -> Label:
 	var node:=Label.new()
@@ -57,6 +69,10 @@ func fill(list: ItemList,p: Dictionary) -> void:
 	var selected: String=""
 	if not list.get_selected_items().is_empty(): selected=list.get_item_metadata(list.get_selected_items()[0])
 	list.clear()
+	if remains_mode and p.get("gold",0)>0:
+		var index:=list.add_item("은화 ×%d" % p.gold)
+		list.set_item_metadata(index,"gold")
+		if selected=="gold": list.select(index)
 	for row in Items.entries(p):
 		if row.id.begins_with("evidence:"): continue
 		var def:=Items.definition(p,row.id)
@@ -66,6 +82,15 @@ func fill(list: ItemList,p: Dictionary) -> void:
 		list.set_item_tooltip(index,def.description)
 		if selected==row.id: list.select(index)
 func refresh(w: Dictionary,p: Dictionary) -> void:
+	current_world=w
+	current_person=p
+	chooser.visible=remains_mode
+	stored_heading.visible=not remains_mode
+	put_button.visible=not remains_mode
+	if remains_mode:
+		refresh_remains(w,p)
+		return
+	hint.text="착용 중인 장비를 보관하면 벗습니다. 집에 보관한 물건은 죽어도 남습니다.\n증거물은 I의 별도 보관 버튼을 사용합니다. 싱글은 이 창에서 시간이 멈춥니다."
 	var access: bool=Storage.allowed(w,p) and w.estate.has("storage")
 	put_button.disabled=not access
 	take_button.disabled=not access
@@ -87,4 +112,28 @@ func transfer(take: bool) -> void:
 	if list.get_selected_items().is_empty():
 		feedback.text="목록에서 물품을 선택하세요."
 		return
-	action.emit("take_item" if take else "store_item",list.get_item_metadata(list.get_selected_items()[0]))
+	var id: String=list.get_item_metadata(list.get_selected_items()[0])
+	if remains_mode:
+		if take: action.emit("take_remains",remains_id+"|"+id)
+	else: action.emit("take_item" if take else "store_item",id)
+
+func refresh_remains(w: Dictionary,p: Dictionary) -> void:
+	var nearby:=preload("res://death_belongings.gd").visible(w,p)
+	if not nearby.has(remains_id): remains_id=nearby.keys()[0] if not nearby.is_empty() else ""
+	var stamp:=JSON.stringify([nearby,Items.entries(p),p.gold,p.get("equipped_ids",{}),remains_id,p.alive,p.offline])
+	if signature==stamp: return
+	signature=stamp
+	chooser.clear()
+	for id in nearby:
+		chooser.add_item(nearby[id].name+" · 제 %d일" % nearby[id].day)
+		var index:=chooser.item_count-1
+		chooser.set_item_metadata(index,id)
+		if id==remains_id: chooser.select(index)
+	title.text="현장에 남은 유품 · 1개씩 회수"
+	hint.text="일반 물품과 은화를 회수합니다. 장비 번호는 그대로 유지됩니다.\n증거 조각과 사건 흔적은 F로 조사하세요. 집의 보관물은 현장에 나오지 않습니다."
+	fill(carried,p)
+	take_button.disabled=remains_id.is_empty() or not p.alive or p.offline
+	if remains_id.is_empty():
+		stored.clear()
+		feedback.text="근처의 유품을 모두 회수했거나 회수할 유품이 없습니다."
+	else: fill(stored,nearby[remains_id].contents)

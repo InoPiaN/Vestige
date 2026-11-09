@@ -38,7 +38,11 @@ func run() -> void:
 	p.erase("look")
 	p.erase("equipment")
 	p.erase("hide_helmet")
-	Rules.save_world(w,"/tmp/vestige-customization-legacy.json")
+	var old:=w.duplicate(true)
+	old.version=1
+	var legacy_file:=FileAccess.open("/tmp/vestige-customization-legacy.json",FileAccess.WRITE)
+	legacy_file.store_string(JSON.stringify(old))
+	legacy_file.close()
 	var legacy:=Rules.load_world("/tmp/vestige-customization-legacy.json")
 	check(legacy.people.a.equipment.weapon=="iron_sword" and legacy.people.a.name=="루안","legacy save keeps name and sword with appearance defaults")
 	Rules.die(w,"a","시험")

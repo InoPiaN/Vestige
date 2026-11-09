@@ -2,6 +2,7 @@ extends RefCounted
 
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
+const Remains=preload("res://death_belongings.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
 const DAY := 2880.0
@@ -42,10 +43,11 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":4,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":5,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
+	Remains.prepare(w)
 	return w
 
 static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) -> void:
@@ -61,9 +63,11 @@ static func die(w: Dictionary, id: String, cause: String, day: int=0) -> void:
 	var p: Dictionary = w.people[id]
 	if not p.alive:
 		return
+	outfit(p)
 	p.alive=false
 	p.offline=true
 	p.hp=0
+	Remains.leave(w,p,day if day>0 else int(w.time/DAY)+1)
 	w.graves.append({"name":p.name,"cause":cause,"day":day if day>0 else int(w.time/DAY)+1,"x":p.x,"y":p.y})
 	w.books.append({"author":p.name,"pages":p.journal.duplicate(true),"last":" ".join(p.events)})
 	Investigation.Objects.drop(w,p)
@@ -249,6 +253,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="take_remains": return Remains.take(w,p,value)
 	if kind=="equip_instance": return Storage.equip(p,value)
 	if kind in ["store_item","take_item"]: return Storage.transfer(w,p,value,kind=="take_item")
 	if kind=="store_evidence": return Investigation.Objects.deposit(w,p,value)
@@ -351,7 +356,8 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=4
+	w.version=5
+	Remains.prepare(w)
 	for p in w.people.values():
 		Investigation.prepare_person(p)
 		outfit(p)

@@ -38,3 +38,26 @@ static func murder() -> Dictionary:
 	Rules.npc_strike(w,"local",attacker,Rules.Investigation.Witness.STATION,roster,100)
 	Rules.born(w,"local","기록을 좇는 여행자")
 	return w
+
+# Independent recovery tutorial; existing investigation saves are never reset.
+static func remains() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","떠난 여행자")
+	var owner: Dictionary=w.people.local
+	owner.x=7
+	owner.y=14
+	owner.herb=3
+	owner.ore=2
+	Rules.act(w,"local","interact")
+	Rules.act(w,"local","store_item","herb")
+	owner.x=5
+	owner.y=8
+	Rules.act(w,"local","interact")
+	owner.x=16
+	owner.y=13
+	owner.events.append("장터 동쪽에 도착했다. 남은 짐은 누군가에게 도움이 되기를.")
+	Rules.die(w,"local","여행 중 사고")
+	Rules.born(w,"local","유품을 찾는 여행자")
+	w.people.local.x=15
+	w.people.local.y=13
+	return w

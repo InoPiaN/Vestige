@@ -48,17 +48,18 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
+	var remains_demo: bool="--remains-demo" in OS.get_cmdline_user_args()
 	var murder_demo: bool="--witness-demo" in OS.get_cmdline_user_args()
-	if murder_demo or "--investigation-demo" in OS.get_cmdline_user_args():
-		save_path="user://witness-demo.json" if murder_demo else "user://investigation-demo.json"
+	if remains_demo or murder_demo or "--investigation-demo" in OS.get_cmdline_user_args():
+		save_path="user://remains-demo.json" if remains_demo else ("user://witness-demo.json" if murder_demo else "user://investigation-demo.json")
 		if not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"):
 			var demo=preload("res://investigation_demo.gd")
-			var opening: Dictionary=demo.murder() if murder_demo else demo.create()
+			var opening: Dictionary=demo.remains() if remains_demo else (demo.murder() if murder_demo else demo.create())
 			if not Rules.save_world(opening,save_path):
 				push_error("체험 월드를 만들 수 없습니다.")
 				return
 		start_single()
-		if mode=="single": message("마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다.")
+		if mode=="single": message("G로 근처 여행자의 유품을 회수하세요. 집에서는 B로 보관합니다." if remains_demo else "마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다.")
 		return
 	if "--qa" in OS.get_cmdline_user_args():
 		DisplayServer.window_set_title("Vestige QA · 독립 시험 월드")
@@ -261,8 +262,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		bag.hide()
 		chest.hide()
 		return
+	if event.physical_keycode==KEY_G:
+		if chest.visible and chest.remains_mode: chest.hide()
+		else: open_storage(true)
+		return
 	if event.physical_keycode==KEY_B:
-		if chest.visible: chest.hide()
+		if chest.visible and not chest.remains_mode: chest.hide()
 		else: open_storage()
 		return
 	if event.physical_keycode==KEY_I:
@@ -480,6 +485,8 @@ func refresh() -> void:
 		prompt.text+="   F · 흔적 조사"
 	elif Rules.Investigation.has_witness(world) and Rules.Investigation.near(p,Rules.Investigation.Witness.STATION): prompt.text="F · 등불지기 미라에게 묻기"
 
+	if not Rules.Remains.visible(world,p).is_empty(): prompt.text+="   G · 유품 회수"
+
 func style_meter(bar: ProgressBar, color: Color) -> void:
 	var background:=StyleBoxFlat.new()
 	background.bg_color=Color("28342e")
@@ -637,12 +644,13 @@ func open_inventory() -> void:
 	bag.refresh(world.people[me])
 	bag.show()
 
-func open_storage() -> void:
+func open_storage(remains_mode: bool=false) -> void:
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
 	dressing.hide()
 	bag.hide()
 	chest.feedback.text=""
 	chest.signature=""
+	chest.remains_mode=remains_mode
 	chest.refresh(world,world.people[me])
 	chest.show()

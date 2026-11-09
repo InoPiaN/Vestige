@@ -62,6 +62,8 @@ static func traces(w: Dictionary,p: Dictionary) -> Array:
 	for c in w.cases.values():
 		if c.has("object") and c.object.place=="ground" and near(p,Vector2(c.object.x,c.object.y)):
 			found.append({"x":c.object.x,"y":c.object.y})
+	for row in preload("res://death_belongings.gd").visible(w,p).values():
+		found.append({"x":row.x,"y":row.y})
 	return found
 
 static func investigate(w: Dictionary,p: Dictionary) -> String:
@@ -110,6 +112,7 @@ static func may_read(p: Dictionary,book: Dictionary) -> bool:
 
 static func redact(snapshot: Dictionary,viewer: String) -> void:
 	var p: Dictionary=snapshot.people[viewer]
+	snapshot.remains=preload("res://death_belongings.gd").visible(snapshot,p)
 	snapshot.witness_available=has_witness(snapshot)
 	snapshot.visible_traces=traces(snapshot,p)
 	for id in snapshot.people.keys():

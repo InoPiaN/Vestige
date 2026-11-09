@@ -83,7 +83,7 @@ func refresh(p: Dictionary) -> void:
 	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
 	if signature==stamp: return
 	signature=stamp
-	heading.text="소지품  ·  %d종  /  은화 %d" % [Items.entries(p).size(),p.get("gold",0)]
+	heading.text="소지품  ·  %d항목  /  은화 %d" % [Items.entries(p).size(),p.get("gold",0)]
 	for i in range(slots.size()):
 		var cell:=slots[i]
 		cell.disabled=i>=rows.size()
@@ -96,7 +96,7 @@ func refresh(p: Dictionary) -> void:
 		var row: Dictionary=rows[i]
 		var item: Dictionary=Items.definition(p,row.id)
 		cell.set_meta("item",row.id)
-		var equipped: bool=item.has("slot") and p.get("equipment",{}).get(item.slot)==row.id
+		var equipped: bool=item.has("slot") and (p.get("equipped_ids",{}).get(item.slot)==row.id if row.id.begins_with("gear-") else p.get("equipment",{}).get(item.slot)==row.id)
 		if row.id==selected:
 			var highlight:=StyleBoxFlat.new()
 			highlight.bg_color=Color("34483b")
@@ -117,7 +117,7 @@ func refresh(p: Dictionary) -> void:
 	details.text=item.name+"\n"+item.category+" · %d / %d\n\n" % [count,item.limit]+item.description
 	use_button.disabled=not p.get("alive",true)
 	if item.has("slot"):
-		var worn: bool=p.equipment.get(item.slot)==selected
+		var worn: bool=(p.get("equipped_ids",{}).get(item.slot)==selected if selected.begins_with("gear-") else p.equipment.get(item.slot)==selected)
 		use_button.text="착용 해제" if worn else "착용"
 	elif selected.begins_with("evidence:"):
 		use_button.text="집 보관함에 남기기"
@@ -131,7 +131,9 @@ func refresh(p: Dictionary) -> void:
 func activate() -> void:
 	if selected.is_empty() or Items.quantity(person,selected)<=0 or use_button.disabled: return
 	var item: Dictionary=Items.definition(person,selected)
-	if item.has("slot"):
+	if selected.begins_with("gear-"):
+		action.emit("equip_instance",selected)
+	elif item.has("slot"):
 		var value: String="none" if person.equipment.get(item.slot)==selected else selected
 		action.emit("equip",item.slot+":"+value)
 	elif selected.begins_with("evidence:"): action.emit("store_evidence",selected)
@@ -142,6 +144,7 @@ func icon_for(id: String) -> ImageTexture:
 	if icons.has(id): return icons[id]
 	var image:=Image.create(16,16,false,Image.FORMAT_RGBA8)
 	var color:=Color(Items.definition(person,id).color)
+	id=person.get("gear_instances",{}).get(id,id)
 	if id=="iron_sword":
 		image.fill_rect(Rect2i(7,1,2,10),color)
 		image.fill_rect(Rect2i(4,10,8,2),Color("c5a46b"))

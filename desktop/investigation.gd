@@ -117,7 +117,12 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 		var other: Dictionary=snapshot.people[id]
 		other.erase("notebook")
 		other.erase("evidence_items")
+		other.erase("gear_instances")
+		other.erase("equipped_ids")
 		if not other.alive and snapshot.cases.has(other.life): snapshot.people.erase(id)
 	snapshot.books=snapshot.books.filter(func(book): return may_read(p,book))
+	var storage_access:=preload("res://house_storage.gd").allowed(snapshot,p)
+	snapshot.storage_access=storage_access
 	snapshot.erase("cases")
 	snapshot.estate.erase("shelf")
+	if not storage_access: snapshot.estate.erase("storage")

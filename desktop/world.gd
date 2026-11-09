@@ -2,6 +2,7 @@ extends RefCounted
 
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
+const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
 const DAY := 2880.0
 const PLACES := [
@@ -38,11 +39,13 @@ static func outfit(p: Dictionary) -> void:
 	if not p.has("motion"): p.motion=0.0
 	if not p.has("hurt"): p.hurt=0.0
 	if not p.has("action"): p.action="idle"
+	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":3,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":4,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
+	Storage.prepare(w)
 	return w
 
 static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) -> void:
@@ -108,6 +111,7 @@ static func advance(w: Dictionary, seconds: float) -> void:
 					if p.ore>=2 and p.sword<5:
 						p.ore-=2
 						p.sword+=1
+						Storage.reconcile(p)
 						p.skill+=1
 						p.events.append("대장간에서 철검을 완성했다.")
 					else:
@@ -230,6 +234,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		if parts.size()!=2 or not GEAR.has(parts[0]) or not parts[1] in GEAR[parts[0]]: return "장비 선택이 올바르지 않습니다."
 		if parts[1]!="none" and preload("res://items.gd").quantity(p,parts[1])<=0: return "먼저 대장간에서 철검을 제작하세요."
 		p.equipment[parts[0]]=parts[1]
+		Storage.reconcile(p)
 		return "장비를 변경했습니다."
 	if kind=="helmet":
 		p.hide_helmet=value=="hide"
@@ -244,6 +249,8 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="equip_instance": return Storage.equip(p,value)
+	if kind in ["store_item","take_item"]: return Storage.transfer(w,p,value,kind=="take_item")
 	if kind=="store_evidence": return Investigation.Objects.deposit(w,p,value)
 	if kind=="identify": return Investigation.Witness.identify(w,p,value)
 	if kind=="investigate": return Investigation.investigate(w,p)
@@ -300,6 +307,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 			p.ore-=2
 			p.sword+=1
 			p.equipment.weapon="iron_sword"
+			Storage.reconcile(p)
 			p.skill+=1
 			p.events.append("잿불 대장간에서 첫 여정을 위한 철검을 만들었다.")
 			return "철검을 만들었습니다. 공격력 9 → 22"
@@ -308,9 +316,10 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 			p.events.append("등불 여관에서 따뜻한 식사를 하고 쉬었다.")
 			return "체력을 모두 회복했습니다."
 		"ruin":
-			if p.relic>0: return "이미 조사한 장소입니다. 서재에서 발견한 기록을 읽어보세요."
+			if p.relic>0 or p.get("relic_found",false): return "이미 조사한 장소입니다. 서재에서 발견한 기록을 읽어보세요."
 			if w.wolf.hp>0: return "예배당을 지키는 늑대를 먼저 물리쳐야 합니다."
 			p.relic=1
+			p.relic_found=true
 			p.events.append("예배당에서 약초사 이렌의 마지막 일기와 낡은 유물을 찾았다.")
 			return "유물과 이렌의 기록을 발견했습니다. 서재에 돌아가 보세요."
 		"library": return "서재"
@@ -323,6 +332,7 @@ static func save_world(w: Dictionary, path: String, now: float=-1.0) -> bool:
 static func checkpoint(w: Dictionary, path: String, now: float, previous: Dictionary) -> bool:
 	if w.is_empty(): return false
 	if now<0: now=Time.get_unix_time_from_system()
+	Storage.prepare(w)
 	var snapshot:=w.duplicate(false)
 	snapshot.saved=maxf(w.saved,now)
 	if not Store.replace(snapshot,path,previous):
@@ -341,11 +351,12 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=3
+	w.version=4
 	for p in w.people.values():
 		Investigation.prepare_person(p)
 		outfit(p)
 		p.offline=true
+	Storage.prepare(w)
 	if simulate_absence: advance(w,maxf(0,now-float(w.saved)))
 	# Commit both rewards and the processed timestamp before allowing play.
 	if not checkpoint(w,path,now,primary): return {}

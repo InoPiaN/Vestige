@@ -10,8 +10,14 @@ const CATALOG := {
 	"relic":{"name":"이렌의 유물","category":"기록","field":"relic","limit":1,"color":"d1b777","description":"예배당에서 발견한 유물.\n서재에서 이렌의 기록을 읽을 수 있습니다."}
 }
 static func definition(p: Dictionary,id: String) -> Dictionary:
+	if p.get("gear_instances",{}).has(id):
+		var def: Dictionary=CATALOG[p.gear_instances[id]].duplicate()
+		def.name+=" · "+id.right(4)
+		def.limit=1
+		return def
 	return CATALOG.get(id,p.get("evidence_items",{}).get(id,{}))
 static func quantity(p: Dictionary, id: String) -> int:
+	if p.get("gear_instances",{}).has(id): return 1
 	if p.get("evidence_items",{}).has(id): return 1
 	if not CATALOG.has(id): return 0
 	var item: Dictionary=CATALOG[id]
@@ -20,9 +26,12 @@ static func quantity(p: Dictionary, id: String) -> int:
 static func entries(p: Dictionary, category: String="전체") -> Array:
 	var result: Array=[]
 	for id in CATALOG:
+		if CATALOG[id].has("slot") and p.has("gear_instances"): continue
 		var count:=quantity(p,id)
 		if count<=0 or (category!="전체" and CATALOG[id].category!=category): continue
 		result.append({"id":id,"count":count})
+	for id in p.get("gear_instances",{}):
+		if category in ["전체","장비"]: result.append({"id":id,"count":1})
 	for id in p.get("evidence_items",{}):
 		if category in ["전체","기록"]: result.append({"id":id,"count":1})
 	result.sort_custom(func(a,b): return String(definition(p,a.id).name)<String(definition(p,b.id).name))

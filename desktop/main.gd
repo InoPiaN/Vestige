@@ -14,6 +14,7 @@ var menu: Control
 var view: Node2D
 var status: Label
 var inventory: Label
+var chest: Panel
 var bag: Panel
 var date_label: Label
 var notice: Label
@@ -222,14 +223,14 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -258,6 +259,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		panel.hide()
 		dressing.hide()
 		bag.hide()
+		chest.hide()
+		return
+	if event.physical_keycode==KEY_B:
+		if chest.visible: chest.hide()
+		else: open_storage()
 		return
 	if event.physical_keycode==KEY_I:
 		if bag.visible: bag.hide()
@@ -266,7 +272,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible: return
+	if panel.visible or dressing.visible or bag.visible or chest.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
 		KEY_F: perform("investigate")
@@ -442,6 +448,9 @@ func build_ui() -> void:
 	bag=preload("res://inventory_panel.gd").new()
 	root.add_child(bag)
 	bag.action.connect(perform)
+	chest=preload("res://storage_panel.gd").new()
+	root.add_child(chest)
+	chest.action.connect(perform)
 
 func refresh() -> void:
 	if world.is_empty() or not world.people.has(me): return
@@ -451,6 +460,7 @@ func refresh() -> void:
 		dress_status.text="철검 착용 중 · 공격력 22" if p.equipment.weapon=="iron_sword" else "맨손 · 공격력 9"
 		for slot in gear_pickers: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
 	if bag.visible: bag.refresh(p)
+	if chest.visible: chest.refresh(world,p)
 	view.world=world
 	view.player_id=me
 	status.text="%s\n%s · %d세" % [p.name,"주민으로 생활 중" if p.offline else "직접 조종 중",int(p.age/360)]
@@ -465,7 +475,7 @@ func refresh() -> void:
 	var t:=Rules.nearby(p)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
-	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 책장"
+	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 책장   B · 보관함"
 	if t.get("kind") in ["home","grave"] or not Rules.Investigation.traces(world,p).is_empty():
 		prompt.text+="   F · 흔적 조사"
 	elif Rules.Investigation.has_witness(world) and Rules.Investigation.near(p,Rules.Investigation.Witness.STATION): prompt.text="F · 등불지기 미라에게 묻기"
@@ -486,9 +496,11 @@ func message(text: String) -> void:
 	else:
 		notice.text=text
 		if bag.visible: bag.feedback.text=text
+		if chest.visible: chest.feedback.text=text
 
 func show_pages(text: String) -> void:
 	bag.hide()
+	chest.hide()
 	dressing.hide()
 	panel_text.text=text
 	panel.show()
@@ -577,6 +589,7 @@ func build_dressing(root: Control) -> void:
 
 func open_dressing(purpose: String) -> void:
 	bag.hide()
+	chest.hide()
 	panel.hide()
 	dressing_mode=purpose
 	gear_pickers.clear()
@@ -616,9 +629,20 @@ func open_dressing(purpose: String) -> void:
 	dressing.show()
 
 func open_inventory() -> void:
+	chest.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
 	dressing.hide()
 	bag.feedback.text=""
 	bag.refresh(world.people[me])
 	bag.show()
+
+func open_storage() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	panel.hide()
+	dressing.hide()
+	bag.hide()
+	chest.feedback.text=""
+	chest.signature=""
+	chest.refresh(world,world.people[me])
+	chest.show()

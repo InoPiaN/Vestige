@@ -94,7 +94,7 @@ func refresh(p: Dictionary) -> void:
 		cell.set_meta("item","")
 		if i>=rows.size(): continue
 		var row: Dictionary=rows[i]
-		var item: Dictionary=Items.CATALOG[row.id]
+		var item: Dictionary=Items.definition(p,row.id)
 		cell.set_meta("item",row.id)
 		var equipped: bool=item.has("slot") and p.get("equipment",{}).get(item.slot)==row.id
 		if row.id==selected:
@@ -112,13 +112,16 @@ func refresh(p: Dictionary) -> void:
 		use_button.disabled=true
 		use_button.text="선택 없음"
 		return
-	var item: Dictionary=Items.CATALOG[selected]
+	var item: Dictionary=Items.definition(person,selected)
 	var count:=Items.quantity(p,selected)
 	details.text=item.name+"\n"+item.category+" · %d / %d\n\n" % [count,item.limit]+item.description
 	use_button.disabled=not p.get("alive",true)
 	if item.has("slot"):
 		var worn: bool=p.equipment.get(item.slot)==selected
 		use_button.text="착용 해제" if worn else "착용"
+	elif selected.begins_with("evidence:"):
+		use_button.text="집 보관함에 남기기"
+		use_button.disabled=use_button.disabled or p.offline
 	elif selected=="herb":
 		use_button.text="약초 사용 · 체력 +30"
 		use_button.disabled=use_button.disabled or p.hp>=100 or p.offline
@@ -127,17 +130,18 @@ func refresh(p: Dictionary) -> void:
 		use_button.disabled=true
 func activate() -> void:
 	if selected.is_empty() or Items.quantity(person,selected)<=0 or use_button.disabled: return
-	var item: Dictionary=Items.CATALOG[selected]
+	var item: Dictionary=Items.definition(person,selected)
 	if item.has("slot"):
 		var value: String="none" if person.equipment.get(item.slot)==selected else selected
 		action.emit("equip",item.slot+":"+value)
+	elif selected.begins_with("evidence:"): action.emit("store_evidence",selected)
 	elif selected=="herb": action.emit("heal","")
 
 var icons: Dictionary={}
 func icon_for(id: String) -> ImageTexture:
 	if icons.has(id): return icons[id]
 	var image:=Image.create(16,16,false,Image.FORMAT_RGBA8)
-	var color:=Color(Items.CATALOG[id].color)
+	var color:=Color(Items.definition(person,id).color)
 	if id=="iron_sword":
 		image.fill_rect(Rect2i(7,1,2,10),color)
 		image.fill_rect(Rect2i(4,10,8,2),Color("c5a46b"))
@@ -151,6 +155,10 @@ func icon_for(id: String) -> ImageTexture:
 		image.fill_rect(Rect2i(3,5,10,8),color.darkened(0.3))
 		image.fill_rect(Rect2i(5,2,6,6),color)
 		image.fill_rect(Rect2i(4,6,4,3),color.lightened(0.2))
+	elif id.begins_with("evidence:"):
+		image.fill_rect(Rect2i(4,3,8,10),color)
+		image.fill_rect(Rect2i(6,5,4,6),Color("172520"))
+		image.fill_rect(Rect2i(9,2,4,5),Color.TRANSPARENT)
 	elif id=="relic":
 		image.fill_rect(Rect2i(4,2,8,12),color)
 		image.fill_rect(Rect2i(6,4,4,8),Color("645742"))

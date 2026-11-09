@@ -40,7 +40,7 @@ static func outfit(p: Dictionary) -> void:
 	if not p.has("action"): p.action="idle"
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":2,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":3,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	return w
@@ -63,6 +63,7 @@ static func die(w: Dictionary, id: String, cause: String, day: int=0) -> void:
 	p.hp=0
 	w.graves.append({"name":p.name,"cause":cause,"day":day if day>0 else int(w.time/DAY)+1,"x":p.x,"y":p.y})
 	w.books.append({"author":p.name,"pages":p.journal.duplicate(true),"last":" ".join(p.events)})
+	Investigation.Objects.drop(w,p)
 	Investigation.record_death(w,p,w.graves.back(),w.books.back())
 	p.events.append(cause+"으로 삶을 마쳤다.")
 
@@ -82,6 +83,7 @@ static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: V
 	c.attacker=attacker.name
 	c.trace_mark=attacker.mark
 	c.observation=observation
+	Investigation.Objects.prepare(w)
 	return true
 
 static func advance(w: Dictionary, seconds: float) -> void:
@@ -242,6 +244,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="store_evidence": return Investigation.Objects.deposit(w,p,value)
 	if kind=="identify": return Investigation.Witness.identify(w,p,value)
 	if kind=="investigate": return Investigation.investigate(w,p)
 	if kind=="dodge":
@@ -338,7 +341,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=2
+	w.version=3
 	for p in w.people.values():
 		Investigation.prepare_person(p)
 		outfit(p)

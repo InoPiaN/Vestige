@@ -9,7 +9,10 @@ const CATALOG := {
 	"traveler":{"name":"여행 망토","category":"장비","limit":1,"slot":"cloak","color":"648c9e","description":"어깨에서 내려오는 시작 망토.\n착용하면 인물의 실루엣이 바뀝니다."},
 	"relic":{"name":"이렌의 유물","category":"기록","field":"relic","limit":1,"color":"d1b777","description":"예배당에서 발견한 유물.\n서재에서 이렌의 기록을 읽을 수 있습니다."}
 }
+static func definition(p: Dictionary,id: String) -> Dictionary:
+	return CATALOG.get(id,p.get("evidence_items",{}).get(id,{}))
 static func quantity(p: Dictionary, id: String) -> int:
+	if p.get("evidence_items",{}).has(id): return 1
 	if not CATALOG.has(id): return 0
 	var item: Dictionary=CATALOG[id]
 	if item.has("field"): return maxi(0,int(p.get(item.field,0)))
@@ -20,5 +23,7 @@ static func entries(p: Dictionary, category: String="전체") -> Array:
 		var count:=quantity(p,id)
 		if count<=0 or (category!="전체" and CATALOG[id].category!=category): continue
 		result.append({"id":id,"count":count})
-	result.sort_custom(func(a,b): return String(CATALOG[a.id].name)<String(CATALOG[b.id].name))
+	for id in p.get("evidence_items",{}):
+		if category in ["전체","기록"]: result.append({"id":id,"count":1})
+	result.sort_custom(func(a,b): return String(definition(p,a.id).name)<String(definition(p,b.id).name))
 	return result

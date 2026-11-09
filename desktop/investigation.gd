@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Objects=preload("res://evidence_items.gd")
 const Witness=preload("res://witness.gd")
 const HOME := Vector2(7,13)
 const CEMETERY := Vector2(4,14)
@@ -9,6 +10,7 @@ static func prepare(w: Dictionary) -> void:
 	if not w.has("estate"):
 		w.estate={"owner":"","shelf":""}
 	if not w.has("cases"): w.cases={}
+	Objects.prepare(w)
 
 static func prepare_person(p: Dictionary) -> void:
 	if not p.has("life"): p.life=Crypto.new().generate_random_bytes(12).hex_encode()
@@ -43,7 +45,7 @@ static func record_death(w: Dictionary,p: Dictionary,grave: Dictionary,book: Dic
 	book.case_id=id
 
 static func evidence(c: Dictionary) -> String:
-	if c.has("roster"): return "핏자국 옆에서 %s 조각을 발견했다. 장터 상자 곁의 등불지기 미라에게 그날의 일을 물어보자." % c.trace_mark
+	if c.has("roster"): return "현장의 기록에서 %s 모양의 흔적을 확인했다. 장터 상자 곁의 등불지기 미라에게 그날의 일을 물어보자." % c.trace_mark
 	if c.truth=="늑대와의 전투": return "찢긴 옷과 그 주위를 맴돈 늑대 발자국을 확인했다."
 	if c.truth=="노환": return "몸 곁의 유품은 가지런했고 다툰 흔적은 보이지 않았다."
 	return "사망 장소에서 망자의 소지품을 확인했다."
@@ -57,10 +59,15 @@ static func traces(w: Dictionary,p: Dictionary) -> Array:
 	var found: Array=[]
 	for c in w.cases.values():
 		if near(p,Vector2(c.x,c.y)): found.append({"x":c.x,"y":c.y})
+	for c in w.cases.values():
+		if c.has("object") and c.object.place=="ground" and near(p,Vector2(c.object.x,c.object.y)):
+			found.append({"x":c.object.x,"y":c.object.y})
 	return found
 
 static func investigate(w: Dictionary,p: Dictionary) -> String:
 	var lines: PackedStringArray=[]
+	var collected:=Objects.collect(w,p)
+	if not collected.is_empty(): lines.append(collected)
 	for id in w.cases:
 		var c: Dictionary=w.cases[id]
 		var notes: Dictionary=p.notebook.get(id,{})
@@ -109,6 +116,7 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 		if id==viewer: continue
 		var other: Dictionary=snapshot.people[id]
 		other.erase("notebook")
+		other.erase("evidence_items")
 		if not other.alive and snapshot.cases.has(other.life): snapshot.people.erase(id)
 	snapshot.books=snapshot.books.filter(func(book): return may_read(p,book))
 	snapshot.erase("cases")

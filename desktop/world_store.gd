@@ -14,7 +14,7 @@ static func pages_valid(pages: Variant) -> bool:
 	return true
 
 static func valid(w: Dictionary) -> bool:
-	if (w.get("version")!=1 and w.get("version")!=2 and w.get("version")!=3 and w.get("version")!=4 and w.get("version")!=5 and w.get("version")!=6 and w.get("version")!=7 and w.get("version")!=8 and w.get("version")!=9 and w.get("version")!=10) or not numbers(w,["time","saved"]): return false
+	if (w.get("version")!=1 and w.get("version")!=2 and w.get("version")!=3 and w.get("version")!=4 and w.get("version")!=5 and w.get("version")!=6 and w.get("version")!=7 and w.get("version")!=8 and w.get("version")!=9 and w.get("version")!=10 and w.get("version")!=11) or not numbers(w,["time","saved"]): return false
 	if w.time<0 or w.saved<0: return false
 	if not w.get("people") is Dictionary or not w.get("wolf") is Dictionary: return false
 	if not numbers(w.wolf,["x","y","hp","cooldown","warning","respawn"]): return false
@@ -25,6 +25,7 @@ static func valid(w: Dictionary) -> bool:
 		if not grave is Dictionary or not numbers(grave,["day","x","y"]) or not grave.get("name") is String or not grave.get("cause") is String: return false
 	for p in w.people.values():
 		if not p is Dictionary or not numbers(p,["x","y","age","limit","hp","stamina","attack","dodge","steps","ore","herb","sword","gold","skill","relic"]): return false
+		if w.version>=11 and not preload("res://craft_plan.gd").valid(p): return false
 		if w.version>=10 and not preload("res://craft_mastery.gd").valid(p): return false
 		if not p.get("alive") is bool or not p.get("name") is String or not p.get("policy") is String: return false
 		if not p.get("events") is Array or not pages_valid(p.get("journal")): return false
@@ -79,7 +80,7 @@ static func read(path: String) -> Dictionary:
 	return parser.data
 
 static func unsupported(w: Dictionary) -> bool:
-	return numbers(w,["version"]) and w.version>10
+	return numbers(w,["version"]) and w.version>11
 
 # Write beside the destination. Replace each file only after its staging step succeeds.
 static func replace(w: Dictionary, path: String, previous: Dictionary) -> bool:

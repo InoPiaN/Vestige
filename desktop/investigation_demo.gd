@@ -123,3 +123,8 @@ static func mastery() -> Dictionary:
 	p.craft_xp={"smithing":400,"handicraft":1000,"herbalism":96}
 	p.events.append("체험용 인물: 대장 기술 숙련, 생활 공예 장인, 약초 조제 견습까지 경험치 4를 남겨 두었다.")
 	return w
+
+static func plan() -> Dictionary:
+	var w:=craft()
+	w.people.local.hp=100
+	return w

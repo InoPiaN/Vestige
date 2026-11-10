@@ -3,6 +3,7 @@ extends RefCounted
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
 const Remains=preload("res://death_belongings.gd")
+const Plan=preload("res://craft_plan.gd")
 const Mastery=preload("res://craft_mastery.gd")
 const Quality=preload("res://craft_quality.gd")
 const Market=preload("res://village_market.gd")
@@ -35,6 +36,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 
 static func outfit(p: Dictionary) -> void:
 	Mastery.prepare(p)
+	Plan.prepare(p)
 	p.look=clean_look(p.get("look",{}))
 	if not p.has("belongings"): p.belongings={"leather":1,"hood":1,"traveler":1}
 	if not p.has("equipment"):
@@ -50,7 +52,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":10,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":11,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -117,8 +119,13 @@ static func advance(w: Dictionary, seconds: float) -> void:
 		for i in range(count):
 			if p.offline:
 				if p.hp < 40 or p.policy == "rest":
+					if p.policy=="plan":
+						p.craft_plan.status="몸 상태가 나빠 회복 우선"
+						p.events.append("부재 제작 · 몸 상태가 나빠 회복을 먼저 했다.")
 					p.hp=mini(100,p.hp+25)
 					p.events.append("여관에서 쉬며 몸을 추슬렀다.")
+				elif p.policy == "plan":
+					Plan.day(w,p,forge_sword)
 				elif p.policy == "gather":
 					var amount := mini(2,20-int(p.herb))
 					p.herb+=amount
@@ -209,6 +216,18 @@ static func tick(w: Dictionary, dt: float) -> void:
 		p.dodge=maxf(0,p.dodge-dt)
 		p.stamina=minf(100,p.stamina+dt*16)
 		if p.alive and p.offline:
+			if p.policy=="plan" and not p.craft_plan.is_empty() and p.craft_plan.recipe!="iron_sword" and w.estate.owner==p.life:
+				if Interior.inside(p):
+					var next:=pos(p).move_toward(Vector2(15,12),dt*1.1)
+					if Interior.walkable(next):
+						p.x=next.x
+						p.y=next.y
+					continue
+				if pos(p).distance_to(Vector2(7,14))<1:
+					p.room="home"
+					p.x=15.0
+					p.y=16.0
+					continue
 			if Interior.inside(p):
 				if p.policy=="rest": continue
 				p.room="village"
@@ -216,6 +235,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 				p.y=14.0
 			var destination:=Vector2(11,12)
 			if p.policy=="work": destination=Vector2(5,8)
+			if p.policy=="plan": destination=Vector2(5,8) if p.craft_plan.get("recipe")=="iron_sword" else Vector2(7,14)
 			if p.policy=="gather": destination=Vector2(15,13)
 			if p.policy=="train": destination=Vector2(9,9)
 			var previous:=pos(p)
@@ -278,7 +298,13 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if kind=="helmet":
 		p.hide_helmet=value=="hide"
 		return "투구 표시를 변경했습니다."
+	if kind in ["plan_save","plan_start"]: return Plan.configure(p,value,kind=="plan_start")
+	if kind=="plan_cancel":
+		p.craft_plan={}
+		p.policy="rest"
+		return "제작 계획을 취소하고 휴식합니다."
 	if kind=="policy":
+		if value=="plan" and not p.craft_plan.is_empty(): p.policy="plan"
 		if value in ["rest","work","gather","train"]: p.policy=value
 		return "생활 방침을 저장했습니다."
 	if kind=="leave":
@@ -414,7 +440,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=10
+	w.version=11
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

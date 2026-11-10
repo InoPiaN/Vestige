@@ -11,8 +11,8 @@ const RECIPES={
 	"herbal_tea":{"name":"약초차 달이기","cost":{"herb":1},"result":"herbal_tea","tool":"mug","fire":true,"description":"체력 20 · 기력 40 회복. 찻잔은 소비하지 않습니다."}}
 static func allowed(p: Dictionary) -> bool:
 	return p.alive and not p.offline and Interior.near(p,"table")
-static func reason(w: Dictionary,p: Dictionary,id: String) -> String:
-	if not allowed(p): return "직접 조종 중인 인물로 집 작업대 가까이에 오세요."
+static func reason(w: Dictionary,p: Dictionary,id: String,automated: bool=false) -> String:
+	if not automated and not allowed(p): return "직접 조종 중인 인물로 집 작업대 가까이에 오세요."
 	if not RECIPES.has(id): return "없는 제작법입니다."
 	var recipe: Dictionary=RECIPES[id]
 	if Items.family_quantity(p,recipe.result)>=int(Items.CATALOG[recipe.result].limit): return "완성품 소지 한도에 도달했습니다."
@@ -21,8 +21,8 @@ static func reason(w: Dictionary,p: Dictionary,id: String) -> String:
 	if recipe.has("tool") and Items.family_quantity(p,recipe.tool)<1: return "고친 찻잔이 필요합니다. 찻잔은 소비하지 않습니다."
 	if recipe.get("fire",false) and not w.estate.get("interior",{}).get("fire",false): return "먼저 벽난로에 불을 켜세요."
 	return ""
-static func craft(w: Dictionary,p: Dictionary,id: String) -> String:
-	var why:=reason(w,p,id)
+static func craft(w: Dictionary,p: Dictionary,id: String,automated: bool=false) -> String:
+	var why:=reason(w,p,id,automated)
 	if not why.is_empty(): return why
 	var recipe: Dictionary=RECIPES[id]
 	for material in recipe.cost: Storage.change(p,material,-int(recipe.cost[material]))

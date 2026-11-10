@@ -15,6 +15,7 @@ var view: Node2D
 var status: Label
 var inventory: Label
 var market: Panel
+var planner: Panel
 var bench: Panel
 var chest: Panel
 var bag: Panel
@@ -50,7 +51,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -58,6 +59,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"plan": opening=demo.plan()
 				"mastery": opening=demo.mastery()
 				"market": opening=demo.market()
 				"quality": opening=demo.quality()
@@ -71,7 +73,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="mastery": message("E로 작업대를 열어 붕대 1개를 만드세요. 약초 조제가 견습으로 성장하고 확률이 바뀝니다. J에서 모든 분야를 확인합니다.")
+			if kind=="plan": message("부재 중의 하루에서 제작 계획 설정을 선택하세요. 붕대 3개를 맡기고 하루 진행으로 결과를 확인할 수 있습니다.")
+			elif kind=="mastery": message("E로 작업대를 열어 붕대 1개를 만드세요. 약초 조제가 견습으로 성장하고 확률이 바뀝니다. J에서 모든 분야를 확인합니다.")
 			elif kind=="market": message("E로 장터를 열어 재료를 사고 제작품을 판매하세요. 재고는 다음 월드 날짜에 보충됩니다.")
 			elif kind=="quality": message("I에서 일반·양품·대성공 철검의 공격력을 비교하세요. E로 작업대 제작도 가능합니다.")
 			elif kind=="craft": message("E로 작업대를 열어 제작하고 검을 수선하세요. 약초차는 벽난로 불이 필요합니다.")
@@ -242,14 +245,14 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or bench.visible or market.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not bench.visible and not market.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -280,6 +283,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		bag.hide()
 		chest.hide()
 		market.hide()
+		planner.hide()
 		bench.hide()
 		return
 	if event.physical_keycode==KEY_G:
@@ -297,7 +301,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible or chest.visible or bench.visible or market.visible: return
+	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
 		KEY_F: perform("investigate")
@@ -434,10 +438,13 @@ func build_ui() -> void:
 	button_at(ui,"외형 · 장비",Vector2(1130,321),120,func(): open_dressing("gear"))
 	label_at(ui,"부재 중의 하루",Vector2(1000,365),21,Color("d2bd89"))
 	policy=OptionButton.new()
-	for text in ["휴식과 치료","대장간 제작","근교 약초 채집","기본기 수련"]: policy.add_item(text)
+	policy.allow_reselect=true
+	for text in ["휴식과 치료","대장간 제작","근교 약초 채집","기본기 수련","제작 계획 설정…"]: policy.add_item(text)
 	policy.position=Vector2(1000,410)
 	policy.size=Vector2(250,36)
-	policy.item_selected.connect(func(index): perform("policy",["rest","work","gather","train"][index]))
+	policy.item_selected.connect(func(index):
+		if index==4: open_planner()
+		else: perform("policy",["rest","work","gather","train"][index]))
 	ui.add_child(policy)
 	button_at(ui,"생활 맡기기",Vector2(1000,460),120,func(): perform("leave"))
 	button_at(ui,"직접 조종",Vector2(1130,460),120,func(): perform("resume"))
@@ -483,6 +490,9 @@ func build_ui() -> void:
 	market=preload("res://market_panel.gd").new()
 	root.add_child(market)
 	market.action.connect(perform)
+	planner=preload("res://craft_plan_panel.gd").new()
+	root.add_child(planner)
+	planner.action.connect(perform)
 	bench=preload("res://crafting_panel.gd").new()
 	root.add_child(bench)
 	bench.action.connect(perform)
@@ -496,6 +506,7 @@ func refresh() -> void:
 		for slot in gear_pickers: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
 	if bag.visible: bag.refresh(p)
 	if chest.visible: chest.refresh(world,p)
+	if planner.visible: planner.refresh(world,p)
 	if bench.visible: bench.refresh(world,p)
 	if market.visible: market.refresh(world,p)
 	view.world=world
@@ -506,7 +517,7 @@ func refresh() -> void:
 	stamina.value=p.stamina
 	inventory.text="체력 %d / 100\n철광석     %d\n달빛 약초  %d\n철검       %d\n유물       %d\n은화       %d   ·   기초 숙련 %d" % [p.hp,p.ore,p.herb,p.sword,p.relic,p.gold,p.skill]
 	date_label.text="잿불 마을   /   제 %d일   /   %s" % [int(world.time/Rules.DAY)+1,"나만의 세계" if mode=="single" else "공유 세계"]
-	policy.select(["rest","work","gather","train"].find(p.policy))
+	policy.select(["rest","work","gather","train","plan"].find(p.policy))
 	day_button.visible=mode=="single"
 	new_button.visible=not p.alive
 	var t:=Rules.nearby(p)
@@ -547,10 +558,12 @@ func message(text: String) -> void:
 		if bag.visible: bag.feedback.text=text
 		if chest.visible: chest.feedback.text=text
 		if bench.visible: bench.feedback.text=text
+		if planner.visible: planner.feedback.text=text
 		if market.visible: market.feedback.text=text
 
 func show_pages(text: String) -> void:
 	market.hide()
+	planner.hide()
 	bench.hide()
 	bag.hide()
 	chest.hide()
@@ -562,6 +575,7 @@ func open_journal() -> void:
 	if world.is_empty(): return
 	var p: Dictionary=world.people[me]
 	var text: String=p.name+"의 일기\n────────────────────\n\n"
+	text+="부재 제작 계획\n"+Rules.Plan.summary(p)+"\n\n"
 	text+="제작 숙련도\n"
 	for field in Rules.Mastery.FIELDS: text+=Rules.Mastery.progress(p,field)+"\n"
 	text+="\n"
@@ -645,6 +659,7 @@ func build_dressing(root: Control) -> void:
 
 func open_dressing(purpose: String) -> void:
 	market.hide()
+	planner.hide()
 	bench.hide()
 	bag.hide()
 	chest.hide()
@@ -688,6 +703,7 @@ func open_dressing(purpose: String) -> void:
 
 func open_inventory() -> void:
 	market.hide()
+	planner.hide()
 	bench.hide()
 	chest.hide()
 	if world.is_empty() or not world.people.has(me): return
@@ -699,6 +715,7 @@ func open_inventory() -> void:
 
 func open_storage(remains_mode: bool=false) -> void:
 	market.hide()
+	planner.hide()
 	bench.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
@@ -711,6 +728,7 @@ func open_storage(remains_mode: bool=false) -> void:
 	chest.show()
 
 func open_crafting() -> void:
+	planner.hide()
 	market.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
@@ -727,7 +745,19 @@ func open_market() -> void:
 	dressing.hide()
 	bag.hide()
 	chest.hide()
+	planner.hide()
 	bench.hide()
 	market.feedback.text=""
 	market.refresh(world,world.people[me])
 	market.show()
+
+func open_planner() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	panel.hide()
+	dressing.hide()
+	bag.hide()
+	chest.hide()
+	market.hide()
+	bench.hide()
+	planner.setup(world,world.people[me])
+	planner.show()

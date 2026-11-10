@@ -16,6 +16,7 @@ static func leave(w: Dictionary,p: Dictionary,day: int) -> void:
 	for kind in Items.CATALOG: Storage.change(p,kind,-Items.quantity(p,kind))
 	p.gold=0
 	p.gear_instances={}
+	p.gear_condition={}
 	p.equipped_ids={}
 	for slot in p.equipment: p.equipment[slot]="none"
 static func visible(w: Dictionary,p: Dictionary) -> Dictionary:
@@ -48,6 +49,8 @@ static func take(w: Dictionary,p: Dictionary,value: String) -> String:
 		if def.has("slot"):
 			box.gear_instances.erase(id)
 			p.gear_instances[id]=kind
+			p.gear_condition[id]=box.gear_condition[id]
+			box.gear_condition.erase(id)
 		if kind=="relic": p.relic_found=true
 		Storage.reconcile(p)
 		name=def.name

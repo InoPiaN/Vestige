@@ -80,7 +80,7 @@ func choose(id: String) -> void:
 func refresh(p: Dictionary) -> void:
 	person=p
 	var rows:=Items.entries(p,category)
-	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
+	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("gear_condition",{}),p.get("stamina",0),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
 	if signature==stamp: return
 	signature=stamp
 	heading.text="소지품  ·  %d항목  /  은화 %d" % [Items.entries(p).size(),p.get("gold",0)]
@@ -119,6 +119,9 @@ func refresh(p: Dictionary) -> void:
 	if item.has("slot"):
 		var worn: bool=(p.get("equipped_ids",{}).get(item.slot)==selected if selected.begins_with("gear-") else p.equipment.get(item.slot)==selected)
 		use_button.text="착용 해제" if worn else "착용"
+	elif selected in ["bandage","herbal_tea"]:
+		use_button.text="사용"
+		use_button.disabled=use_button.disabled or p.offline or (p.hp>=100 and (selected=="bandage" or p.stamina>=100))
 	elif selected.begins_with("evidence:"):
 		use_button.text="집 보관함에 남기기"
 		use_button.disabled=use_button.disabled or p.offline
@@ -137,6 +140,7 @@ func activate() -> void:
 		var value: String="none" if person.equipment.get(item.slot)==selected else selected
 		action.emit("equip",item.slot+":"+value)
 	elif selected.begins_with("evidence:"): action.emit("store_evidence",selected)
+	elif selected in ["bandage","herbal_tea"]: action.emit("use_crafted",selected)
 	elif selected=="herb": action.emit("heal","")
 
 var icons: Dictionary={}
@@ -145,7 +149,16 @@ func icon_for(id: String) -> ImageTexture:
 	var image:=Image.create(16,16,false,Image.FORMAT_RGBA8)
 	var color:=Color(Items.definition(person,id).color)
 	id=person.get("gear_instances",{}).get(id,id)
-	if id=="iron_sword":
+	if id in ["mug","herbal_tea","broken_cup"]:
+		image.fill_rect(Rect2i(3,5,8,8),color)
+		image.fill_rect(Rect2i(10,6,4,5),color)
+		image.fill_rect(Rect2i(11,7,2,3),Color("172520"))
+		image.fill_rect(Rect2i(4,5,6,2),Color("66543a"))
+	elif id=="bandage":
+		image.fill_rect(Rect2i(3,4,10,8),color)
+		image.fill_rect(Rect2i(6,4,1,8),color.darkened(0.25))
+		image.fill_rect(Rect2i(10,4,1,8),color.darkened(0.25))
+	elif id=="iron_sword":
 		image.fill_rect(Rect2i(7,1,2,10),color)
 		image.fill_rect(Rect2i(4,10,8,2),Color("c5a46b"))
 		image.fill_rect(Rect2i(7,12,2,3),Color("916c4d"))

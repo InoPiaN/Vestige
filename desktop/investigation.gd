@@ -123,6 +123,7 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 		other.erase("notebook")
 		other.erase("evidence_items")
 		other.erase("gear_instances")
+		other.erase("gear_condition")
 		other.erase("equipped_ids")
 		if not other.alive and snapshot.cases.has(other.life): snapshot.people.erase(id)
 	snapshot.books=snapshot.books.filter(func(book): return may_read(p,book))

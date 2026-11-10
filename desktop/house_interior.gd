@@ -8,7 +8,7 @@ const OBJECTS={
 	"bed":{"name":"침대에서 휴식","x":22.0,"y":6.0},
 	"cupboard":{"name":"찬장 살피기","x":7.0,"y":10.0},
 	"hearth":{"name":"벽난로 불 켜고 끄기","x":7.0,"y":14.0},
-	"table":{"name":"식탁의 흔적 살피기","x":15.0,"y":11.0},
+	"table":{"name":"작업대 · 제작과 수선","x":15.0,"y":11.0},
 	"chest":{"name":"물품 보관함","x":22.0,"y":12.0}}
 static func inside(p: Dictionary) -> bool:
 	return p.get("room","village")=="home"
@@ -87,7 +87,7 @@ static func interact(w: Dictionary,p: Dictionary) -> String:
 			p.stamina=100.0
 			p.events.append("언덕집 침대에서 몸을 추슬렀다.")
 			return "잠시 쉬었습니다. 체력 +25 · 기력 회복. 세계의 시간을 건너뛰지는 않습니다."
-		"table": return "조사 기록\n식탁 모서리에 컵 자국이 겹쳐 있고, 다리 하나는 낡은 천으로 감싸 수선해 두었다."
+		"table": return "작업대"
 	return ""
 static func valid(w: Dictionary) -> bool:
 	var state=w.estate.get("interior")

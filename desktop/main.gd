@@ -14,6 +14,7 @@ var menu: Control
 var view: Node2D
 var status: Label
 var inventory: Label
+var bench: Panel
 var chest: Panel
 var bag: Panel
 var date_label: Label
@@ -48,19 +49,28 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var home_demo: bool="--home-demo" in OS.get_cmdline_user_args()
-	var remains_demo: bool="--remains-demo" in OS.get_cmdline_user_args()
-	var murder_demo: bool="--witness-demo" in OS.get_cmdline_user_args()
-	if home_demo or remains_demo or murder_demo or "--investigation-demo" in OS.get_cmdline_user_args():
-		save_path="user://home-demo.json" if home_demo else ("user://remains-demo.json" if remains_demo else ("user://witness-demo.json" if murder_demo else "user://investigation-demo.json"))
+	var demos: Dictionary={"craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	for kind in demos:
+		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
+		save_path="user://"+kind+"-demo.json"
 		if not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"):
 			var demo=preload("res://investigation_demo.gd")
-			var opening: Dictionary=demo.home() if home_demo else (demo.remains() if remains_demo else (demo.murder() if murder_demo else demo.create()))
+			var opening: Dictionary={}
+			match kind:
+				"craft": opening=demo.craft()
+				"home": opening=demo.home()
+				"remains": opening=demo.remains()
+				"witness": opening=demo.murder()
+				"investigation": opening=demo.create()
 			if not Rules.save_world(opening,save_path):
 				push_error("체험 월드를 만들 수 없습니다.")
 				return
 		start_single()
-		if mode=="single": message("가구 가까이에서 E · 서랍, 책장, 침대, 보관함, 커튼, 벽난로를 이용하세요." if home_demo else ("G로 근처 여행자의 유품을 회수하세요. 집에서는 B로 보관합니다." if remains_demo else "마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다."))
+		if mode=="single":
+			if kind=="craft": message("E로 작업대를 열어 제작하고 검을 수선하세요. 약초차는 벽난로 불이 필요합니다.")
+			elif kind=="home": message("가구 가까이에서 E · 서랍, 책장, 침대, 보관함, 커튼, 벽난로를 이용하세요.")
+			elif kind=="remains": message("G로 근처 여행자의 유품을 회수하세요. 집에서는 B로 보관합니다.")
+			else: message("마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다.")
 		return
 	if "--qa" in OS.get_cmdline_user_args():
 		DisplayServer.window_set_title("Vestige QA · 독립 시험 월드")
@@ -225,14 +235,14 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or bench.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not bench.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -262,6 +272,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		dressing.hide()
 		bag.hide()
 		chest.hide()
+		bench.hide()
 		return
 	if event.physical_keycode==KEY_G:
 		if chest.visible and chest.remains_mode: chest.hide()
@@ -278,7 +289,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible or chest.visible: return
+	if panel.visible or dressing.visible or bag.visible or chest.visible or bench.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
 		KEY_F: perform("investigate")
@@ -461,16 +472,20 @@ func build_ui() -> void:
 	chest=preload("res://storage_panel.gd").new()
 	root.add_child(chest)
 	chest.action.connect(perform)
+	bench=preload("res://crafting_panel.gd").new()
+	root.add_child(bench)
+	bench.action.connect(perform)
 
 func refresh() -> void:
 	if world.is_empty() or not world.people.has(me): return
 	var p: Dictionary=world.people[me]
 	if dressing.visible and dressing_mode=="gear":
 		portrait.person=p
-		dress_status.text="철검 착용 중 · 공격력 22" if p.equipment.weapon=="iron_sword" else "맨손 · 공격력 9"
+		dress_status.text="공격력 %d · 철검은 내구도에 따라 성능이 변합니다." % Rules.weapon_damage(p)
 		for slot in gear_pickers: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
 	if bag.visible: bag.refresh(p)
 	if chest.visible: chest.refresh(world,p)
+	if bench.visible: bench.refresh(world,p)
 	view.world=world
 	view.player_id=me
 	status.text="%s\n%s · %d세" % [p.name,"주민으로 생활 중" if p.offline else "직접 조종 중",int(p.age/360)]
@@ -509,6 +524,7 @@ func style_meter(bar: ProgressBar, color: Color) -> void:
 func message(text: String) -> void:
 	if text.is_empty(): return
 	if text.begins_with("조사 기록\n"): show_pages(text)
+	elif text=="작업대": open_crafting()
 	elif text=="보관함": open_storage()
 	elif text=="서재": open_library()
 	elif text=="묘지": open_graves()
@@ -516,8 +532,10 @@ func message(text: String) -> void:
 		notice.text=text
 		if bag.visible: bag.feedback.text=text
 		if chest.visible: chest.feedback.text=text
+		if bench.visible: bench.feedback.text=text
 
 func show_pages(text: String) -> void:
+	bench.hide()
 	bag.hide()
 	chest.hide()
 	dressing.hide()
@@ -607,6 +625,7 @@ func build_dressing(root: Control) -> void:
 	dressing.hide()
 
 func open_dressing(purpose: String) -> void:
+	bench.hide()
 	bag.hide()
 	chest.hide()
 	panel.hide()
@@ -648,6 +667,7 @@ func open_dressing(purpose: String) -> void:
 	dressing.show()
 
 func open_inventory() -> void:
+	bench.hide()
 	chest.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
@@ -657,6 +677,7 @@ func open_inventory() -> void:
 	bag.show()
 
 func open_storage(remains_mode: bool=false) -> void:
+	bench.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
 	dressing.hide()
@@ -666,3 +687,13 @@ func open_storage(remains_mode: bool=false) -> void:
 	chest.remains_mode=remains_mode
 	chest.refresh(world,world.people[me])
 	chest.show()
+
+func open_crafting() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	panel.hide()
+	dressing.hide()
+	bag.hide()
+	chest.hide()
+	bench.feedback.text=""
+	bench.refresh(world,world.people[me])
+	bench.show()

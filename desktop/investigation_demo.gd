@@ -73,3 +73,19 @@ static func home() -> Dictionary:
 	Rules.act(w,"local","interact")
 	Rules.act(w,"local","enter_home")
 	return w
+
+static func craft() -> Dictionary:
+	var w:=home()
+	var p: Dictionary=w.people.local
+	p.x=15
+	p.y=12
+	p.belongings.cloth=5
+	p.belongings.bent_nail=4
+	p.belongings.broken_cup=1
+	p.herb=3
+	p.sword=1
+	Rules.outfit(p)
+	for id in p.gear_instances:
+		if p.gear_instances[id]=="iron_sword": p.gear_condition[id]=35
+	p.events.append("작업대에 수선할 검과 작은 재료 꾸러미를 준비했다.")
+	return w

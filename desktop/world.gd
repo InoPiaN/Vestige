@@ -3,6 +3,7 @@ extends RefCounted
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
 const Remains=preload("res://death_belongings.gd")
+const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
@@ -44,7 +45,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":6,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":7,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -139,6 +140,11 @@ static func advance(w: Dictionary, seconds: float) -> void:
 		w.wolf.y=10.0
 		w.wolf.warning=0.0
 		w.wolf.cooldown=0.0
+
+static func weapon_damage(p: Dictionary) -> int:
+	if p.equipment.get("weapon")!="iron_sword": return 9
+	var id: String=p.get("equipped_ids",{}).get("weapon","")
+	return 22 if p.get("gear_condition",{}).get(id,100)>0 else 9
 
 static func pos(p: Dictionary) -> Vector2:
 	return Vector2(p.x,p.y)
@@ -261,6 +267,9 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="craft_home": return Crafting.craft(w,p,value)
+	if kind=="repair_gear": return Crafting.repair(p,value)
+	if kind=="use_crafted": return Crafting.use(p,value)
 	if kind=="enter_home":
 		if not Interior.inside(p) and Vector2(p.x,p.y).distance_to(Vector2(7,13))<2 and w.estate.owner=="": Investigation.visit_house(w,p)
 		return Interior.enter(w,p)
@@ -297,7 +306,9 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.stamina-=12
 		if w.wolf.hp>0 and pos(p).distance_to(pos(w.wolf))<2:
 			if pos(p).distance_to(pos(w.wolf))>0.1: p.direction=CharacterMotion.direction(pos(w.wolf)-pos(p))
-			w.wolf.hp-=22 if p.equipment.weapon=="iron_sword" else 9
+			w.wolf.hp-=weapon_damage(p)
+			var weapon: String=p.equipped_ids.get("weapon","")
+			if p.gear_instances.get(weapon)=="iron_sword": p.gear_condition[weapon]=maxi(0,int(p.gear_condition[weapon])-5)
 			if w.wolf.hp<=0:
 				w.wolf.hp=0
 				w.wolf.respawn=w.time+DAY
@@ -377,7 +388,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=6
+	w.version=7
 	Interior.prepare(w)
 	Remains.prepare(w)
 	for p in w.people.values():

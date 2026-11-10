@@ -3,11 +3,12 @@ const Items=preload("res://items.gd")
 const HOME=Vector2(7,13)
 const CAPACITY=40
 static func empty() -> Dictionary:
-	return {"ore":0,"herb":0,"sword":0,"relic":0,"belongings":{},"equipment":{},"gear_instances":{},"equipped_ids":{}}
+	return {"ore":0,"herb":0,"sword":0,"relic":0,"belongings":{},"equipment":{},"gear_instances":{},"equipped_ids":{},"gear_condition":{}}
 # Counts remain compatible with gathering/crafting; IDs distinguish individual gear.
 static func reconcile(p: Dictionary) -> void:
 	if not p.has("gear_instances"): p.gear_instances={}
 	if not p.has("equipped_ids"): p.equipped_ids={}
+	if not p.has("gear_condition"): p.gear_condition={}
 	for kind in Items.CATALOG:
 		if not Items.CATALOG[kind].has("slot"): continue
 		var ids: Array=[]
@@ -23,10 +24,16 @@ static func reconcile(p: Dictionary) -> void:
 		var slot: String=Items.CATALOG[kind].slot
 		if p.get("equipment",{}).get(slot,"none")!=kind or ids.is_empty(): p.equipped_ids.erase(slot)
 		elif not ids.has(p.equipped_ids.get(slot,"")): p.equipped_ids[slot]=ids[0]
+	for id in p.gear_instances:
+		if not p.gear_condition.has(id): p.gear_condition[id]=100
+	for id in p.gear_condition.keys():
+		if not p.gear_instances.has(id): p.gear_condition.erase(id)
 static func prepare(w: Dictionary) -> void:
 	if not w.has("estate"): return # Version 1 fixture; history is added on load.
 	if not w.estate.has("storage"): w.estate.storage=empty()
 	for p in w.people.values(): reconcile(p)
+	reconcile(w.estate.storage)
+	for row in w.get("remains",{}).values(): reconcile(row.contents)
 static func allowed(w: Dictionary,p: Dictionary) -> bool:
 	return p.alive and not p.offline and (preload("res://house_interior.gd").near(p,"chest") if p.get("room","village")=="home" else Vector2(p.x,p.y).distance_to(HOME)<2) and (w.estate.owner==p.life or w.get("cases",{}).has(w.estate.owner) or w.get("storage_access",false))
 static func total(p: Dictionary) -> int:
@@ -54,6 +61,8 @@ static func transfer(w: Dictionary,p: Dictionary,id: String,take: bool) -> Strin
 	if def.has("slot"):
 		source.gear_instances.erase(id)
 		target.gear_instances[id]=kind
+		target.gear_condition[id]=source.gear_condition[id]
+		source.gear_condition.erase(id)
 		if source.equipped_ids.get(def.slot,"")==id:
 			source.equipped_ids.erase(def.slot)
 			source.equipment[def.slot]="none"
@@ -89,6 +98,11 @@ static func valid(w: Dictionary) -> bool:
 			var value=p.get(def.field) if def.has("field") else p.belongings.get(kind,0)
 			if not (value is int or value is float) or not is_finite(float(value)) or value<0 or value!=floor(value): return false
 			if def.has("slot") and p.gear_instances.values().count(kind)!=int(value): return false
+		if w.version>=7:
+			if not p.get("gear_condition") is Dictionary or p.gear_condition.size()!=p.gear_instances.size(): return false
+			for id in p.gear_instances:
+				var n=p.gear_condition.get(id)
+				if not (n is int or n is float) or not is_finite(float(n)) or n<0 or n>100 or n!=floor(n): return false
 		for id in p.gear_instances:
 			if not id is String or not id.begins_with("gear-") or seen.has(id): return false
 			var kind=p.gear_instances[id]

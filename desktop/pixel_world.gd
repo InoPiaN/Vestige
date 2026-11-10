@@ -394,6 +394,9 @@ func draw_interior() -> void:
 				box(x-14,y+3,4,5,"b4aa8a")
 				box(x+5,y-16,6,5,"c5c1a0")
 				box(x-8,y-13,8,3,"574833")
+				box(x-7,y-16,2,8,"58442c")
+				box(x-10,y-17,8,3,"91a095")
+				box(x+1,y-9,8,4,"c1b28e")
 	var me: Dictionary=world.people[player_id]
 	var focused:=Rules.Interior.nearby(me)
 	if not focused.is_empty():

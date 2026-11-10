@@ -14,6 +14,7 @@ var menu: Control
 var view: Node2D
 var status: Label
 var inventory: Label
+var market: Panel
 var bench: Panel
 var chest: Panel
 var bag: Panel
@@ -49,7 +50,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -57,6 +58,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"market": opening=demo.market()
 				"quality": opening=demo.quality()
 				"craft": opening=demo.craft()
 				"home": opening=demo.home()
@@ -68,7 +70,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="quality": message("I에서 일반·양품·대성공 철검의 공격력을 비교하세요. E로 작업대 제작도 가능합니다.")
+			if kind=="market": message("E로 장터를 열어 재료를 사고 제작품을 판매하세요. 재고는 다음 월드 날짜에 보충됩니다.")
+			elif kind=="quality": message("I에서 일반·양품·대성공 철검의 공격력을 비교하세요. E로 작업대 제작도 가능합니다.")
 			elif kind=="craft": message("E로 작업대를 열어 제작하고 검을 수선하세요. 약초차는 벽난로 불이 필요합니다.")
 			elif kind=="home": message("가구 가까이에서 E · 서랍, 책장, 침대, 보관함, 커튼, 벽난로를 이용하세요.")
 			elif kind=="remains": message("G로 근처 여행자의 유품을 회수하세요. 집에서는 B로 보관합니다.")
@@ -237,14 +240,14 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or bench.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or bench.visible or market.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not bench.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not bench.visible and not market.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -274,6 +277,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		dressing.hide()
 		bag.hide()
 		chest.hide()
+		market.hide()
 		bench.hide()
 		return
 	if event.physical_keycode==KEY_G:
@@ -291,7 +295,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible or chest.visible or bench.visible: return
+	if panel.visible or dressing.visible or bag.visible or chest.visible or bench.visible or market.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
 		KEY_F: perform("investigate")
@@ -474,6 +478,9 @@ func build_ui() -> void:
 	chest=preload("res://storage_panel.gd").new()
 	root.add_child(chest)
 	chest.action.connect(perform)
+	market=preload("res://market_panel.gd").new()
+	root.add_child(market)
+	market.action.connect(perform)
 	bench=preload("res://crafting_panel.gd").new()
 	root.add_child(bench)
 	bench.action.connect(perform)
@@ -488,6 +495,7 @@ func refresh() -> void:
 	if bag.visible: bag.refresh(p)
 	if chest.visible: chest.refresh(world,p)
 	if bench.visible: bench.refresh(world,p)
+	if market.visible: market.refresh(world,p)
 	view.world=world
 	view.player_id=me
 	status.text="%s\n%s · %d세" % [p.name,"주민으로 생활 중" if p.offline else "직접 조종 중",int(p.age/360)]
@@ -526,6 +534,7 @@ func style_meter(bar: ProgressBar, color: Color) -> void:
 func message(text: String) -> void:
 	if text.is_empty(): return
 	if text.begins_with("조사 기록\n"): show_pages(text)
+	elif text=="장터": open_market()
 	elif text=="작업대": open_crafting()
 	elif text=="보관함": open_storage()
 	elif text=="서재": open_library()
@@ -535,8 +544,10 @@ func message(text: String) -> void:
 		if bag.visible: bag.feedback.text=text
 		if chest.visible: chest.feedback.text=text
 		if bench.visible: bench.feedback.text=text
+		if market.visible: market.feedback.text=text
 
 func show_pages(text: String) -> void:
+	market.hide()
 	bench.hide()
 	bag.hide()
 	chest.hide()
@@ -627,6 +638,7 @@ func build_dressing(root: Control) -> void:
 	dressing.hide()
 
 func open_dressing(purpose: String) -> void:
+	market.hide()
 	bench.hide()
 	bag.hide()
 	chest.hide()
@@ -669,6 +681,7 @@ func open_dressing(purpose: String) -> void:
 	dressing.show()
 
 func open_inventory() -> void:
+	market.hide()
 	bench.hide()
 	chest.hide()
 	if world.is_empty() or not world.people.has(me): return
@@ -679,6 +692,7 @@ func open_inventory() -> void:
 	bag.show()
 
 func open_storage(remains_mode: bool=false) -> void:
+	market.hide()
 	bench.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
@@ -691,6 +705,7 @@ func open_storage(remains_mode: bool=false) -> void:
 	chest.show()
 
 func open_crafting() -> void:
+	market.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
 	dressing.hide()
@@ -699,3 +714,14 @@ func open_crafting() -> void:
 	bench.feedback.text=""
 	bench.refresh(world,world.people[me])
 	bench.show()
+
+func open_market() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	panel.hide()
+	dressing.hide()
+	bag.hide()
+	chest.hide()
+	bench.hide()
+	market.feedback.text=""
+	market.refresh(world,world.people[me])
+	market.show()

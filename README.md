@@ -1,12 +1,22 @@
-# Vestige · 설치형 도트 시제품 0.5.2
+# Vestige · 설치형 도트 시제품 0.5.3
 
 ## 바로 실행
 
-- Mac 최신: `builds/Vestige-0.5.2.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `builds/windows-0.5.2/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `builds/Vestige-0.5.3.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `builds/windows-0.5.3/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
+
+### 마을 상점 체험
+
+Mac **Play-Market.command**, Windows **Play-Market.cmd** 또는 `-- --market-demo`로 시작합니다. 별도 `market-demo.json`에 저장합니다. 장터 앞에서 **E**로 거래창을 열고 목록을 선택해 1개씩 구매·판매합니다. 일반 월드에도 여관 남동쪽 장터가 있습니다.
+
+- 천 3은화(8개), 못 2은화(12개), 금 간 찻잔 3은화(3개), 약초 3은화(8개), 철광석 4은화(8개).
+- 재고는 월드 날짜가 바뀔 때 정량 보충됩니다. 지난 날짜만큼 누적되지 않습니다. 같은 날 재접속해도 재고가 유지되며 멀티에서는 공유합니다.
+- 제작품 판매가는 일반 대비 양품 +1 / 대성공 +2은화. 철검은 일반 4 / 양품 5 / 대성공 6은화에 내구도 비율을 적용합니다(내림, 최소 1).
+- 착용 중인 철검은 먼저 I에서 해제해야 합니다. 시작 의복·사건 증거·유물은 판매할 수 없습니다. 판매한 물품은 되살 수 없습니다.
+- 채집 → 판매 → 재료 구매 → 집 제작으로 생활을 이어갈 수 있습니다. 가격은 초기 균형 수치이며 거래 숙련도·흥정·수요 변화는 아직 없습니다.
 
 ### 제작 품질·대성공 체험
 
@@ -75,7 +85,7 @@ Mac은 빌드 폴더의 **Play-Witness.command**, Windows는 **Play-Witness.cmd*
 프로젝트 루트에서 다음 명령으로 독립 싱글 저장 `investigation-demo.json`을 열 수 있습니다. 일반 월드에서는 마을 서남쪽 언덕집 문 앞에서 E로 은화 8개에 집을 매입합니다. 이후 E를 누를 때마다 그때까지의 일지를 책장에 보관합니다.
 
 ```sh
-builds/Vestige-0.5.2.app/Contents/MacOS/Vestige -- --investigation-demo
+builds/Vestige-0.5.3.app/Contents/MacOS/Vestige -- --investigation-demo
 ```
 
 Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 실행합니다. 체험 월드는 약초꾼 소율이 예배당으로 떠난 뒤 새 여행자가 도착한 상태에서 시작합니다.
@@ -85,7 +95,7 @@ Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 �
 3. 동쪽 예배당 길목에서 흔적 가까이 다가가 F로 조사합니다. J를 누르면 발견한 내용이 조사 수첩에 남습니다.
 4. 묘지로 돌아와 F를 누르면 장례 기록과 단서를 대조해 사인이 새겨집니다. 서재에서는 현장에서 회수한 마지막 메모까지 읽을 수 있습니다.
 
-저장은 버전 8이며 버전 1~7 월드를 자동 이관합니다. 기존 철검은 일반 품질·공격력 22를 유지하고 기존 내구도도 보존합니다. 내구도가 없던 저장만 100으로 초기화합니다. 새 저장은 0.5.2 이상에서 이어서 플레이하세요. 같은 이름의 다음 인물은 별도 수첩으로 시작합니다. 체험 월드도 재실행하면 조사 진행을 이어갑니다.
+저장은 버전 9이며 버전 1~8 월드를 자동 이관합니다. 기존 철검은 일반 품질·공격력 22를 유지하고 기존 내구도도 보존합니다. 내구도가 없던 저장만 100으로 초기화합니다. 새 저장은 0.5.3 이상에서 이어서 플레이하세요. 같은 이름의 다음 인물은 별도 수첩으로 시작합니다. 체험 월드도 재실행하면 조사 진행을 이어갑니다.
 
 ### 집 보관함과 개별 장비
 
@@ -127,7 +137,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-builds/Vestige-0.5.2.app/Contents/MacOS/Vestige --headless -- --server
+builds/Vestige-0.5.3.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -163,7 +173,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.5.2.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.5.3.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

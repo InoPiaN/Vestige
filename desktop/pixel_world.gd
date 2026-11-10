@@ -254,6 +254,15 @@ func _draw() -> void:
 		var x: float=t.x*16
 		var y: float=t.y*16
 		match t.kind:
+			"market":
+				box(x-16,y-20,2,24,"8b7650")
+				box(x+14,y-20,2,24,"8b7650")
+				box(x-19,y-24,38,7,"697c63")
+				box(x-17,y-23,10,5,"a39a71")
+				box(x+4,y-23,10,5,"a39a71")
+				box(x-16,y-5,32,8,"705c3c")
+				box(x-12,y-9,6,4,"a29a80")
+				box(x+5,y-10,5,5,"8ab88e")
 			"forge","inn","library","home": house(x,y,t.kind)
 			"grave":
 				for i in range(4):

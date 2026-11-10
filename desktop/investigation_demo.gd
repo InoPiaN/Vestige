@@ -107,3 +107,12 @@ static func quality() -> Dictionary:
 	p.belongings.broken_cup=1
 	p.herb=6
 	return w
+
+static func market() -> Dictionary:
+	var w:=quality()
+	var p: Dictionary=w.people.local
+	p.room="village"
+	p.x=14
+	p.y=15
+	p.gold=30
+	return w

@@ -4,12 +4,14 @@ const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
 const Remains=preload("res://death_belongings.gd")
 const Quality=preload("res://craft_quality.gd")
+const Market=preload("res://village_market.gd")
 const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
 const DAY := 2880.0
 const PLACES := [
+	{"kind":"market","name":"잿불 장터 · 재료 구매 / 물품 판매","x":14,"y":14},
 	{"kind":"forge","name":"잿불 대장간","x":5,"y":7},
 	{"kind":"library","name":"기억의 서재","x":10,"y":4},
 	{"kind":"inn","name":"등불 여관","x":11,"y":11},
@@ -46,13 +48,14 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":8,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":9,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
 	Remains.prepare(w)
 	Interior.prepare(w)
 	Quality.prepare(w)
+	Market.prepare(w)
 	return w
 
 static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) -> void:
@@ -102,6 +105,7 @@ static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: V
 static func advance(w: Dictionary, seconds: float) -> void:
 	var old_day := int(w.time / DAY)
 	w.time += maxf(0, seconds)
+	Market.prepare(w)
 	var days := int(w.time / DAY) - old_day
 	for id in w.people:
 		var p: Dictionary = w.people[id]
@@ -281,6 +285,8 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="market_buy": return Market.trade(w,p,value,true)
+	if kind=="market_sell": return Market.trade(w,p,value,false)
 	if kind=="craft_home": return Crafting.craft(w,p,value)
 	if kind=="repair_gear": return Crafting.repair(p,value)
 	if kind=="use_crafted": return Crafting.use(p,value)
@@ -334,6 +340,9 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	var t:=nearby(p)
 	if t.is_empty(): return "시설이나 자원 가까이에서 E를 누르세요."
 	match t.kind:
+		"market":
+			Market.prepare(w)
+			return "장터"
 		"home": return Investigation.visit_house(w,p)
 		"ore":
 			if p.attack>0: return ""
@@ -383,6 +392,7 @@ static func checkpoint(w: Dictionary, path: String, now: float, previous: Dictio
 	Storage.prepare(w)
 	Interior.prepare(w)
 	Quality.prepare(w)
+	Market.prepare(w)
 	var snapshot:=w.duplicate(false)
 	snapshot.saved=maxf(w.saved,now)
 	if not Store.replace(snapshot,path,previous):
@@ -401,8 +411,9 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=8
+	w.version=9
 	Quality.prepare(w)
+	Market.prepare(w)
 	Interior.prepare(w)
 	Remains.prepare(w)
 	for p in w.people.values():

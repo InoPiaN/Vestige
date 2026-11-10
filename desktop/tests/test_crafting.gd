@@ -14,6 +14,7 @@ func _initialize() -> void:
 	call_deferred("run")
 func run() -> void:
 	var w:=preload("res://investigation_demo.gd").home()
+	w.craft_rng=19 # Keep baseline recipe effects deterministic; quality has separate coverage.
 	var p: Dictionary=w.people.local
 	p.belongings.cloth=10
 	p.belongings.bent_nail=4
@@ -122,7 +123,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	var migrated:=R.load_world(legacy_path,false)
-	check(not migrated.is_empty() and migrated.version==7 and migrated.people.local.gear_condition[swords[0]]==100,"Legacy gear in all containers starts with full durability")
+	check(not migrated.is_empty() and migrated.version==8 and migrated.people.local.gear_condition[swords[0]]==100,"Legacy gear in all containers starts with full durability")
 	for ext in ["",".bak"]: DirAccess.remove_absolute(legacy_path+ext)
 	game.queue_free()
 	for ext in ["",".bak"]: DirAccess.remove_absolute(game.save_path+ext)

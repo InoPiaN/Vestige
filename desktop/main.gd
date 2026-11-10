@@ -49,7 +49,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -57,6 +57,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"quality": opening=demo.quality()
 				"craft": opening=demo.craft()
 				"home": opening=demo.home()
 				"remains": opening=demo.remains()
@@ -67,7 +68,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="craft": message("E로 작업대를 열어 제작하고 검을 수선하세요. 약초차는 벽난로 불이 필요합니다.")
+			if kind=="quality": message("I에서 일반·양품·대성공 철검의 공격력을 비교하세요. E로 작업대 제작도 가능합니다.")
+			elif kind=="craft": message("E로 작업대를 열어 제작하고 검을 수선하세요. 약초차는 벽난로 불이 필요합니다.")
 			elif kind=="home": message("가구 가까이에서 E · 서랍, 책장, 침대, 보관함, 커튼, 벽난로를 이용하세요.")
 			elif kind=="remains": message("G로 근처 여행자의 유품을 회수하세요. 집에서는 B로 보관합니다.")
 			else: message("마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다.")

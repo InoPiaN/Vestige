@@ -38,7 +38,7 @@ func _ready() -> void:
 	description.size=Vector2(510,260)
 	description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	craft_button=button("1개 만들기",Vector2(400,350),240,func(): action.emit("craft_home",current))
-	label("철검 수선 · 도구 1개로 내구도 +40",Vector2(28,420),19)
+	label("철검 수선 · 도구 1개로 내구도 +40~50",Vector2(28,420),19)
 	gear=OptionButton.new()
 	gear.position=Vector2(28,460)
 	gear.size=Vector2(340,40)
@@ -72,9 +72,11 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 	person=p
 	if p.is_empty(): return
 	var recipe: Dictionary=C.RECIPES[current]
-	var lines: PackedStringArray=[recipe.name,"",recipe.description,""]
+	var tool: String=Items.best(p,"mug") if recipe.has("tool") else ""
+	var bonus: int=5 if tool.ends_with("_great") else (2 if tool.ends_with("_fine") else 0)
+	var lines: PackedStringArray=[recipe.name,"",recipe.description,"일반 %d%% · 양품 20%% · 대성공 %d%%" % [70-bonus,10+bonus],"품질에 따라 완성품 효과가 달라집니다."]
 	for id in recipe.cost: lines.append("%s · %d / %d개" % [Items.CATALOG[id].name,Items.quantity(p,id),recipe.cost[id]])
-	if recipe.has("tool"): lines.append("고친 찻잔 · %d개 (소비하지 않음)" % Items.quantity(p,"mug"))
+	if recipe.has("tool"): lines.append("고친 찻잔 · %d개 (소비하지 않음)" % Items.family_quantity(p,"mug"))
 	var why:=C.reason(w,p,current)
 	lines.append("\n"+("제작 가능" if why.is_empty() else why))
 	description.text="\n".join(lines)
@@ -90,5 +92,5 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 		if p.gear_instances.get(sword,"")!="iron_sword": sword=gear.get_item_metadata(0) if gear.item_count else ""
 		for i in range(gear.item_count):
 			if gear.get_item_metadata(i)==sword: gear.select(i)
-	condition.text="수선 도구 %d개 · 내구도 0이어도 검은 남습니다." % Items.quantity(p,"repair_kit")
-	repair_button.disabled=not C.allowed(p) or sword.is_empty() or p.gear_condition.get(sword,100)>=100 or Items.quantity(p,"repair_kit")<1
+	condition.text="수선 도구 %d개 · 좋은 품질부터 사용합니다." % Items.family_quantity(p,"repair_kit")
+	repair_button.disabled=not C.allowed(p) or sword.is_empty() or p.gear_condition.get(sword,100)>=100 or Items.family_quantity(p,"repair_kit")<1

@@ -28,13 +28,17 @@ func _ready() -> void:
 	filter.item_selected.connect(func(i): category=filter.get_item_text(i); signature=""; refresh(person))
 	add_child(filter)
 	label("이름순 정렬 · 수량은 착용 중인 장비를 포함",Vector2(285,86),14)
+	var scroll:=ScrollContainer.new()
+	scroll.position=Vector2(28,135)
+	scroll.size=Vector2(590,380)
+	add_child(scroll)
 	var grid:=GridContainer.new()
 	grid.columns=6
-	grid.position=Vector2(28,135)
+	grid.position=Vector2.ZERO
 	grid.add_theme_constant_override("h_separation",8)
 	grid.add_theme_constant_override("v_separation",8)
-	add_child(grid)
-	for i in range(24):
+	scroll.add_child(grid)
+	for i in range(42):
 		var cell:=Button.new()
 		cell.custom_minimum_size=Vector2(88,88)
 		cell.add_theme_font_size_override("font_size",12)
@@ -80,7 +84,7 @@ func choose(id: String) -> void:
 func refresh(p: Dictionary) -> void:
 	person=p
 	var rows:=Items.entries(p,category)
-	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("gear_condition",{}),p.get("stamina",0),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
+	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("gear_condition",{}),p.get("gear_quality",{}),p.get("stamina",0),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
 	if signature==stamp: return
 	signature=stamp
 	heading.text="소지품  ·  %d항목  /  은화 %d" % [Items.entries(p).size(),p.get("gold",0)]
@@ -104,8 +108,8 @@ func refresh(p: Dictionary) -> void:
 			highlight.set_border_width_all(2)
 			cell.add_theme_stylebox_override("normal",highlight)
 		cell.get_node("Icon").texture=icon_for(row.id)
-		cell.text="\n\n"+item.name+"\n×%d" % row.count+(" · 착용" if equipped else "")
-		cell.tooltip_text=item.description
+		cell.text="\n\n"+item.name.get_slice(" · ",0)+"\n×%d" % row.count+(" · 착용" if equipped else "")
+		cell.tooltip_text=item.name+"\n"+item.description
 		cell.add_theme_color_override("font_color",Color(item.color))
 	if selected.is_empty() or Items.quantity(p,selected)==0:
 		details.text="아이템을 선택하세요." if selected.is_empty() else "이 아이템을 모두 사용했습니다."
@@ -119,9 +123,9 @@ func refresh(p: Dictionary) -> void:
 	if item.has("slot"):
 		var worn: bool=(p.get("equipped_ids",{}).get(item.slot)==selected if selected.begins_with("gear-") else p.equipment.get(item.slot)==selected)
 		use_button.text="착용 해제" if worn else "착용"
-	elif selected in ["bandage","herbal_tea"]:
+	elif Items.base_id(selected) in ["bandage","herbal_tea"]:
 		use_button.text="사용"
-		use_button.disabled=use_button.disabled or p.offline or (p.hp>=100 and (selected=="bandage" or p.stamina>=100))
+		use_button.disabled=use_button.disabled or p.offline or (p.hp>=100 and (Items.base_id(selected)=="bandage" or p.stamina>=100))
 	elif selected.begins_with("evidence:"):
 		use_button.text="집 보관함에 남기기"
 		use_button.disabled=use_button.disabled or p.offline
@@ -140,7 +144,7 @@ func activate() -> void:
 		var value: String="none" if person.equipment.get(item.slot)==selected else selected
 		action.emit("equip",item.slot+":"+value)
 	elif selected.begins_with("evidence:"): action.emit("store_evidence",selected)
-	elif selected in ["bandage","herbal_tea"]: action.emit("use_crafted",selected)
+	elif Items.base_id(selected) in ["bandage","herbal_tea"]: action.emit("use_crafted",selected)
 	elif selected=="herb": action.emit("heal","")
 
 var icons: Dictionary={}
@@ -148,7 +152,7 @@ func icon_for(id: String) -> ImageTexture:
 	if icons.has(id): return icons[id]
 	var image:=Image.create(16,16,false,Image.FORMAT_RGBA8)
 	var color:=Color(Items.definition(person,id).color)
-	id=person.get("gear_instances",{}).get(id,id)
+	id=Items.base_id(person.get("gear_instances",{}).get(id,id))
 	if id in ["mug","herbal_tea","broken_cup"]:
 		image.fill_rect(Rect2i(3,5,8,8),color)
 		image.fill_rect(Rect2i(10,6,4,5),color)

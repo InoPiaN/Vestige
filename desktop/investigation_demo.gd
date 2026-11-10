@@ -89,3 +89,21 @@ static func craft() -> Dictionary:
 		if p.gear_instances[id]=="iron_sword": p.gear_condition[id]=35
 	p.events.append("작업대에 수선할 검과 작은 재료 꾸러미를 준비했다.")
 	return w
+
+static func quality() -> Dictionary:
+	var w:=home()
+	var p: Dictionary=w.people.local
+	p.room="village"
+	p.x=5
+	p.y=8
+	p.ore=6
+	w.craft_rng=8 # Tutorial creates one example of each tier using real crafting.
+	for i in range(3): Rules.act(w,"local","interact")
+	p.room="home"
+	p.x=15
+	p.y=12
+	p.belongings.cloth=6
+	p.belongings.bent_nail=4
+	p.belongings.broken_cup=1
+	p.herb=6
+	return w

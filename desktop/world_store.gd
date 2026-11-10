@@ -14,7 +14,7 @@ static func pages_valid(pages: Variant) -> bool:
 	return true
 
 static func valid(w: Dictionary) -> bool:
-	if (w.get("version")!=1 and w.get("version")!=2 and w.get("version")!=3 and w.get("version")!=4 and w.get("version")!=5 and w.get("version")!=6 and w.get("version")!=7) or not numbers(w,["time","saved"]): return false
+	if (w.get("version")!=1 and w.get("version")!=2 and w.get("version")!=3 and w.get("version")!=4 and w.get("version")!=5 and w.get("version")!=6 and w.get("version")!=7 and w.get("version")!=8) or not numbers(w,["time","saved"]): return false
 	if w.time<0 or w.saved<0: return false
 	if not w.get("people") is Dictionary or not w.get("wolf") is Dictionary: return false
 	if not numbers(w.wolf,["x","y","hp","cooldown","warning","respawn"]): return false
@@ -63,6 +63,7 @@ static func history_valid(w: Dictionary) -> bool:
 		if grave.has("case_id") and not w.cases.has(grave.case_id): return false
 	if not w.estate.owner.is_empty() and not w.cases.has(w.estate.owner):
 		if not w.people.values().any(func(person): return person.life==w.estate.owner and person.alive): return false
+	if w.version>=8 and not preload("res://craft_quality.gd").valid(w): return false
 	if w.version>=6 and not preload("res://house_interior.gd").valid(w): return false
 	if w.version>=5 and not preload("res://death_belongings.gd").valid(w): return false
 	return preload("res://evidence_items.gd").valid(w) and (w.version<4 or preload("res://house_storage.gd").valid(w))
@@ -76,7 +77,7 @@ static func read(path: String) -> Dictionary:
 	return parser.data
 
 static func unsupported(w: Dictionary) -> bool:
-	return numbers(w,["version"]) and w.version>7
+	return numbers(w,["version"]) and w.version>8
 
 # Write beside the destination. Replace each file only after its staging step succeeds.
 static func replace(w: Dictionary, path: String, previous: Dictionary) -> bool:

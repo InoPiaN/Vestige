@@ -13,6 +13,7 @@ func start() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--fixture="):
 			var w:=preload("res://investigation_demo.gd").craft()
+			w.craft_rng=19
 			var p: Dictionary=w.people.local
 			w.people.erase("local")
 			w.people["c".repeat(48)]=p

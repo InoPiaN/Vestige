@@ -17,6 +17,7 @@ static func leave(w: Dictionary,p: Dictionary,day: int) -> void:
 	p.gold=0
 	p.gear_instances={}
 	p.gear_condition={}
+	p.gear_quality={}
 	p.equipped_ids={}
 	for slot in p.equipment: p.equipment[slot]="none"
 static func visible(w: Dictionary,p: Dictionary) -> Dictionary:
@@ -43,7 +44,7 @@ static func take(w: Dictionary,p: Dictionary,value: String) -> String:
 		if not Items.CATALOG.has(kind) or Items.quantity(box,id)<=0: return "이미 회수된 물품입니다."
 		var def: Dictionary=Items.CATALOG[kind]
 		if def.has("slot") and not box.gear_instances.has(id): return "개별 장비를 선택하세요."
-		if Items.quantity(p,kind)>=int(def.limit): return "소지품 한도에 도달했습니다. 집에 보관한 뒤 돌아오세요."
+		if Items.family_quantity(p,kind)>=int(def.limit): return "소지품 한도에 도달했습니다. 집에 보관한 뒤 돌아오세요."
 		Storage.change(box,kind,-1)
 		Storage.change(p,kind,1)
 		if def.has("slot"):
@@ -51,6 +52,8 @@ static func take(w: Dictionary,p: Dictionary,value: String) -> String:
 			p.gear_instances[id]=kind
 			p.gear_condition[id]=box.gear_condition[id]
 			box.gear_condition.erase(id)
+			p.gear_quality[id]=box.gear_quality[id]
+			box.gear_quality.erase(id)
 		if kind=="relic": p.relic_found=true
 		Storage.reconcile(p)
 		name=def.name

@@ -1,4 +1,5 @@
 extends RefCounted
+const Quality=preload("res://craft_quality.gd")
 const Items=preload("res://items.gd")
 const Storage=preload("res://house_storage.gd")
 const Interior=preload("res://house_interior.gd")
@@ -13,10 +14,10 @@ static func reason(w: Dictionary,p: Dictionary,id: String) -> String:
 	if not allowed(p): return "직접 조종 중인 인물로 집 작업대 가까이에 오세요."
 	if not RECIPES.has(id): return "없는 제작법입니다."
 	var recipe: Dictionary=RECIPES[id]
-	if Items.quantity(p,recipe.result)>=int(Items.CATALOG[recipe.result].limit): return "완성품 소지 한도에 도달했습니다."
+	if Items.family_quantity(p,recipe.result)>=int(Items.CATALOG[recipe.result].limit): return "완성품 소지 한도에 도달했습니다."
 	for material in recipe.cost:
 		if Items.quantity(p,material)<int(recipe.cost[material]): return Items.CATALOG[material].name+" 재료가 부족합니다."
-	if recipe.has("tool") and Items.quantity(p,recipe.tool)<1: return "고친 찻잔이 필요합니다. 찻잔은 소비하지 않습니다."
+	if recipe.has("tool") and Items.family_quantity(p,recipe.tool)<1: return "고친 찻잔이 필요합니다. 찻잔은 소비하지 않습니다."
 	if recipe.get("fire",false) and not w.estate.get("interior",{}).get("fire",false): return "먼저 벽난로에 불을 켜세요."
 	return ""
 static func craft(w: Dictionary,p: Dictionary,id: String) -> String:
@@ -24,8 +25,14 @@ static func craft(w: Dictionary,p: Dictionary,id: String) -> String:
 	if not why.is_empty(): return why
 	var recipe: Dictionary=RECIPES[id]
 	for material in recipe.cost: Storage.change(p,material,-int(recipe.cost[material]))
-	Storage.change(p,recipe.result,1)
-	var text: String="작업대에서 "+Items.CATALOG[recipe.result].name+" 1개를 만들었다."
+	var bonus:=0
+	if recipe.has("tool"):
+		var tool:=Items.best(p,recipe.tool)
+		bonus=5 if tool.ends_with("_great") else (2 if tool.ends_with("_fine") else 0)
+	var roll:=Quality.roll(w,bonus)
+	var output: String=recipe.result+("" if roll.tier=="common" else "_"+roll.tier)
+	Storage.change(p,output,1)
+	var text: String="제작 · "+Quality.LABELS[roll.tier]+" · "+Items.CATALOG[output].name+" 1개를 만들었다."
 	p.events.append(text)
 	return text
 static func repair(p: Dictionary,id: String) -> String:
@@ -33,16 +40,20 @@ static func repair(p: Dictionary,id: String) -> String:
 	if p.gear_instances.get(id,"")!="iron_sword": return "소지한 철검 하나를 선택하세요."
 	var condition: int=p.gear_condition[id]
 	if condition>=100: return "이미 온전한 철검입니다."
-	if Items.quantity(p,"repair_kit")<1: return "간이 수선 도구 1개가 필요합니다."
-	Storage.change(p,"repair_kit",-1)
-	p.gear_condition[id]=mini(100,condition+40)
+	var kit:=Items.best(p,"repair_kit")
+	if kit.is_empty(): return "간이 수선 도구 1개가 필요합니다."
+	Storage.change(p,kit,-1)
+	var restore: int=50 if kit.ends_with("_great") else (44 if kit.ends_with("_fine") else 40)
+	p.gear_condition[id]=mini(100,condition+restore)
 	var text: String="철검 · "+id.right(4)+"을 수선했다. 내구도 %d → %d." % [condition,p.gear_condition[id]]
 	p.events.append(text)
 	return text
 static func use(p: Dictionary,id: String) -> String:
-	if id not in ["bandage","herbal_tea"] or Items.quantity(p,id)<1: return "사용할 물품이 없습니다."
-	var heal: int=45 if id=="bandage" else 20
-	var energy: int=0 if id=="bandage" else 40
+	var base:=Items.base_id(id)
+	if base not in ["bandage","herbal_tea"] or Items.quantity(p,id)<1: return "사용할 물품이 없습니다."
+	var grade: int=2 if id.ends_with("_great") else (1 if id.ends_with("_fine") else 0)
+	var heal: int=[45,48,54][grade] if base=="bandage" else [20,22,25][grade]
+	var energy: int=0 if base=="bandage" else [40,44,50][grade]
 	if p.hp>=100 and (energy==0 or p.stamina>=100): return "이미 충분히 회복했습니다."
 	Storage.change(p,id,-1)
 	p.hp=mini(100,p.hp+heal)

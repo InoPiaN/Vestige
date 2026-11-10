@@ -3,6 +3,7 @@ extends RefCounted
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
 const Remains=preload("res://death_belongings.gd")
+const Quality=preload("res://craft_quality.gd")
 const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
@@ -45,12 +46,13 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":7,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":8,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
 	Remains.prepare(w)
 	Interior.prepare(w)
+	Quality.prepare(w)
 	return w
 
 static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) -> void:
@@ -118,10 +120,9 @@ static func advance(w: Dictionary, seconds: float) -> void:
 				elif p.policy == "work":
 					if p.ore>=2 and p.sword<5:
 						p.ore-=2
-						p.sword+=1
-						Storage.reconcile(p)
+						var result:=forge_sword(w,p,false)
 						p.skill+=1
-						p.events.append("대장간에서 철검을 완성했다.")
+						p.events.append(result)
 					else:
 						p.events.append("제작할 재료나 보관 공간이 부족해 작업장을 정리했다.")
 				else:
@@ -141,10 +142,23 @@ static func advance(w: Dictionary, seconds: float) -> void:
 		w.wolf.warning=0.0
 		w.wolf.cooldown=0.0
 
+static func forge_sword(w: Dictionary,p: Dictionary,equip: bool) -> String:
+	var previous: Array=p.gear_instances.keys()
+	p.sword+=1
+	Storage.reconcile(p)
+	for id in p.gear_instances:
+		if previous.has(id): continue
+		p.gear_quality[id]=Quality.roll(w)
+		if equip:
+			p.equipment.weapon="iron_sword"
+			p.equipped_ids.weapon=id
+		return "철검 제작 · %s · 공격력 %d" % [Quality.LABELS[p.gear_quality[id].tier],p.gear_quality[id].attack]
+	return ""
+
 static func weapon_damage(p: Dictionary) -> int:
 	if p.equipment.get("weapon")!="iron_sword": return 9
 	var id: String=p.get("equipped_ids",{}).get("weapon","")
-	return 22 if p.get("gear_condition",{}).get(id,100)>0 else 9
+	return int(p.get("gear_quality",{}).get(id,{"attack":22}).attack) if p.get("gear_condition",{}).get(id,100)>0 else 9
 
 static func pos(p: Dictionary) -> Vector2:
 	return Vector2(p.x,p.y)
@@ -341,12 +355,10 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 			if p.ore<2: return "철광석 2개가 필요합니다. 동쪽 광맥을 찾아보세요."
 			if p.sword>=5: return "철검 보관 한도에 도달했습니다."
 			p.ore-=2
-			p.sword+=1
-			p.equipment.weapon="iron_sword"
-			Storage.reconcile(p)
+			var result:=forge_sword(w,p,true)
 			p.skill+=1
-			p.events.append("잿불 대장간에서 첫 여정을 위한 철검을 만들었다.")
-			return "철검을 만들었습니다. 공격력 9 → 22"
+			p.events.append(result)
+			return result
 		"inn":
 			p.hp=100
 			p.events.append("등불 여관에서 따뜻한 식사를 하고 쉬었다.")
@@ -370,6 +382,7 @@ static func checkpoint(w: Dictionary, path: String, now: float, previous: Dictio
 	if now<0: now=Time.get_unix_time_from_system()
 	Storage.prepare(w)
 	Interior.prepare(w)
+	Quality.prepare(w)
 	var snapshot:=w.duplicate(false)
 	snapshot.saved=maxf(w.saved,now)
 	if not Store.replace(snapshot,path,previous):
@@ -388,7 +401,8 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=7
+	w.version=8
+	Quality.prepare(w)
 	Interior.prepare(w)
 	Remains.prepare(w)
 	for p in w.people.values():

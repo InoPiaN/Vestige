@@ -1,6 +1,6 @@
 extends RefCounted
 # Existing resource counters remain the single source of truth for old saves.
-const CATALOG := {
+const BASE_CATALOG := {
 	"bandage":{"name":"약초 붕대","category":"소모품","limit":10,"color":"c7c5a1","description":"체력 45 회복. 천 1개와 약초 1개로 제작합니다."},
 	"repair_kit":{"name":"간이 수선 도구","category":"재료","limit":10,"color":"b6a07b","description":"집 작업대에서 선택한 철검 내구도 +40. 천 1개와 못 2개로 제작합니다."},
 	"mug":{"name":"고친 찻잔","category":"재료","limit":5,"color":"c0bd9a","description":"약초차 제작 도구. 사용할 때 사라지지 않습니다."},
@@ -16,12 +16,42 @@ const CATALOG := {
 	"traveler":{"name":"여행 망토","category":"장비","limit":1,"slot":"cloak","color":"648c9e","description":"어깨에서 내려오는 시작 망토.\n착용하면 인물의 실루엣이 바뀝니다."},
 	"relic":{"name":"이렌의 유물","category":"기록","field":"relic","limit":1,"color":"d1b777","description":"예배당에서 발견한 유물.\n서재에서 이렌의 기록을 읽을 수 있습니다."}
 }
+static var CATALOG: Dictionary=make_catalog()
+static func make_catalog() -> Dictionary:
+	var catalog:=BASE_CATALOG.duplicate(true)
+	for base in ["bandage","repair_kit","mug","herbal_tea"]:
+		for tier in ["fine","great"]:
+			var item: Dictionary=BASE_CATALOG[base].duplicate()
+			item.base=base
+			item.tier=tier
+			item.name=("양품 " if tier=="fine" else "대성공 ")+item.name
+			item.color="94b9ad" if tier=="fine" else "e2c481"
+			if base=="bandage": item.description="체력 %d 회복." % (48 if tier=="fine" else 54)
+			if base=="repair_kit": item.description="작업대에서 철검 내구도 %d 복원." % (44 if tier=="fine" else 50)
+			if base=="herbal_tea": item.description="체력 %d · 기력 %d 회복." % [22 if tier=="fine" else 25,44 if tier=="fine" else 50]
+			if base=="mug": item.description="재사용 찻잔. 약초차 대성공 확률 +%d%%p." % (2 if tier=="fine" else 5)
+			catalog[base+"_"+tier]=item
+	return catalog
+static func base_id(id: String) -> String:
+	return CATALOG.get(id,{}).get("base",id)
+static func family_quantity(p: Dictionary,id: String) -> int:
+	var base:=base_id(id)
+	return quantity(p,base)+quantity(p,base+"_fine")+quantity(p,base+"_great")
+static func best(p: Dictionary,base: String) -> String:
+	for id in [base+"_great",base+"_fine",base]:
+		if quantity(p,id)>0: return id
+	return ""
 static func definition(p: Dictionary,id: String) -> Dictionary:
 	if p.get("gear_instances",{}).has(id):
 		var def: Dictionary=CATALOG[p.gear_instances[id]].duplicate()
 		def.name+=" · "+id.right(4)
 		def.limit=1
-		if p.gear_instances[id]=="iron_sword": def.description+="\n내구도 %d / 100" % int(p.get("gear_condition",{}).get(id,100))
+		if p.gear_instances[id]=="iron_sword":
+			var quality: Dictionary=p.get("gear_quality",{}).get(id,{"tier":"common","attack":22})
+			def.name=preload("res://craft_quality.gd").LABELS[quality.tier]+" "+def.name
+			if quality.tier!="common": def.color="94b9ad" if quality.tier=="fine" else "e2c481"
+			def.description="공격력 %d · 내구도 0이면 9.\n명중 시 내구도 5 소모." % quality.attack
+			def.description+="\n내구도 %d / 100" % int(p.get("gear_condition",{}).get(id,100))
 		return def
 	return CATALOG.get(id,p.get("evidence_items",{}).get(id,{}))
 static func quantity(p: Dictionary, id: String) -> int:

@@ -1,6 +1,9 @@
 extends RefCounted
 # Existing resource counters remain the single source of truth for old saves.
 const CATALOG := {
+	"cloth":{"name":"낡은 천 조각","category":"재료","limit":20,"color":"a29a80","description":"서랍에 남은 수선용 천. 보관하거나 유품으로 남길 수 있습니다. 제작 용도는 추후 추가됩니다."},
+	"bent_nail":{"name":"휘어진 못","category":"재료","limit":20,"color":"8e9690","description":"오래된 가구에서 모아 둔 못. 아직 제작에는 사용하지 않습니다."},
+	"broken_cup":{"name":"금 간 찻잔","category":"기록","limit":5,"color":"b7bba5","description":"누군가 매일 사용했을 법한 찻잔. 사건의 범인을 특정하는 증거는 아닙니다."},
 	"ore":{"name":"철광석","category":"재료","field":"ore","limit":20,"color":"92a6a1","description":"철검 제작 재료. 대장간에서 2개를 소비합니다."},
 	"herb":{"name":"달빛 약초","category":"소모품","field":"herb","limit":20,"color":"8ab88e","description":"1개를 사용해 체력 30을 회복합니다."},
 	"iron_sword":{"name":"철검","category":"장비","field":"sword","limit":5,"slot":"weapon","color":"c4d4d0","description":"착용 시 공격력 22.\n맨손 공격력은 9입니다.\n보유한 검 중 1개를 착용합니다."},

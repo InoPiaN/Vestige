@@ -115,7 +115,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(legacy))
 	file.close()
 	var migrated:=R.load_world(path,false)
-	check(not migrated.is_empty() and migrated.version==5 and migrated.remains.is_empty(),"Older save migrates without inventing historical loot")
+	check(not migrated.is_empty() and migrated.version==6 and migrated.remains.is_empty(),"Older save migrates without inventing historical loot")
 	for entry in [game.save_path,path]:
 		for ext in ["",".bak"]: DirAccess.remove_absolute(entry+ext)
 	game.queue_free()

@@ -3,6 +3,7 @@ extends RefCounted
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
 const Remains=preload("res://death_belongings.gd")
+const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
 const DAY := 2880.0
@@ -43,11 +44,12 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":5,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":6,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
 	Remains.prepare(w)
+	Interior.prepare(w)
 	return w
 
 static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) -> void:
@@ -79,6 +81,7 @@ static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: V
 	if not w.people.has(id) or damage<=0: return false
 	var victim: Dictionary=w.people[id]
 	if not victim.alive or w.estate.owner!=victim.life: return false
+	if Interior.inside(victim): return false
 	if pos(victim).distance_to(pos(attacker))>Investigation.Witness.REACH: return false
 	victim.hp=maxi(0,victim.hp-damage)
 	victim.hurt=0.22
@@ -158,10 +161,10 @@ static func move(w: Dictionary, id: String, direction: Vector2, dt: float) -> vo
 	var d:=direction.limit_length()*dt*(5.8 if p.dodge>0 else 3.2)
 	var old:=pos(p)
 	var next:=old+Vector2(d.x,0)
-	if walkable(next):
+	if (Interior.walkable(next) if Interior.inside(p) else walkable(next)):
 		p.x=next.x
 	next=pos(p)+Vector2(0,d.y)
-	if walkable(next):
+	if (Interior.walkable(next) if Interior.inside(p) else walkable(next)):
 		p.y=next.y
 	if d.length()>0:
 		p.direction=CharacterMotion.direction(d)
@@ -179,6 +182,11 @@ static func tick(w: Dictionary, dt: float) -> void:
 		p.dodge=maxf(0,p.dodge-dt)
 		p.stamina=minf(100,p.stamina+dt*16)
 		if p.alive and p.offline:
+			if Interior.inside(p):
+				if p.policy=="rest": continue
+				p.room="village"
+				p.x=7.0
+				p.y=14.0
 			var destination:=Vector2(11,12)
 			if p.policy=="work": destination=Vector2(5,8)
 			if p.policy=="gather": destination=Vector2(15,13)
@@ -200,7 +208,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 	for id in w.people:
 		var p: Dictionary=w.people[id]
 		var dist:=pos(e).distance_to(pos(p))
-		if p.alive and p.x>18 and dist<nearest:
+		if p.alive and not Interior.inside(p) and p.x>18 and dist<nearest:
 			nearest=dist
 			target_id=id
 	if target_id.is_empty():
@@ -253,6 +261,18 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="enter_home":
+		if not Interior.inside(p) and Vector2(p.x,p.y).distance_to(Vector2(7,13))<2 and w.estate.owner=="": Investigation.visit_house(w,p)
+		return Interior.enter(w,p)
+	if Interior.inside(p) and kind in ["interact","investigate"]:
+		if Interior.nearby(p)=="shelf":
+			if w.estate.owner==p.life:
+				Investigation.visit_house(w,p)
+				return "조사 기록\n"+w.estate.shelf
+			return Investigation.investigate(w,p)
+		if kind=="interact": return Interior.interact(w,p)
+		return Investigation.investigate(w,p)
+	if Interior.inside(p) and kind in ["attack","identify"]: return "집 안에서는 사용할 수 없습니다."
 	if kind=="take_remains": return Remains.take(w,p,value)
 	if kind=="equip_instance": return Storage.equip(p,value)
 	if kind in ["store_item","take_item"]: return Storage.transfer(w,p,value,kind=="take_item")
@@ -338,6 +358,7 @@ static func checkpoint(w: Dictionary, path: String, now: float, previous: Dictio
 	if w.is_empty(): return false
 	if now<0: now=Time.get_unix_time_from_system()
 	Storage.prepare(w)
+	Interior.prepare(w)
 	var snapshot:=w.duplicate(false)
 	snapshot.saved=maxf(w.saved,now)
 	if not Store.replace(snapshot,path,previous):
@@ -356,7 +377,8 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=5
+	w.version=6
+	Interior.prepare(w)
 	Remains.prepare(w)
 	for p in w.people.values():
 		Investigation.prepare_person(p)

@@ -21,7 +21,10 @@ static func collect(w: Dictionary,p: Dictionary) -> String:
 		if not c.has("object"): continue
 		var obj: Dictionary=c.object
 		var point:=HOME if obj.place=="house" else Vector2(obj.x,obj.y)
-		if obj.place=="carried" or Vector2(p.x,p.y).distance_to(point)>=2: continue
+		if obj.place=="carried": continue
+		if obj.place=="house" and p.get("room","village")=="home":
+			if not preload("res://house_interior.gd").near(p,"shelf"): continue
+		elif p.get("room","village")!=obj.get("room","village") or Vector2(p.x,p.y).distance_to(point)>=2: continue
 		if obj.place=="house" and w.estate.owner!=p.life and not w.cases.has(w.estate.owner): continue
 		var text: String=c.name+" 사건의 "+c.trace_mark+" 조각을 "+("집 보관함" if obj.place=="house" else "바닥")+"에서 수집했다."
 		obj.place="carried"
@@ -38,17 +41,18 @@ static func deposit(w: Dictionary,p: Dictionary,item: String) -> String:
 	if not item.begins_with("evidence:") or not w.cases.has(id): return "보관할 증거물이 없습니다."
 	var c: Dictionary=w.cases[id]
 	if not c.has("object") or c.object.place!="carried" or c.object.holder!=p.life: return "소지한 증거물만 보관할 수 있습니다."
-	if Vector2(p.x,p.y).distance_to(HOME)>=2: return "집 가까이에서 증거물을 보관하세요."
+	if not (preload("res://house_interior.gd").near(p,"shelf") if p.get("room","village")=="home" else Vector2(p.x,p.y).distance_to(HOME)<2): return "집 가까이에서 증거물을 보관하세요."
 	if w.estate.owner!=p.life and not w.cases.has(w.estate.owner): return "다른 주민의 집에는 보관할 수 없습니다."
 	c.object.place="house"
 	c.object.holder=""
+	c.object.room="village"
 	p.events.append(c.name+" 사건의 고리 조각을 집 보관함에 남겼다.")
 	sync(w)
 	return "증거물을 집 보관함에 남겼습니다. 다른 인물이 F로 발견할 수 있습니다."
 static func drop(w: Dictionary,p: Dictionary) -> void:
 	for c in w.cases.values():
 		if c.has("object") and c.object.place=="carried" and c.object.holder==p.life:
-			c.object={"place":"ground","holder":"","x":p.x,"y":p.y}
+			c.object={"place":"ground","holder":"","x":p.x,"y":p.y,"room":p.get("room","village")}
 	sync(w)
 static func valid(w: Dictionary) -> bool:
 	for c in w.cases.values():
@@ -57,6 +61,7 @@ static func valid(w: Dictionary) -> bool:
 			continue
 		var obj=c.object
 		if not c.get("trace_mark") is String or not obj is Dictionary: return false
+		if obj.get("room","village") not in ["home","village"]: return false
 		if not obj.get("place") in ["ground","house","carried"] or not obj.get("holder") is String: return false
 		for key in ["x","y"]:
 			if not (obj.get(key) is float or obj.get(key) is int) or not is_finite(float(obj[key])): return false

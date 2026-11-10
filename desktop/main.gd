@@ -48,18 +48,19 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
+	var home_demo: bool="--home-demo" in OS.get_cmdline_user_args()
 	var remains_demo: bool="--remains-demo" in OS.get_cmdline_user_args()
 	var murder_demo: bool="--witness-demo" in OS.get_cmdline_user_args()
-	if remains_demo or murder_demo or "--investigation-demo" in OS.get_cmdline_user_args():
-		save_path="user://remains-demo.json" if remains_demo else ("user://witness-demo.json" if murder_demo else "user://investigation-demo.json")
+	if home_demo or remains_demo or murder_demo or "--investigation-demo" in OS.get_cmdline_user_args():
+		save_path="user://home-demo.json" if home_demo else ("user://remains-demo.json" if remains_demo else ("user://witness-demo.json" if murder_demo else "user://investigation-demo.json"))
 		if not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"):
 			var demo=preload("res://investigation_demo.gd")
-			var opening: Dictionary=demo.remains() if remains_demo else (demo.murder() if murder_demo else demo.create())
+			var opening: Dictionary=demo.home() if home_demo else (demo.remains() if remains_demo else (demo.murder() if murder_demo else demo.create()))
 			if not Rules.save_world(opening,save_path):
 				push_error("체험 월드를 만들 수 없습니다.")
 				return
 		start_single()
-		if mode=="single": message("G로 근처 여행자의 유품을 회수하세요. 집에서는 B로 보관합니다." if remains_demo else "마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다.")
+		if mode=="single": message("가구 가까이에서 E · 서랍, 책장, 침대, 보관함, 커튼, 벽난로를 이용하세요." if home_demo else ("G로 근처 여행자의 유품을 회수하세요. 집에서는 B로 보관합니다." if remains_demo else "마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다."))
 		return
 	if "--qa" in OS.get_cmdline_user_args():
 		DisplayServer.window_set_title("Vestige QA · 독립 시험 월드")
@@ -287,8 +288,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_J: open_journal()
 
 func interact() -> void:
+	if Rules.Interior.inside(world.people[me]):
+		perform("interact")
+		return
 	var t:=Rules.nearby(world.people[me])
-	if t.get("kind","")=="library": open_library()
+	if t.get("kind","")=="home": perform("enter_home")
+	elif t.get("kind","")=="library": open_library()
 	elif t.get("kind","")=="grave": open_graves()
 	else: perform("interact")
 
@@ -480,12 +485,18 @@ func refresh() -> void:
 	var t:=Rules.nearby(p)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
-	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 책장   B · 보관함"
+	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 들어가기   B · 보관함"
 	if t.get("kind") in ["home","grave"] or not Rules.Investigation.traces(world,p).is_empty():
 		prompt.text+="   F · 흔적 조사"
 	elif Rules.Investigation.has_witness(world) and Rules.Investigation.near(p,Rules.Investigation.Witness.STATION): prompt.text="F · 등불지기 미라에게 묻기"
 
 	if not Rules.Remains.visible(world,p).is_empty(): prompt.text+="   G · 유품 회수"
+
+	if Rules.Interior.inside(p):
+		var furniture:=Rules.Interior.nearby(p)
+		prompt.text="E · "+Rules.Interior.OBJECTS[furniture].name if not furniture.is_empty() else "언덕집 · 가구 가까이에서 E / 아래쪽 문으로 나가기"
+		if not Rules.Remains.visible(world,p).is_empty(): prompt.text+="   G · 유품 회수"
+		date_label.text="언덕집 내부 · 제 %d일" % [int(world.time/Rules.DAY)+1]
 
 func style_meter(bar: ProgressBar, color: Color) -> void:
 	var background:=StyleBoxFlat.new()
@@ -498,6 +509,7 @@ func style_meter(bar: ProgressBar, color: Color) -> void:
 func message(text: String) -> void:
 	if text.is_empty(): return
 	if text.begins_with("조사 기록\n"): show_pages(text)
+	elif text=="보관함": open_storage()
 	elif text=="서재": open_library()
 	elif text=="묘지": open_graves()
 	else:

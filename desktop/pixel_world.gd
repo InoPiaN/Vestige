@@ -229,6 +229,9 @@ func ruin(x: float,y: float) -> void:
 
 func _draw() -> void:
 	if terrain==null: return
+	if world.get("people",{}).has(player_id) and Rules.Interior.inside(world.people[player_id]):
+		draw_interior()
+		return
 	draw_texture(terrain,Vector2.ZERO)
 	for x in range(0,480,18):
 		tree(x,17,x%2)
@@ -304,7 +307,105 @@ func _draw() -> void:
 		box(x-12,y-19,maxf(0,e.hp/2.0),2,"bf735a")
 	for id in world.people:
 		var p: Dictionary=world.people[id]
-		hero(p.x*16,p.y*16,p,id!=player_id)
+		if not Rules.Interior.inside(p): hero(p.x*16,p.y*16,p,id!=player_id)
 	# Subtle night tint; never hides gameplay silhouettes.
 	var night: float=(sin(float(world.time)/Rules.DAY*TAU)+1)*0.5
 	draw_rect(Rect2(0,0,480,320),Color(0.025,0.05,0.12,night*0.12))
+
+func draw_interior() -> void:
+	var state: Dictionary=world.estate.get("interior",{})
+	box(0,0,480,320,"101814")
+	box(66,38,348,246,"262c24")
+	box(72,48,336,232,"554733")
+	for y in range(64,278,16):
+		box(80,y,320,1,"342e25")
+		for x in range(80+(8 if y%32==0 else 0),400,32):
+			box(x,y-14,1,14,"473c2e")
+			box(x+4,y-8,10,1,"63523a")
+	box(72,44,336,20,"77705a")
+	for x in range(76,405,24): box(x,45,1,17,"514e40")
+	box(72,62,8,218,"38372c")
+	box(400,62,8,218,"38372c")
+	box(72,272,152,8,"77705a")
+	box(256,272,152,8,"77705a")
+	box(224,270,32,10,"a08b5c")
+	box(229,274,22,3,"5d4c32")
+	# Faded rug and a repaired dining table.
+	box(194,132,92,82,"644c40")
+	box(198,136,84,74,"4d5142")
+	box(201,140,78,1,"a18b5e")
+	box(201,204,78,1,"a18b5e")
+	for key in Rules.Interior.OBJECTS:
+		var o: Dictionary=Rules.Interior.OBJECTS[key]
+		var x: float=o.x*16
+		var y: float=o.y*16
+		match key:
+			"drawer","cupboard":
+				box(x-14,y-23,28,31,"3c3329")
+				box(x-12,y-22,24,26,"816947")
+				box(x-14,y-25,28,4,"b09360")
+				for offset in [0,9,18]:
+					box(x-11,y-20+offset,22,1,"4c3e2b")
+					box(x-2,y-16+offset,4,2,"d0b980")
+				if state.get("searched",{}).get(key,false): box(x-10,y-10,20,3,"2e2b24")
+			"shelf":
+				box(x-17,y-33,34,42,"47392a")
+				for tier in range(3):
+					for book in range(5):
+						box(x-13+book*5,y-29+tier*12,4,9,["81907b","ae885a","825b4d","586d6c","b2a17d"][book])
+					box(x-15,y-19+tier*12,30,2,"b39762")
+			"bed":
+				box(x-15,y-24,30,35,"493a2b")
+				box(x-12,y-22,24,31,"8b8c73")
+				box(x-10,y-20,20,7,"d2c9a2")
+				box(x-12,y-11,24,20,"4f7068")
+				box(x-8,y-8,2,15,"759385")
+				box(x+9,y-8,2,15,"354e49")
+			"chest":
+				box(x-15,y-16,30,25,"45372a")
+				box(x-13,y-15,26,21,"896b43")
+				box(x-15,y-18,30,6,"b18b54")
+				box(x-9,y-17,3,23,"424d45")
+				box(x+6,y-17,3,23,"424d45")
+				box(x-2,y-7,4,5,"dec28a")
+			"curtain":
+				box(x-18,y-28,36,26,"303d3b")
+				box(x-14,y-25,28,20,"9ea993")
+				box(x-1,y-25,2,20,"5b5b48")
+				box(x-14,y-16,28,2,"5b5b48")
+				var width: int=17 if state.get("curtain",false) else 6
+				box(x-18,y-28,width,27,"6d4b44")
+				box(x+18-width,y-28,width,27,"80594a")
+				if not state.get("curtain",false): draw_colored_polygon(PackedVector2Array([Vector2(x-13,y),Vector2(x+13,y),Vector2(x+50,y+55),Vector2(x-28,y+55)]),Color(0.85,0.8,0.55,0.10))
+			"hearth":
+				box(x-18,y-27,36,35,"696857")
+				box(x-12,y-18,24,23,"282c26")
+				box(x-20,y+4,40,5,"999078")
+				box(x-8,y-1,18,3,"675035")
+				if state.get("fire",false):
+					draw_circle(Vector2(x,y-4),35,Color(1.0,0.58,0.2,0.07))
+					box(x-7,y-10,14,11,"be703b")
+					box(x-4,y-13+(int(clock*4)%2),5,13,"e2a552")
+					box(x+2,y-8,4,7,"f2d089")
+			"table":
+				box(x-15,y-15,30,20,"665036")
+				box(x-17,y-19,34,17,"9a7d50")
+				box(x-13,y-18,1,14,"b99b67")
+				box(x-14,y+3,4,5,"b4aa8a")
+				box(x+5,y-16,6,5,"c5c1a0")
+				box(x-8,y-13,8,3,"574833")
+	var me: Dictionary=world.people[player_id]
+	var focused:=Rules.Interior.nearby(me)
+	if not focused.is_empty():
+		var o: Dictionary=Rules.Interior.OBJECTS[focused]
+		box(o.x*16-13,o.y*16+12,26,1,"e1c986")
+	for row in Rules.Remains.visible(world,me).values():
+		box(row.x*16-4,row.y*16+2,8,5,"a68d5b")
+	var residents: Array=[]
+	for id in world.people:
+		if Rules.Interior.inside(world.people[id]): residents.append(id)
+	residents.sort_custom(func(a,b): return world.people[a].y<world.people[b].y)
+	for id in residents:
+		var p: Dictionary=world.people[id]
+		hero(p.x*16,p.y*16,p,id!=player_id)
+	if state.get("curtain",false): draw_rect(Rect2(80,64,320,208),Color(0.02,0.03,0.06,0.13))

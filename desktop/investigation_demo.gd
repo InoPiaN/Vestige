@@ -61,3 +61,15 @@ static func remains() -> Dictionary:
 	w.people.local.x=15
 	w.people.local.y=13
 	return w
+
+static func home() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","언덕집의 여행자")
+	var p: Dictionary=w.people.local
+	p.x=7
+	p.y=14
+	p.hp=65
+	p.events.append("오래된 언덕집을 마련했다. 책장에 앞으로의 날들을 남기려 한다.")
+	Rules.act(w,"local","interact")
+	Rules.act(w,"local","enter_home")
+	return w

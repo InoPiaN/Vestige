@@ -12,7 +12,7 @@ static func leave(w: Dictionary,p: Dictionary,day: int) -> void:
 	contents.equipment={}
 	contents.equipped_ids={}
 	contents.gold=p.gold
-	w.remains[p.life]={"name":p.name,"x":p.x,"y":p.y,"day":day,"contents":contents}
+	w.remains[p.life]={"name":p.name,"x":p.x,"y":p.y,"day":day,"contents":contents,"room":p.get("room","village")}
 	for kind in Items.CATALOG: Storage.change(p,kind,-Items.quantity(p,kind))
 	p.gold=0
 	p.gear_instances={}
@@ -22,7 +22,7 @@ static func visible(w: Dictionary,p: Dictionary) -> Dictionary:
 	var result: Dictionary={}
 	for id in w.get("remains",{}):
 		var row: Dictionary=w.remains[id]
-		if Vector2(p.x,p.y).distance_to(Vector2(row.x,row.y))<2 and (Storage.total(row.contents)>0 or row.contents.gold>0): result[id]=row
+		if p.get("room","village")==row.get("room","village") and Vector2(p.x,p.y).distance_to(Vector2(row.x,row.y))<2 and (Storage.total(row.contents)>0 or row.contents.gold>0): result[id]=row
 	return result
 static func take(w: Dictionary,p: Dictionary,value: String) -> String:
 	var parts:=value.split("|")
@@ -59,6 +59,7 @@ static func valid(w: Dictionary) -> bool:
 	for id in w.remains:
 		var row=w.remains[id]
 		if not id is String or id.is_empty() or not row is Dictionary: return false
+		if row.get("room","village") not in ["home","village"]: return false
 		if not row.get("name") is String or not row.get("contents") is Dictionary: return false
 		for key in ["x","y","day"]:
 			if not (row.get(key) is int or row.get(key) is float) or not is_finite(float(row[key])): return false

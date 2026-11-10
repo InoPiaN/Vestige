@@ -1,12 +1,27 @@
-# Vestige · 설치형 도트 시제품 0.4.4
+# Vestige · 설치형 도트 시제품 0.5.0
 
 ## 바로 실행
 
-- Mac 최신: `builds/Vestige-0.4.4.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `builds/windows-0.4.4/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `builds/Vestige-0.5.0.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `builds/windows-0.5.0/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
+
+### 언덕집 내부 체험
+
+Mac **Play-Home.command**, Windows **Play-Home.cmd** 또는 `-- --home-demo`로 엽니다. 별도 `home-demo.json`에 진행을 저장합니다. 기존 저장은 초기화하지 않습니다. 일반 월드에서는 언덕집 문 앞에서 E를 누르면 은화 8개로 매입하고 들어갑니다. 살아 있는 다른 주민의 집에는 들어갈 수 없습니다.
+
+실내도 WASD/방향키로 이동합니다. 가구 가까이에서 E를 누르세요.
+
+- 서랍·찬장: 낡은 천, 휘어진 못, 금 간 찻잔, 약초를 1개씩 수집합니다. 내용은 월드 생성/이관 시 무작위로 한 번 정하며 재접속·재출입으로 재생성하지 않습니다. 소지 한도가 차면 물건은 가구 안에 남습니다.
+- 책장: 집주인은 실제 일지를 보관하고 읽습니다. 사망한 집주인의 책장에서는 남겨진 기록을 발견합니다.
+- 침대: 체력 25와 기력을 회복합니다. 재사용 간격은 월드 시간 60초이며 공유 세계 시간을 건너뛰지 않습니다.
+- 보관함: 기존 물품 보관함을 엽니다. 실내 B는 보관함 가까이에서 사용합니다.
+- 커튼·벽난로: 채광과 불빛을 바꾸며 상태가 저장됩니다. 아직 은신·온도·연료 효과는 없습니다.
+- 식탁: 생활 흔적을 읽습니다. 아래쪽 문에서 E로 마을에 나갑니다.
+
+실내 사망의 유품과 현장 기록은 해당 방에 남으며, 실외의 같은 좌표에서는 접근할 수 없습니다. 잡템의 제작·판매 용도와 자유 가구 배치·다중 주택은 후속 작업입니다. 참고 게임과 적용 범위는 [실내 상호작용 조사](docs/INTERIOR_REFERENCES.md)에 정리했습니다.
 
 ### 떠난 여행자의 유품 (회수 체험)
 
@@ -29,7 +44,7 @@ Mac은 빌드 폴더의 **Play-Witness.command**, Windows는 **Play-Witness.cmd*
 프로젝트 루트에서 다음 명령으로 독립 싱글 저장 `investigation-demo.json`을 열 수 있습니다. 일반 월드에서는 마을 서남쪽 언덕집 문 앞에서 E로 은화 8개에 집을 매입합니다. 이후 E를 누를 때마다 그때까지의 일지를 책장에 보관합니다.
 
 ```sh
-builds/Vestige-0.4.4.app/Contents/MacOS/Vestige -- --investigation-demo
+builds/Vestige-0.5.0.app/Contents/MacOS/Vestige -- --investigation-demo
 ```
 
 Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 실행합니다. 체험 월드는 약초꾼 소율이 예배당으로 떠난 뒤 새 여행자가 도착한 상태에서 시작합니다.
@@ -39,7 +54,7 @@ Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 �
 3. 동쪽 예배당 길목에서 흔적 가까이 다가가 F로 조사합니다. J를 누르면 발견한 내용이 조사 수첩에 남습니다.
 4. 묘지로 돌아와 F를 누르면 장례 기록과 단서를 대조해 사인이 새겨집니다. 서재에서는 현장에서 회수한 마지막 메모까지 읽을 수 있습니다.
 
-저장은 버전 5이며 버전 1·2·3·4 월드를 자동 이관합니다. 증거물이 있는 월드는 0.4.4 이상에서 이어서 플레이하세요. 같은 이름의 다음 인물은 별도 수첩으로 시작합니다. 체험 월드도 재실행하면 조사 진행을 이어갑니다.
+저장은 버전 6이며 버전 1~5 월드를 자동 이관합니다. 증거물이 있는 월드는 0.5.0 이상에서 이어서 플레이하세요. 같은 이름의 다음 인물은 별도 수첩으로 시작합니다. 체험 월드도 재실행하면 조사 진행을 이어갑니다.
 
 ### 집 보관함과 개별 장비
 
@@ -81,7 +96,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-builds/Vestige-0.4.4.app/Contents/MacOS/Vestige --headless -- --server
+builds/Vestige-0.5.0.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -117,7 +132,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.4.4.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.5.0.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

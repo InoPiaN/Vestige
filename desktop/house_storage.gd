@@ -28,7 +28,7 @@ static func prepare(w: Dictionary) -> void:
 	if not w.estate.has("storage"): w.estate.storage=empty()
 	for p in w.people.values(): reconcile(p)
 static func allowed(w: Dictionary,p: Dictionary) -> bool:
-	return p.alive and not p.offline and Vector2(p.x,p.y).distance_to(HOME)<2 and (w.estate.owner==p.life or w.get("cases",{}).has(w.estate.owner) or w.get("storage_access",false))
+	return p.alive and not p.offline and (preload("res://house_interior.gd").near(p,"chest") if p.get("room","village")=="home" else Vector2(p.x,p.y).distance_to(HOME)<2) and (w.estate.owner==p.life or w.get("cases",{}).has(w.estate.owner) or w.get("storage_access",false))
 static func total(p: Dictionary) -> int:
 	var result:=0
 	for kind in Items.CATALOG: result+=Items.quantity(p,kind)

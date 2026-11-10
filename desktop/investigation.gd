@@ -17,6 +17,8 @@ static func prepare_person(p: Dictionary) -> void:
 	if not p.has("notebook"): p.notebook={}
 
 static func near(p: Dictionary, point: Vector2) -> bool:
+	if p.get("room","village")=="home":
+		return point==HOME and preload("res://house_interior.gd").near(p,"shelf")
 	return Vector2(p.x,p.y).distance_to(point)<2
 
 static func visit_house(w: Dictionary,p: Dictionary) -> String:
@@ -37,7 +39,7 @@ static func visit_house(w: Dictionary,p: Dictionary) -> String:
 static func record_death(w: Dictionary,p: Dictionary,grave: Dictionary,book: Dictionary) -> void:
 	if w.estate.owner!=p.life: return
 	var id: String=p.life
-	w.cases[id]={"name":p.name,"truth":grave.cause,"x":p.x,"y":p.y,"resolved":false}
+	w.cases[id]={"name":p.name,"truth":grave.cause,"x":p.x,"y":p.y,"resolved":false,"room":p.get("room","village")}
 	grave.case_id=id
 	grave.cause="사인 미확인"
 	grave.x=CEMETERY.x
@@ -58,9 +60,9 @@ static func traces(w: Dictionary,p: Dictionary) -> Array:
 	if w.has("visible_traces"): return w.visible_traces
 	var found: Array=[]
 	for c in w.cases.values():
-		if near(p,Vector2(c.x,c.y)): found.append({"x":c.x,"y":c.y})
+		if p.get("room","village")==c.get("room","village") and Vector2(p.x,p.y).distance_to(Vector2(c.x,c.y))<2: found.append({"x":c.x,"y":c.y})
 	for c in w.cases.values():
-		if c.has("object") and c.object.place=="ground" and near(p,Vector2(c.object.x,c.object.y)):
+		if c.has("object") and c.object.place=="ground" and p.get("room","village")==c.object.get("room","village") and Vector2(p.x,p.y).distance_to(Vector2(c.object.x,c.object.y))<2:
 			found.append({"x":c.object.x,"y":c.object.y})
 	for row in preload("res://death_belongings.gd").visible(w,p).values():
 		found.append({"x":row.x,"y":row.y})
@@ -76,7 +78,7 @@ static func investigate(w: Dictionary,p: Dictionary) -> String:
 		if near(p,HOME):
 			notes.home=c.name+"의 집에서 읽은 일지\n"+w.estate.shelf
 			lines.append(notes.home)
-		if near(p,Vector2(c.x,c.y)):
+		if p.get("room","village")==c.get("room","village") and Vector2(p.x,p.y).distance_to(Vector2(c.x,c.y))<2:
 			notes.scene=c.name+"의 현장 · "+evidence(c)
 			lines.append(notes.scene)
 		if c.has("roster") and near(p,Witness.STATION):
@@ -97,7 +99,7 @@ static func investigate(w: Dictionary,p: Dictionary) -> String:
 					p.events.append(notes.finding)
 				lines.append(notes.finding)
 			else:
-				var area: String="동쪽 숲" if c.x>=18 else "마을 안"
+				var area: String="언덕집 안" if c.get("room","village")=="home" else ("동쪽 숲" if c.x>=18 else "마을 안")
 				notes.lead=c.name+"의 묘비 · 수습 지역: "+area+". 집 책장과 수습 장소의 기록을 찾아보자."
 				lines.append(notes.lead)
 		if not notes.is_empty(): p.notebook[id]=notes
@@ -128,4 +130,7 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 	snapshot.storage_access=storage_access
 	snapshot.erase("cases")
 	snapshot.estate.erase("shelf")
+	if snapshot.estate.has("interior"):
+		if p.get("room","village")!="home": snapshot.estate.erase("interior")
+		else: snapshot.estate.interior.erase("drawers")
 	if not storage_access: snapshot.estate.erase("storage")

@@ -116,3 +116,10 @@ static func market() -> Dictionary:
 	p.y=15
 	p.gold=30
 	return w
+
+static func mastery() -> Dictionary:
+	var w:=craft()
+	var p: Dictionary=w.people.local
+	p.craft_xp={"smithing":400,"handicraft":1000,"herbalism":96}
+	p.events.append("체험용 인물: 대장 기술 숙련, 생활 공예 장인, 약초 조제 견습까지 경험치 4를 남겨 두었다.")
+	return w

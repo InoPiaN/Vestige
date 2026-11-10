@@ -3,6 +3,7 @@ extends RefCounted
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
 const Remains=preload("res://death_belongings.gd")
+const Mastery=preload("res://craft_mastery.gd")
 const Quality=preload("res://craft_quality.gd")
 const Market=preload("res://village_market.gd")
 const Crafting=preload("res://home_crafting.gd")
@@ -33,6 +34,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 	return result
 
 static func outfit(p: Dictionary) -> void:
+	Mastery.prepare(p)
 	p.look=clean_look(p.get("look",{}))
 	if not p.has("belongings"): p.belongings={"leather":1,"hood":1,"traveler":1}
 	if not p.has("equipment"):
@@ -48,7 +50,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":9,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":10,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -152,11 +154,12 @@ static func forge_sword(w: Dictionary,p: Dictionary,equip: bool) -> String:
 	Storage.reconcile(p)
 	for id in p.gear_instances:
 		if previous.has(id): continue
-		p.gear_quality[id]=Quality.roll(w)
+		p.gear_quality[id]=Quality.roll(w,0,Mastery.rates(p,"smithing"))
 		if equip:
 			p.equipment.weapon="iron_sword"
 			p.equipped_ids.weapon=id
-		return "철검 제작 · %s · 공격력 %d" % [Quality.LABELS[p.gear_quality[id].tier],p.gear_quality[id].attack]
+		var growth:=Mastery.award(p,"iron_sword")
+		return "철검 제작 · %s · 공격력 %d · %s" % [Quality.LABELS[p.gear_quality[id].tier],p.gear_quality[id].attack,growth]
 	return ""
 
 static func weapon_damage(p: Dictionary) -> int:
@@ -411,7 +414,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=9
+	w.version=10
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

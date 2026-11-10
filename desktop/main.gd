@@ -50,7 +50,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -58,6 +58,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"mastery": opening=demo.mastery()
 				"market": opening=demo.market()
 				"quality": opening=demo.quality()
 				"craft": opening=demo.craft()
@@ -70,7 +71,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="market": message("E로 장터를 열어 재료를 사고 제작품을 판매하세요. 재고는 다음 월드 날짜에 보충됩니다.")
+			if kind=="mastery": message("E로 작업대를 열어 붕대 1개를 만드세요. 약초 조제가 견습으로 성장하고 확률이 바뀝니다. J에서 모든 분야를 확인합니다.")
+			elif kind=="market": message("E로 장터를 열어 재료를 사고 제작품을 판매하세요. 재고는 다음 월드 날짜에 보충됩니다.")
 			elif kind=="quality": message("I에서 일반·양품·대성공 철검의 공격력을 비교하세요. E로 작업대 제작도 가능합니다.")
 			elif kind=="craft": message("E로 작업대를 열어 제작하고 검을 수선하세요. 약초차는 벽난로 불이 필요합니다.")
 			elif kind=="home": message("가구 가까이에서 E · 서랍, 책장, 침대, 보관함, 커튼, 벽난로를 이용하세요.")
@@ -502,7 +504,7 @@ func refresh() -> void:
 	if not p.alive: status.text=p.name+"\n삶을 마쳤습니다"
 	health.value=p.hp
 	stamina.value=p.stamina
-	inventory.text="체력 %d / 100\n철광석     %d\n달빛 약초  %d\n철검       %d\n유물       %d\n은화       %d   ·   숙련 %d" % [p.hp,p.ore,p.herb,p.sword,p.relic,p.gold,p.skill]
+	inventory.text="체력 %d / 100\n철광석     %d\n달빛 약초  %d\n철검       %d\n유물       %d\n은화       %d   ·   기초 숙련 %d" % [p.hp,p.ore,p.herb,p.sword,p.relic,p.gold,p.skill]
 	date_label.text="잿불 마을   /   제 %d일   /   %s" % [int(world.time/Rules.DAY)+1,"나만의 세계" if mode=="single" else "공유 세계"]
 	policy.select(["rest","work","gather","train"].find(p.policy))
 	day_button.visible=mode=="single"
@@ -510,6 +512,7 @@ func refresh() -> void:
 	var t:=Rules.nearby(p)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
+	if t.get("kind")=="forge": prompt.text="E · 철검 제작 · "+Rules.Mastery.progress(p,"smithing")+"  |  "+Rules.Mastery.rate_text(p,"smithing")+" · 완성 경험치 +%d" % Rules.Mastery.gain(p,"iron_sword")
 	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 들어가기   B · 보관함"
 	if t.get("kind") in ["home","grave"] or not Rules.Investigation.traces(world,p).is_empty():
 		prompt.text+="   F · 흔적 조사"
@@ -559,6 +562,9 @@ func open_journal() -> void:
 	if world.is_empty(): return
 	var p: Dictionary=world.people[me]
 	var text: String=p.name+"의 일기\n────────────────────\n\n"
+	text+="제작 숙련도\n"
+	for field in Rules.Mastery.FIELDS: text+=Rules.Mastery.progress(p,field)+"\n"
+	text+="\n"
 	for entry in p.journal: text+="제 %d일\n%s\n\n" % [entry.day,entry.text]
 	if p.journal.is_empty(): text+="아직 하루가 끝나지 않았습니다.\n생활을 맡긴 뒤 ‘하루 진행’으로 첫 기록을 확인할 수 있습니다.\n\n"
 	text+="오늘의 메모\n"+"\n".join(p.events)

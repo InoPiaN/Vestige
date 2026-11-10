@@ -9,9 +9,9 @@ static func next(w: Dictionary) -> int:
 	prepare(w)
 	w.craft_rng=(int(w.craft_rng)*1664525+1013904223)%2147483647
 	return int(w.craft_rng)
-static func roll(w: Dictionary,bonus: int=0) -> Dictionary:
+static func roll(w: Dictionary,bonus: int=0,base: Dictionary={"common":70,"fine":20,"great":10}) -> Dictionary:
 	var chance:=next(w)%100
-	var tier: String="great" if chance<10+bonus else ("fine" if chance<30+bonus else "common")
+	var tier: String="great" if chance<int(base.great)+bonus else ("fine" if chance<int(base.great)+int(base.fine)+bonus else "common")
 	var spread:=next(w)
 	var attack: int=27+spread%3 if tier=="great" else (24+spread%3 if tier=="fine" else 20+spread%5)
 	return {"tier":tier,"attack":attack}

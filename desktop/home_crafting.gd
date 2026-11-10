@@ -1,4 +1,5 @@
 extends RefCounted
+const Mastery=preload("res://craft_mastery.gd")
 const Quality=preload("res://craft_quality.gd")
 const Items=preload("res://items.gd")
 const Storage=preload("res://house_storage.gd")
@@ -29,10 +30,11 @@ static func craft(w: Dictionary,p: Dictionary,id: String) -> String:
 	if recipe.has("tool"):
 		var tool:=Items.best(p,recipe.tool)
 		bonus=5 if tool.ends_with("_great") else (2 if tool.ends_with("_fine") else 0)
-	var roll:=Quality.roll(w,bonus)
+	var roll:=Quality.roll(w,0,Mastery.rates(p,Mastery.RECIPES[id].field,bonus))
 	var output: String=recipe.result+("" if roll.tier=="common" else "_"+roll.tier)
 	Storage.change(p,output,1)
 	var text: String="제작 · "+Quality.LABELS[roll.tier]+" · "+Items.CATALOG[output].name+" 1개를 만들었다."
+	text+=" · "+Mastery.award(p,id)
 	p.events.append(text)
 	return text
 static func repair(p: Dictionary,id: String) -> String:

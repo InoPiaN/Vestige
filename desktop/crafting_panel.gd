@@ -1,6 +1,7 @@
 extends Panel
 signal action(kind: String,value: String)
 const C=preload("res://home_crafting.gd")
+const M=preload("res://craft_mastery.gd")
 const Items=preload("res://items.gd")
 var recipes: ItemList
 var description: Label
@@ -34,10 +35,10 @@ func _ready() -> void:
 	recipes.select(0)
 	recipes.item_selected.connect(func(i): current=recipes.get_item_metadata(i); refresh(world,person))
 	add_child(recipes)
-	description=label("",Vector2(400,90),18)
-	description.size=Vector2(510,260)
+	description=label("",Vector2(400,90),17)
+	description.size=Vector2(510,300)
 	description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	craft_button=button("1개 만들기",Vector2(400,350),240,func(): action.emit("craft_home",current))
+	craft_button=button("1개 만들기",Vector2(400,365),240,func(): action.emit("craft_home",current))
 	label("철검 수선 · 도구 1개로 내구도 +40~50",Vector2(28,420),19)
 	gear=OptionButton.new()
 	gear.position=Vector2(28,460)
@@ -74,11 +75,12 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 	var recipe: Dictionary=C.RECIPES[current]
 	var tool: String=Items.best(p,"mug") if recipe.has("tool") else ""
 	var bonus: int=5 if tool.ends_with("_great") else (2 if tool.ends_with("_fine") else 0)
-	var lines: PackedStringArray=[recipe.name,"",recipe.description,"일반 %d%% · 양품 20%% · 대성공 %d%%" % [70-bonus,10+bonus],"품질에 따라 완성품 효과가 달라집니다."]
+	var field: String=M.RECIPES[current].field
+	var lines: PackedStringArray=[recipe.name,M.progress(p,field),"이번 완성 경험치 +%d · 쉬운 제작은 성장 효율 감소" % M.gain(p,current),M.rate_text(p,field,bonus),recipe.description]
 	for id in recipe.cost: lines.append("%s · %d / %d개" % [Items.CATALOG[id].name,Items.quantity(p,id),recipe.cost[id]])
 	if recipe.has("tool"): lines.append("고친 찻잔 · %d개 (소비하지 않음)" % Items.family_quantity(p,"mug"))
 	var why:=C.reason(w,p,current)
-	lines.append("\n"+("제작 가능" if why.is_empty() else why))
+	lines.append(("제작 가능" if why.is_empty() else why))
 	description.text="\n".join(lines)
 	craft_button.disabled=not why.is_empty()
 	var stamp:=JSON.stringify([p.gear_instances,p.gear_condition])

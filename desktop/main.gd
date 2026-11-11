@@ -51,7 +51,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -59,6 +59,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"supply": opening=demo.supply()
 				"plan": opening=demo.plan()
 				"mastery": opening=demo.mastery()
 				"market": opening=demo.market()
@@ -73,7 +74,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="plan": message("부재 중의 하루에서 제작 계획 설정을 선택하세요. 붕대 3개를 맡기고 하루 진행으로 결과를 확인할 수 있습니다.")
+			if kind=="supply": message("E로 작업대를 열어 집 보관함의 천과 약초로 붕대를 만드세요. 완성품은 B로 확인합니다. 부재 계획에도 보관함을 설정할 수 있습니다.")
+			elif kind=="plan": message("부재 중의 하루에서 제작 계획 설정을 선택하세요. 붕대 3개를 맡기고 하루 진행으로 결과를 확인할 수 있습니다.")
 			elif kind=="mastery": message("E로 작업대를 열어 붕대 1개를 만드세요. 약초 조제가 견습으로 성장하고 확률이 바뀝니다. J에서 모든 분야를 확인합니다.")
 			elif kind=="market": message("E로 장터를 열어 재료를 사고 제작품을 판매하세요. 재고는 다음 월드 날짜에 보충됩니다.")
 			elif kind=="quality": message("I에서 일반·양품·대성공 철검의 공격력을 비교하세요. E로 작업대 제작도 가능합니다.")

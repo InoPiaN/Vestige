@@ -3,6 +3,8 @@ signal action(kind: String,value: String)
 const C=preload("res://home_crafting.gd")
 const M=preload("res://craft_mastery.gd")
 const Items=preload("res://items.gd")
+var source_picker: OptionButton
+var destination_picker: OptionButton
 var recipes: ItemList
 var description: Label
 var feedback: Label
@@ -27,7 +29,7 @@ func _ready() -> void:
 	button("닫기 · ESC",Vector2(770,20),160,hide)
 	recipes=ItemList.new()
 	recipes.position=Vector2(28,90)
-	recipes.size=Vector2(340,280)
+	recipes.size=Vector2(340,170)
 	recipes.add_theme_font_size_override("font_size",20)
 	for id in C.RECIPES:
 		var index:=recipes.add_item(C.RECIPES[id].name)
@@ -35,7 +37,21 @@ func _ready() -> void:
 	recipes.select(0)
 	recipes.item_selected.connect(func(i): current=recipes.get_item_metadata(i); refresh(world,person))
 	add_child(recipes)
-	description=label("",Vector2(400,90),17)
+	source_picker=OptionButton.new()
+	source_picker.position=Vector2(28,280)
+	source_picker.size=Vector2(340,38)
+	source_picker.add_item("재료 · 소지품만")
+	source_picker.add_item("재료 · 집 보관함 우선 + 소지품")
+	add_child(source_picker)
+	destination_picker=OptionButton.new()
+	destination_picker.position=Vector2(28,330)
+	destination_picker.size=Vector2(340,38)
+	destination_picker.add_item("완성품 · 소지품")
+	destination_picker.add_item("완성품 · 집 보관함")
+	add_child(destination_picker)
+	source_picker.item_selected.connect(func(_i): save_supply())
+	destination_picker.item_selected.connect(func(_i): save_supply())
+	description=label("",Vector2(400,90),16)
 	description.size=Vector2(510,300)
 	description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	craft_button=button("1개 만들기",Vector2(400,365),240,func(): action.emit("craft_home",current))
@@ -50,7 +66,7 @@ func _ready() -> void:
 	feedback=label("",Vector2(28,525),17)
 	feedback.size=Vector2(900,45)
 	feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	label("소지한 재료만 사용합니다. 집 보관물은 먼저 꺼내세요.\n완성품은 I에서 사용합니다. 싱글은 작업대 창을 여는 동안 멈춥니다.",Vector2(28,580),16)
+	label("집 보관함 연동은 본인 집의 생활 제작에만 적용됩니다. 철검 수선은 소지 도구를 사용합니다.\n완성품은 I에서 사용합니다. 싱글은 작업대 창을 여는 동안 멈춥니다.",Vector2(28,580),16)
 	hide()
 func label(text: String,at: Vector2,font_size: int) -> Label:
 	var node:=Label.new()
@@ -73,12 +89,16 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 	person=p
 	if p.is_empty(): return
 	var recipe: Dictionary=C.RECIPES[current]
-	var tool: String=Items.best(p,"mug") if recipe.has("tool") else ""
+	var supply: Dictionary=p.craft_supply
+	source_picker.select(1 if supply.source=="home" else 0)
+	destination_picker.select(1 if supply.destination=="home" else 0)
+	var tool: String=C.Supply.tool(w,p,"mug",supply) if recipe.has("tool") else ""
 	var bonus: int=5 if tool.ends_with("_great") else (2 if tool.ends_with("_fine") else 0)
 	var field: String=M.RECIPES[current].field
 	var lines: PackedStringArray=[recipe.name,M.progress(p,field),"이번 완성 경험치 +%d · 쉬운 제작은 성장 효율 감소" % M.gain(p,current),M.rate_text(p,field,bonus),recipe.description]
-	for id in recipe.cost: lines.append("%s · %d / %d개" % [Items.CATALOG[id].name,Items.quantity(p,id),recipe.cost[id]])
-	if recipe.has("tool"): lines.append("고친 찻잔 · %d개 (소비하지 않음)" % Items.family_quantity(p,"mug"))
+	for id in recipe.cost: lines.append("%s · 소지 %d / 집 %d · 필요 %d" % [Items.CATALOG[id].name,Items.quantity(p,id),Items.quantity(C.Supply.box(w,p),id),recipe.cost[id]])
+	if recipe.has("tool"): lines.append("찻잔 · "+("없음" if tool.is_empty() else Items.CATALOG[tool].name)+" (소비하지 않음)")
+	lines.append("집 보관함 %d / 40개 · 재료 소비 후 보관 공간 확인" % C.Storage.total(C.Supply.box(w,p)))
 	var why:=C.reason(w,p,current)
 	lines.append(("제작 가능" if why.is_empty() else why))
 	description.text="\n".join(lines)
@@ -96,3 +116,6 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 			if gear.get_item_metadata(i)==sword: gear.select(i)
 	condition.text="수선 도구 %d개 · 좋은 품질부터 사용합니다." % Items.family_quantity(p,"repair_kit")
 	repair_button.disabled=not C.allowed(p) or sword.is_empty() or p.gear_condition.get(sword,100)>=100 or Items.family_quantity(p,"repair_kit")<1
+
+func save_supply() -> void:
+	action.emit("craft_supply",("home" if source_picker.selected==1 else "bag")+"|"+("home" if destination_picker.selected==1 else "bag"))

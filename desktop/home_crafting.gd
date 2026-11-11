@@ -1,4 +1,5 @@
 extends RefCounted
+const Supply=preload("res://craft_supply.gd")
 const Mastery=preload("res://craft_mastery.gd")
 const Quality=preload("res://craft_quality.gd")
 const Items=preload("res://items.gd")
@@ -11,29 +12,33 @@ const RECIPES={
 	"herbal_tea":{"name":"약초차 달이기","cost":{"herb":1},"result":"herbal_tea","tool":"mug","fire":true,"description":"체력 20 · 기력 40 회복. 찻잔은 소비하지 않습니다."}}
 static func allowed(p: Dictionary) -> bool:
 	return p.alive and not p.offline and Interior.near(p,"table")
-static func reason(w: Dictionary,p: Dictionary,id: String,automated: bool=false) -> String:
+static func reason(w: Dictionary,p: Dictionary,id: String,automated: bool=false,settings: Dictionary={}) -> String:
 	if not automated and not allowed(p): return "직접 조종 중인 인물로 집 작업대 가까이에 오세요."
 	if not RECIPES.has(id): return "없는 제작법입니다."
 	var recipe: Dictionary=RECIPES[id]
-	if Items.family_quantity(p,recipe.result)>=int(Items.CATALOG[recipe.result].limit): return "완성품 소지 한도에 도달했습니다."
+	var supply:=Supply.options(p,settings)
+	var capacity:=Supply.capacity_reason(w,p,recipe,supply)
+	if not capacity.is_empty(): return capacity
 	for material in recipe.cost:
-		if Items.quantity(p,material)<int(recipe.cost[material]): return Items.CATALOG[material].name+" 재료가 부족합니다."
-	if recipe.has("tool") and Items.family_quantity(p,recipe.tool)<1: return "고친 찻잔이 필요합니다. 찻잔은 소비하지 않습니다."
+		if Supply.available(w,p,material,supply)<int(recipe.cost[material]): return Items.CATALOG[material].name+" 재료가 부족합니다."
+	if recipe.has("tool") and Supply.tool(w,p,recipe.tool,supply).is_empty(): return "고친 찻잔이 필요합니다. 찻잔은 소비하지 않습니다."
 	if recipe.get("fire",false) and not w.estate.get("interior",{}).get("fire",false): return "먼저 벽난로에 불을 켜세요."
 	return ""
-static func craft(w: Dictionary,p: Dictionary,id: String,automated: bool=false) -> String:
-	var why:=reason(w,p,id,automated)
+static func craft(w: Dictionary,p: Dictionary,id: String,automated: bool=false,settings: Dictionary={}) -> String:
+	var why:=reason(w,p,id,automated,settings)
 	if not why.is_empty(): return why
 	var recipe: Dictionary=RECIPES[id]
-	for material in recipe.cost: Storage.change(p,material,-int(recipe.cost[material]))
+	var supply:=Supply.options(p,settings)
+	Supply.consume(w,p,recipe.cost,supply)
 	var bonus:=0
 	if recipe.has("tool"):
-		var tool:=Items.best(p,recipe.tool)
+		var tool:=Supply.tool(w,p,recipe.tool,supply)
 		bonus=5 if tool.ends_with("_great") else (2 if tool.ends_with("_fine") else 0)
 	var roll:=Quality.roll(w,0,Mastery.rates(p,Mastery.RECIPES[id].field,bonus))
 	var output: String=recipe.result+("" if roll.tier=="common" else "_"+roll.tier)
-	Storage.change(p,output,1)
+	Storage.change(w.estate.storage if supply.destination=="home" else p,output,1)
 	var text: String="제작 · "+Quality.LABELS[roll.tier]+" · "+Items.CATALOG[output].name+" 1개를 만들었다."
+	if supply.destination=="home": text+=" 집 보관함에 보관했다."
 	text+=" · "+Mastery.award(p,id)
 	p.events.append(text)
 	return text

@@ -128,3 +128,13 @@ static func plan() -> Dictionary:
 	var w:=craft()
 	w.people.local.hp=100
 	return w
+
+static func supply() -> Dictionary:
+	var w:=plan()
+	var p: Dictionary=w.people.local
+	w.estate.storage.belongings.cloth=6
+	w.estate.storage.herb=6
+	p.belongings.cloth=0
+	p.herb=0
+	p.craft_supply={"source":"home","destination":"home"}
+	return w

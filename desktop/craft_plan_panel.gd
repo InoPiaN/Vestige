@@ -2,6 +2,8 @@ extends Panel
 signal action(kind: String,value: String)
 const P=preload("res://craft_plan.gd")
 const Items=preload("res://items.gd")
+var source_picker: OptionButton
+var destination_picker: OptionButton
 var recipes: OptionButton
 var mode: OptionButton
 var amount: SpinBox
@@ -45,8 +47,22 @@ func _ready() -> void:
 	amount.step=1
 	amount.value=3
 	add_child(amount)
-	details=label("",Vector2(430,100),18)
-	details.size=Vector2(490,270)
+	source_picker=OptionButton.new()
+	source_picker.position=Vector2(430,100)
+	source_picker.size=Vector2(490,36)
+	source_picker.add_item("재료 · 소지품만")
+	source_picker.add_item("재료 · 집 보관함 우선 + 소지품")
+	add_child(source_picker)
+	destination_picker=OptionButton.new()
+	destination_picker.position=Vector2(430,145)
+	destination_picker.size=Vector2(490,36)
+	destination_picker.add_item("완성품 · 소지품")
+	destination_picker.add_item("완성품 · 집 보관함")
+	add_child(destination_picker)
+	source_picker.item_selected.connect(func(_i): update_details())
+	destination_picker.item_selected.connect(func(_i): update_details())
+	details=label("",Vector2(430,190),16)
+	details.size=Vector2(490,205)
 	details.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	status=label("",Vector2(28,400),17)
 	status.size=Vector2(900,60)
@@ -82,6 +98,8 @@ func setup(w: Dictionary,p: Dictionary) -> void:
 	var plan: Dictionary=p.get("craft_plan",{})
 	recipes.select(P.RECIPES.find(plan.get("recipe","bandage")))
 	mode.select(1 if plan.get("mode")=="target" else 0)
+	source_picker.select(1 if plan.get("source")=="home" else 0)
+	destination_picker.select(1 if plan.get("destination")=="home" else 0)
 	update_details()
 	amount.value=plan.get("amount",3)
 	feedback.text=""
@@ -90,15 +108,21 @@ func update_details() -> void:
 	if person.is_empty(): return
 	var id: String=P.RECIPES[recipes.selected]
 	amount.max_value=Items.CATALOG[id].limit
+	source_picker.disabled=id=="iron_sword"
+	destination_picker.disabled=id=="iron_sword"
+	if id=="iron_sword":
+		source_picker.select(0)
+		destination_picker.select(0)
+	var supply: Dictionary={"source":"home" if source_picker.selected==1 else "bag","destination":"home" if destination_picker.selected==1 else "bag"}
 	var lines: PackedStringArray=[]
 	if id=="iron_sword": lines.append("마을 대장간 · 철광석 2개 필요")
 	else:
 		lines.append("본인 소유의 집에서 제작")
-		for material in P.C.RECIPES[id].cost: lines.append("%s %d개 필요" % [Items.CATALOG[material].name,P.C.RECIPES[id].cost[material]])
+		for material in P.C.RECIPES[id].cost: lines.append("%s · 소지 %d / 집 %d · 필요 %d" % [Items.CATALOG[material].name,Items.quantity(person,material),Items.quantity(P.Supply.box(world,person),material),P.C.RECIPES[id].cost[material]])
 		if id=="herbal_tea": lines.append("찻잔과 켜진 벽난로 필요")
 		if world.estate.owner!=person.life: lines.append("현재 본인 소유의 집이 없습니다.")
-	lines.append("소지 재료만 사용 · 완성품은 소지품으로")
-	lines.append("현재 소지 %d개" % Items.family_quantity(person,id))
+	lines.append("집 보관함 %d / 40개" % P.C.Storage.total(P.Supply.box(world,person)))
+	lines.append(("목표 계산 · 소지+집 합계 %d개" if P.Supply.linked(supply) else "목표 계산 · 소지 %d개") % P.Supply.target_count(world,person,id,supply))
 	lines.append("정해진 횟수 완료 후 휴식" if mode.selected==0 else "목표 충족 시 휴식 · 수량 감소 시 다시 제작")
 	details.text="\n".join(lines)
 func refresh(w: Dictionary,p: Dictionary) -> void:
@@ -110,6 +134,6 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 	update_details()
 func submit(start: bool) -> void:
 	amount.apply()
-	var value: String=P.RECIPES[recipes.selected]+"|"+("count" if mode.selected==0 else "target")+"|"+str(int(amount.value))
+	var value: String=P.RECIPES[recipes.selected]+"|"+("count" if mode.selected==0 else "target")+"|"+str(int(amount.value))+"|"+("home" if source_picker.selected==1 else "bag")+"|"+("home" if destination_picker.selected==1 else "bag")
 	action.emit("plan_start" if start else "plan_save",value)
 	if start: hide()

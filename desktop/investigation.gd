@@ -123,6 +123,7 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 		other.erase("notebook")
 		other.erase("craft_xp")
 		other.erase("craft_plan")
+		other.erase("craft_supply")
 		other.erase("evidence_items")
 		other.erase("gear_instances")
 		other.erase("gear_condition")
@@ -138,4 +139,4 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 	if snapshot.estate.has("interior"):
 		if p.get("room","village")!="home": snapshot.estate.erase("interior")
 		else: snapshot.estate.interior.erase("drawers")
-	if not storage_access: snapshot.estate.erase("storage")
+	if not storage_access and not (p.alive and snapshot.estate.owner==p.life): snapshot.estate.erase("storage")

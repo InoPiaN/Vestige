@@ -3,6 +3,7 @@ extends RefCounted
 const CharacterMotion=preload("res://animation.gd")
 const Store=preload("res://world_store.gd")
 const Remains=preload("res://death_belongings.gd")
+const Supply=preload("res://craft_supply.gd")
 const Plan=preload("res://craft_plan.gd")
 const Mastery=preload("res://craft_mastery.gd")
 const Quality=preload("res://craft_quality.gd")
@@ -37,6 +38,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 static func outfit(p: Dictionary) -> void:
 	Mastery.prepare(p)
 	Plan.prepare(p)
+	Supply.prepare(p)
 	p.look=clean_look(p.get("look",{}))
 	if not p.has("belongings"): p.belongings={"leather":1,"hood":1,"traveler":1}
 	if not p.has("equipment"):
@@ -52,7 +54,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":11,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":12,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -298,6 +300,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if kind=="helmet":
 		p.hide_helmet=value=="hide"
 		return "투구 표시를 변경했습니다."
+	if kind=="craft_supply": return Supply.configure(p,value)
 	if kind in ["plan_save","plan_start"]: return Plan.configure(p,value,kind=="plan_start")
 	if kind=="plan_cancel":
 		p.craft_plan={}
@@ -440,7 +443,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=11
+	w.version=12
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

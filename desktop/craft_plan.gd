@@ -40,7 +40,7 @@ static func rest(p: Dictionary,text: String) -> void:
 	p.craft_plan.status=text
 	p.hp=mini(100,p.hp+25)
 	p.events.append("부재 제작 · "+text+". 쉬며 몸을 추슬렀다.")
-static func day(w: Dictionary,p: Dictionary,forge: Callable) -> void:
+static func day(w: Dictionary,p: Dictionary,forge: Callable,day_number: int=-1) -> void:
 	var plan: Dictionary=p.craft_plan
 	if plan.is_empty(): return
 	var id: String=plan.recipe
@@ -65,7 +65,7 @@ static func day(w: Dictionary,p: Dictionary,forge: Callable) -> void:
 		p.x=5.0
 		p.y=8.0
 		p.ore-=2
-		p.events.append(forge.call(w,p,false))
+		p.events.append(forge.call(w,p,false,day_number))
 		p.skill+=1
 	else:
 		p.room="home"

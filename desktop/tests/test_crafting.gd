@@ -123,7 +123,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	var migrated:=R.load_world(legacy_path,false)
-	check(not migrated.is_empty() and migrated.version==12 and migrated.people.local.gear_condition[swords[0]]==100,"Legacy gear in all containers starts with full durability")
+	check(not migrated.is_empty() and migrated.version==13 and migrated.people.local.gear_condition[swords[0]]==100,"Legacy gear in all containers starts with full durability")
 	for ext in ["",".bak"]: DirAccess.remove_absolute(legacy_path+ext)
 	game.queue_free()
 	for ext in ["",".bak"]: DirAccess.remove_absolute(game.save_path+ext)

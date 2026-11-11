@@ -6,7 +6,7 @@ var category: String="전체"
 var selected: String=""
 var slots: Array[Button]=[]
 var heading: Label
-var details: Label
+var details: RichTextLabel
 var use_button: Button
 var feedback: Label
 var signature: String=""
@@ -53,7 +53,11 @@ func _ready() -> void:
 		cell.add_child(icon)
 		grid.add_child(cell)
 		slots.append(cell)
-	details=label("아이템을 선택하세요.",Vector2(630,140),19)
+	details=RichTextLabel.new()
+	details.position=Vector2(630,140)
+	details.add_theme_font_size_override("normal_font_size",18)
+	details.bbcode_enabled=false
+	add_child(details)
 	details.size=Vector2(300,320)
 	details.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	use_button=button("사용",Vector2(630,465),290)
@@ -84,7 +88,7 @@ func choose(id: String) -> void:
 func refresh(p: Dictionary) -> void:
 	person=p
 	var rows:=Items.entries(p,category)
-	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("gear_condition",{}),p.get("gear_quality",{}),p.get("stamina",0),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
+	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("gear_condition",{}),p.get("gear_quality",{}),p.get("gear_records",{}),p.get("equipped_ids",{}),p.get("stamina",0),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
 	if signature==stamp: return
 	signature=stamp
 	heading.text="소지품  ·  %d항목  /  은화 %d" % [Items.entries(p).size(),p.get("gold",0)]

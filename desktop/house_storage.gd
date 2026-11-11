@@ -1,15 +1,17 @@
 extends RefCounted
+const Record=preload("res://gear_record.gd")
 const Items=preload("res://items.gd")
 const HOME=Vector2(7,13)
 const CAPACITY=40
 static func empty() -> Dictionary:
-	return {"ore":0,"herb":0,"sword":0,"relic":0,"belongings":{},"equipment":{},"gear_instances":{},"equipped_ids":{},"gear_condition":{},"gear_quality":{}}
+	return {"ore":0,"herb":0,"sword":0,"relic":0,"belongings":{},"equipment":{},"gear_instances":{},"equipped_ids":{},"gear_condition":{},"gear_quality":{},"gear_records":{}}
 # Counts remain compatible with gathering/crafting; IDs distinguish individual gear.
 static func reconcile(p: Dictionary) -> void:
 	if not p.has("gear_instances"): p.gear_instances={}
 	if not p.has("equipped_ids"): p.equipped_ids={}
 	if not p.has("gear_condition"): p.gear_condition={}
 	if not p.has("gear_quality"): p.gear_quality={}
+	if not p.has("gear_records"): p.gear_records={}
 	for kind in Items.CATALOG:
 		if not Items.CATALOG[kind].has("slot"): continue
 		var ids: Array=[]
@@ -26,10 +28,13 @@ static func reconcile(p: Dictionary) -> void:
 		if p.get("equipment",{}).get(slot,"none")!=kind or ids.is_empty(): p.equipped_ids.erase(slot)
 		elif not ids.has(p.equipped_ids.get(slot,"")): p.equipped_ids[slot]=ids[0]
 	for id in p.gear_instances:
+		if not p.gear_records.has(id): p.gear_records[id]=Record.empty()
 		if not p.gear_condition.has(id): p.gear_condition[id]=100
 		if not p.gear_quality.has(id): p.gear_quality[id]={"tier":"common","attack":22 if p.gear_instances[id]=="iron_sword" else 0}
 	for id in p.gear_condition.keys():
 		if not p.gear_instances.has(id): p.gear_condition.erase(id)
+	for id in p.gear_records.keys():
+		if not p.gear_instances.has(id): p.gear_records.erase(id)
 	for id in p.gear_quality.keys():
 		if not p.gear_instances.has(id): p.gear_quality.erase(id)
 static func prepare(w: Dictionary) -> void:
@@ -69,6 +74,8 @@ static func transfer(w: Dictionary,p: Dictionary,id: String,take: bool) -> Strin
 		source.gear_condition.erase(id)
 		target.gear_quality[id]=source.gear_quality[id]
 		source.gear_quality.erase(id)
+		target.gear_records[id]=source.gear_records[id]
+		source.gear_records.erase(id)
 		if source.equipped_ids.get(def.slot,"")==id:
 			source.equipped_ids.erase(def.slot)
 			source.equipment[def.slot]="none"
@@ -109,6 +116,10 @@ static func valid(w: Dictionary) -> bool:
 			for id in p.gear_instances:
 				var n=p.gear_condition.get(id)
 				if not (n is int or n is float) or not is_finite(float(n)) or n<0 or n>100 or n!=floor(n): return false
+		if w.version>=13:
+			if not p.get("gear_records") is Dictionary or p.gear_records.size()!=p.gear_instances.size(): return false
+			for id in p.gear_instances:
+				if not Record.valid(p.gear_records.get(id),int(w.time/2880)+1): return false
 		if w.version>=8:
 			if not p.get("gear_quality") is Dictionary or p.gear_quality.size()!=p.gear_instances.size(): return false
 			for id in p.gear_instances:

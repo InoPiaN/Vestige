@@ -138,3 +138,25 @@ static func supply() -> Dictionary:
 	p.herb=0
 	p.craft_supply={"source":"home","destination":"home"}
 	return w
+
+static func legacy() -> Dictionary:
+	var w:=Rules.fresh()
+	w.time=Rules.DAY*22
+	Rules.born(w,"local","은결")
+	var p: Dictionary=w.people.local
+	p.x=5
+	p.y=8
+	p.ore=6
+	p.craft_xp.smithing=400
+	w.craft_rng=8
+	for i in range(3): Rules.act(w,"local","interact")
+	var life: String=p.life
+	Rules.die(w,"local","노환")
+	Rules.born(w,"local","흔적을 잇는 여행자")
+	p=w.people.local
+	p.x=5
+	p.y=8
+	var ids: Array=w.remains[life].contents.gear_instances.keys()
+	for id in ids:
+		if w.remains[life].contents.gear_instances[id]=="iron_sword": Rules.act(w,"local","take_remains",life+"|"+id)
+	return w

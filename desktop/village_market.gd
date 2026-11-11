@@ -54,6 +54,7 @@ static func trade(w: Dictionary,p: Dictionary,id: String,buy: bool) -> String:
 			p.gear_instances.erase(id)
 			p.gear_condition.erase(id)
 			p.gear_quality.erase(id)
+			p.gear_records.erase(id)
 		else: Storage.change(p,id,-1)
 		p.gold+=coins
 	var text: String="%s 1개 %s · 은화 %s%d" % [name,"구매" if buy else "판매","-" if buy else "+",coins]

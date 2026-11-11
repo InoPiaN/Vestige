@@ -42,7 +42,7 @@ static func craft(w: Dictionary,p: Dictionary,id: String,automated: bool=false,s
 	text+=" · "+Mastery.award(p,id)
 	p.events.append(text)
 	return text
-static func repair(p: Dictionary,id: String) -> String:
+static func repair(p: Dictionary,id: String,day: int=1) -> String:
 	if not allowed(p): return "집 작업대 가까이에서 수선하세요."
 	if p.gear_instances.get(id,"")!="iron_sword": return "소지한 철검 하나를 선택하세요."
 	var condition: int=p.gear_condition[id]
@@ -53,6 +53,7 @@ static func repair(p: Dictionary,id: String) -> String:
 	var restore: int=50 if kit.ends_with("_great") else (44 if kit.ends_with("_fine") else 40)
 	p.gear_condition[id]=mini(100,condition+restore)
 	var text: String="철검 · "+id.right(4)+"을 수선했다. 내구도 %d → %d." % [condition,p.gear_condition[id]]
+	Storage.Record.append(p,id,"repaired",day,"내구도 %d → %d 수선" % [condition,p.gear_condition[id]])
 	p.events.append(text)
 	return text
 static func use(p: Dictionary,id: String) -> String:

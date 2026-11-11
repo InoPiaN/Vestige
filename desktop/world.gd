@@ -54,7 +54,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":12,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":13,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -127,7 +127,7 @@ static func advance(w: Dictionary, seconds: float) -> void:
 					p.hp=mini(100,p.hp+25)
 					p.events.append("여관에서 쉬며 몸을 추슬렀다.")
 				elif p.policy == "plan":
-					Plan.day(w,p,forge_sword)
+					Plan.day(w,p,forge_sword,old_day+i+1)
 				elif p.policy == "gather":
 					var amount := mini(2,20-int(p.herb))
 					p.herb+=amount
@@ -135,7 +135,7 @@ static func advance(w: Dictionary, seconds: float) -> void:
 				elif p.policy == "work":
 					if p.ore>=2 and p.sword<5:
 						p.ore-=2
-						var result:=forge_sword(w,p,false)
+						var result:=forge_sword(w,p,false,old_day+i+1)
 						p.skill+=1
 						p.events.append(result)
 					else:
@@ -157,7 +157,8 @@ static func advance(w: Dictionary, seconds: float) -> void:
 		w.wolf.warning=0.0
 		w.wolf.cooldown=0.0
 
-static func forge_sword(w: Dictionary,p: Dictionary,equip: bool) -> String:
+static func forge_sword(w: Dictionary,p: Dictionary,equip: bool,day: int=-1) -> String:
+	if day<0: day=int(w.time/DAY)+1
 	var previous: Array=p.gear_instances.keys()
 	p.sword+=1
 	Storage.reconcile(p)
@@ -167,6 +168,8 @@ static func forge_sword(w: Dictionary,p: Dictionary,equip: bool) -> String:
 		if equip:
 			p.equipment.weapon="iron_sword"
 			p.equipped_ids.weapon=id
+		Storage.Record.create(p,id,day,Mastery.stage(p,"smithing"))
+		if p.gear_quality[id].tier=="great": p.events.append("작품 기록 · 대성공 철검 · "+id.right(6)+". 내 이름을 남겼다.")
 		var growth:=Mastery.award(p,"iron_sword")
 		return "철검 제작 · %s · 공격력 %d · %s" % [Quality.LABELS[p.gear_quality[id].tier],p.gear_quality[id].attack,growth]
 	return ""
@@ -290,6 +293,15 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	var p: Dictionary=w.people[id]
 	if not p.alive: return "삶을 마쳤습니다. 새 인물로 세계를 이어가세요."
 	outfit(p)
+	if kind=="equip_weapon":
+		if value=="none":
+			p.equipment.weapon="none"
+			p.equipped_ids.erase("weapon")
+		elif p.gear_instances.get(value)=="iron_sword":
+			p.equipment.weapon="iron_sword"
+			p.equipped_ids.weapon=value
+		else: return "현재 소지한 철검을 선택하세요."
+		return "착용 무기를 변경했습니다."
 	if kind=="equip":
 		var parts:=value.split(":")
 		if parts.size()!=2 or not GEAR.has(parts[0]) or not parts[1] in GEAR[parts[0]]: return "장비 선택이 올바르지 않습니다."
@@ -320,7 +332,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if kind=="market_buy": return Market.trade(w,p,value,true)
 	if kind=="market_sell": return Market.trade(w,p,value,false)
 	if kind=="craft_home": return Crafting.craft(w,p,value)
-	if kind=="repair_gear": return Crafting.repair(p,value)
+	if kind=="repair_gear": return Crafting.repair(p,value,int(w.time/DAY)+1)
 	if kind=="use_crafted": return Crafting.use(p,value)
 	if kind=="enter_home":
 		if not Interior.inside(p) and Vector2(p.x,p.y).distance_to(Vector2(7,13))<2 and w.estate.owner=="": Investigation.visit_house(w,p)
@@ -443,7 +455,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=12
+	w.version=13
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

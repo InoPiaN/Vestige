@@ -86,7 +86,7 @@ func run() -> void:
 	check(p.sword==swords+2 and p.ore==0 and p.craft_plan.remaining==0 and p.room=="village","Sword plans use forge and exact requested count")
 	var path:=OS.get_temp_dir()+"/vestige-plan-"+str(OS.get_process_id())+".json"
 	R.act(w,"local","plan_start","herbal_tea|count|2")
-	check(R.save_world(w,path),"Plan saves with current progress")
+	check(R.save_world(w,path,1800000000.0),"Plan saves with current progress")
 	var copy:=R.load_world(path,true,float(w.saved)+R.DAY)
 	check(not copy.is_empty() and copy.people.local.craft_plan.remaining==1,"Offline load processes one elapsed day")
 	var herbs: int=copy.people.local.herb
@@ -103,7 +103,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	var migrated:=R.load_world(path+".old",false)
-	check(not migrated.is_empty() and migrated.version==12 and migrated.people.local.craft_plan.is_empty() and migrated.people.local.policy=="work","Legacy work policy remains unchanged without invented plan")
+	check(not migrated.is_empty() and migrated.version==13 and migrated.people.local.craft_plan.is_empty() and migrated.people.local.policy=="work","Legacy work policy remains unchanged without invented plan")
 	R.act(w,"local","plan_cancel")
 	check(p.craft_plan.is_empty() and p.policy=="rest","Cancel removes plan and chooses rest")
 	R.act(w,"local","plan_start","bandage|count|1")

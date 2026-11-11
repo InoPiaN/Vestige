@@ -18,6 +18,7 @@ static func leave(w: Dictionary,p: Dictionary,day: int) -> void:
 	p.gear_instances={}
 	p.gear_condition={}
 	p.gear_quality={}
+	p.gear_records={}
 	p.equipped_ids={}
 	for slot in p.equipment: p.equipment[slot]="none"
 static func visible(w: Dictionary,p: Dictionary) -> Dictionary:
@@ -54,6 +55,9 @@ static func take(w: Dictionary,p: Dictionary,value: String) -> String:
 			box.gear_condition.erase(id)
 			p.gear_quality[id]=box.gear_quality[id]
 			box.gear_quality.erase(id)
+			p.gear_records[id]=box.gear_records[id]
+			box.gear_records.erase(id)
+			Storage.Record.append(p,id,"recovered",int(w.time/2880)+1,row.name+"의 유품에서 회수")
 		if kind=="relic": p.relic_found=true
 		Storage.reconcile(p)
 		name=def.name

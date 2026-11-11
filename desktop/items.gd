@@ -52,6 +52,7 @@ static func definition(p: Dictionary,id: String) -> Dictionary:
 			if quality.tier!="common": def.color="94b9ad" if quality.tier=="fine" else "e2c481"
 			def.description="공격력 %d · 내구도 0이면 9.\n명중 시 내구도 5 소모." % quality.attack
 			def.description+="\n내구도 %d / 100" % int(p.get("gear_condition",{}).get(id,100))
+			def.description+="\n\n"+preload("res://gear_record.gd").describe(p,id)
 		return def
 	return CATALOG.get(id,p.get("evidence_items",{}).get(id,{}))
 static func quantity(p: Dictionary, id: String) -> int:

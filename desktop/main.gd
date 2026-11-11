@@ -43,6 +43,8 @@ var dress_name: LineEdit
 var dressing_mode: String="create"
 var dress_status: Label
 var gear_pickers: Dictionary={}
+var weapon_stamp:=""
+var gear_record_button: Button
 
 
 func _ready() -> void:
@@ -51,7 +53,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -59,6 +61,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"legacy": opening=demo.legacy()
 				"supply": opening=demo.supply()
 				"plan": opening=demo.plan()
 				"mastery": opening=demo.mastery()
@@ -74,7 +77,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="supply": message("E로 작업대를 열어 집 보관함의 천과 약초로 붕대를 만드세요. 완성품은 B로 확인합니다. 부재 계획에도 보관함을 설정할 수 있습니다.")
+			if kind=="legacy": message("외형·장비에서 개별 철검을 선택해 착용하세요. 착용 철검 기록에서 은결의 제작 서명과 유품 회수 이력을 읽습니다.")
+			elif kind=="supply": message("E로 작업대를 열어 집 보관함의 천과 약초로 붕대를 만드세요. 완성품은 B로 확인합니다. 부재 계획에도 보관함을 설정할 수 있습니다.")
 			elif kind=="plan": message("부재 중의 하루에서 제작 계획 설정을 선택하세요. 붕대 3개를 맡기고 하루 진행으로 결과를 확인할 수 있습니다.")
 			elif kind=="mastery": message("E로 작업대를 열어 붕대 1개를 만드세요. 약초 조제가 견습으로 성장하고 확률이 바뀝니다. J에서 모든 분야를 확인합니다.")
 			elif kind=="market": message("E로 장터를 열어 재료를 사고 제작품을 판매하세요. 재고는 다음 월드 날짜에 보충됩니다.")
@@ -505,7 +509,9 @@ func refresh() -> void:
 	if dressing.visible and dressing_mode=="gear":
 		portrait.person=p
 		dress_status.text="공격력 %d · 철검은 내구도에 따라 성능이 변합니다." % Rules.weapon_damage(p)
-		for slot in gear_pickers: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
+		for slot in gear_pickers:
+			if slot!="weapon": gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
+		refresh_weapon_picker(p)
 	if bag.visible: bag.refresh(p)
 	if chest.visible: chest.refresh(world,p)
 	if planner.visible: planner.refresh(world,p)
@@ -650,6 +656,11 @@ func build_dressing(root: Control) -> void:
 	dressing.add_child(dress_controls)
 	dress_status=label_at(dressing,"",Vector2(32,455),15)
 	label_at(dressing,"의복·후드·망토는 시작 장비입니다. 철검은 제작 후 착용합니다.\n외형은 능력치와 독립적이며, 철검 공격력은 착용할 때 적용됩니다.",Vector2(32,490),15)
+	gear_record_button=button_at(dressing,"착용 철검 기록",Vector2(32,550),220,func():
+		var p: Dictionary=world.people[me]
+		var id: String=p.equipped_ids.get("weapon","")
+		if not id.is_empty(): show_pages(preload("res://items.gd").definition(p,id).name+"\n\n"+preload("res://items.gd").definition(p,id).description))
+	gear_record_button.hide()
 	dress_confirm=button_at(dressing,"외형 선택 완료",Vector2(290,560),420,func():
 		input_name.text=dress_name.text.replace("|","").strip_edges()
 		if input_name.text.is_empty(): input_name.text="여행자"
@@ -668,6 +679,8 @@ func open_dressing(purpose: String) -> void:
 	panel.hide()
 	dressing_mode=purpose
 	gear_pickers.clear()
+	weapon_stamp=""
+	gear_record_button.visible=purpose=="gear"
 	for child in dress_controls.get_children():
 		dress_controls.remove_child(child)
 		child.queue_free()
@@ -679,6 +692,14 @@ func open_dressing(purpose: String) -> void:
 	if purpose=="gear":
 		portrait.person=world.people[me]
 		for slot in Rules.GEAR:
+			if slot=="weapon":
+				var weapon:=OptionButton.new()
+				weapon.add_theme_font_size_override("font_size",16)
+				weapon.custom_minimum_size=Vector2(420,40)
+				weapon.item_selected.connect(func(i): perform("equip_weapon",weapon.get_item_metadata(i)))
+				gear_pickers.weapon=weapon
+				dress_controls.add_child(weapon)
+				continue
 			var names: Dictionary={"body":["기본 의복","가죽 갑옷"],"head":["투구 없음","여행 후드"],"cloak":["망토 없음","여행 망토"],"weapon":["맨손","철검"]}
 			var picker:=OptionButton.new()
 			for text in names[slot]: picker.add_item(text)
@@ -702,6 +723,7 @@ func open_dressing(purpose: String) -> void:
 			picker.item_selected.connect(func(i): chosen_look[key]=i)
 			dress_controls.add_child(picker)
 	dressing.show()
+	if purpose=="gear": refresh()
 
 func open_inventory() -> void:
 	market.hide()
@@ -763,3 +785,26 @@ func open_planner() -> void:
 	bench.hide()
 	planner.setup(world,world.people[me])
 	planner.show()
+
+func refresh_weapon_picker(p: Dictionary) -> void:
+	if not gear_pickers.has("weapon"): return
+	var picker: OptionButton=gear_pickers.weapon
+	var stamp:=JSON.stringify([p.gear_instances,p.gear_condition,p.gear_quality,p.gear_records])
+	if stamp!=weapon_stamp:
+		weapon_stamp=stamp
+		picker.clear()
+		picker.add_item("맨손 · 공격력 9")
+		picker.set_item_metadata(0,"none")
+		for id in p.gear_instances:
+			if p.gear_instances[id]!="iron_sword": continue
+			var item:=preload("res://items.gd").definition(p,id)
+			var damage: int=p.gear_quality[id].attack if p.gear_condition[id]>0 else 9
+			var index:=picker.item_count
+			picker.add_item("%s · 공격 %d · 내구 %d" % [item.name,damage,p.gear_condition[id]])
+			picker.set_item_metadata(index,id)
+			picker.set_item_tooltip(index,item.description)
+	var worn: String=p.equipped_ids.get("weapon","none")
+	for i in range(picker.item_count):
+		if picker.get_item_metadata(i)==worn: picker.select(i)
+	picker.disabled=not p.alive
+	gear_record_button.disabled=worn=="none"

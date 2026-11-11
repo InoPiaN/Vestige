@@ -25,3 +25,7 @@ network_legacy.gd: 임시 ENet 서버에서 개별 검 선택→동일 검 재�
 Play-Legacy.command / Play-Legacy.cmd / -- --legacy-demo. 독립 legacy-demo.json. 은결이 숙련 단계에서 만든 철검3개를 후계자가 회수한 상태. 외형·장비에서 검을 고르고 착용 철검 기록을 연다. 기존 데모와 일반 월드를 덮어쓰지 않는다.
 
 Mac 0.5.7 export·실행 파일 이름 정규화·ad-hoc 서명 검증·headless 메뉴 기동 완료. Windows 0.5.7 export와 PE32+ x86-64 형식 확인 완료, Windows 실기 검증은 남아 있다. builds/Sword-Equipment.png 및 Sword-Legacy.png에 화면을 보관한다. 빌드와 사용자 저장은 Git에 포함하지 않는다.
+
+## 사용자 추가 요청 · 빌드 정리
+
+2026-11-11: 새 버전 빌드·검증 완료 후 이전 Mac/Windows 빌드 패키지는 삭제하고 최신만 유지한다. 사용자 저장·복구 파일과 Git 이력은 보존한다. 빌드 실패 시 이전 정상 빌드를 유지한다. 이번에는 builds 내 구버전 34개 디렉터리(약4.42 GiB)를 삭제하고 Mac/Windows 0.5.7만 남겼다. 공용 Play 바로가기는 모두0.5.7을 사용한다. 이후 빌드 작업의 마무리 절차에 이 정리를 포함한다.

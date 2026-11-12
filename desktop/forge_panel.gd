@@ -28,7 +28,8 @@ func _ready() -> void:
 	feedback=label("",Vector2(28,465),17)
 	feedback.size=Vector2(900,60)
 	feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	label("강화는 확정 성공합니다. 단계마다 공격력 +2, 최대 +3.\n제작 품질·제작자·내구도는 유지되며 강화한 인물과 날짜가 기록됩니다.",Vector2(28,545),16)
+	label("강화는 확정 성공 · 최대 +3.\n품질·제작자·내구도를 보존합니다.",Vector2(28,545),16)
+	button("가죽 / 철제 갑옷 제작",Vector2(650,545),280,func(): action.emit("armor_menu",""))
 	hide()
 func refresh(w: Dictionary,p: Dictionary) -> void:
 	world=w

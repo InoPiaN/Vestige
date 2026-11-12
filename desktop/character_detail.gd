@@ -85,6 +85,16 @@ func draw_character(p: Dictionary,animation: Dictionary,clock: float) -> void:
 		r(15,27,1,7,"c3a777")
 		r(11,28,1,1,"dec48a")
 		r(19,28,1,1,"c5a46c")
+	if gear.get("body")=="iron_armor":
+		r(9,23,13,12,"34474e")
+		r(10,23,11,3,"a5b8b7")
+		r(10,26,5,6,"839c9e")
+		r(16,26,5,6,"577780")
+		r(15,24,1,9,"d5ded0")
+		r(11,27,3,1,"c5d3c7")
+		r(10,32,11,2,"b1c1b5")
+		r(8,35,6,3,"6a868d")
+		r(17,35,6,3,"4d6c77")
 	# Rounded pauldron as a few clean pixel clusters.
 	r(5,22,8,6,"26373b")
 	r(6,21,6,2,"9caeaa")
@@ -171,6 +181,10 @@ func draw_character(p: Dictionary,animation: Dictionary,clock: float) -> void:
 		if gear.get("body")=="leather":
 			r(10,23,12,12,"63472f")
 			r(15,23,1,11,"98754c")
+		if gear.get("body")=="iron_armor":
+			r(10,23,12,12,"577780")
+			r(11,24,4,9,"a5b8b7")
+			r(10,32,12,2,"34474e")
 		if gear.get("cloak")=="traveler":
 			r(7,22,17,21,"304b51")
 			r(8,23,4,18,"577277")

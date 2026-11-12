@@ -6,6 +6,8 @@ const Remains=preload("res://death_belongings.gd")
 const Supply=preload("res://craft_supply.gd")
 const Plan=preload("res://craft_plan.gd")
 const Mastery=preload("res://craft_mastery.gd")
+const Armor=preload("res://armor_stats.gd")
+const ArmorCraft=preload("res://armor_crafting.gd")
 const Upgrade=preload("res://sword_upgrade.gd")
 const Quality=preload("res://craft_quality.gd")
 const Market=preload("res://village_market.gd")
@@ -27,7 +29,7 @@ const PLACES := [
 ]
 
 const LOOK_OPTIONS := {"hair":3,"hair_color":4,"skin":3,"cloth":4}
-const GEAR := {"body":["none","leather"],"head":["none","hood"],"cloak":["none","traveler"],"weapon":["none","iron_sword"]}
+const GEAR := {"body":["none","leather","iron_armor"],"head":["none","hood"],"cloak":["none","traveler"],"weapon":["none","iron_sword"]}
 
 static func clean_look(value: Dictionary) -> Dictionary:
 	var result: Dictionary={}
@@ -55,7 +57,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":14,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":15,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -96,7 +98,7 @@ static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: V
 	if not victim.alive or w.estate.owner!=victim.life: return false
 	if Interior.inside(victim): return false
 	if pos(victim).distance_to(pos(attacker))>Investigation.Witness.REACH: return false
-	victim.hp=maxi(0,victim.hp-damage)
+	Armor.hit(victim,damage)
 	victim.hurt=0.22
 	if victim.hp>0: return false
 	var observation:=Investigation.Witness.observe(observer,pos(attacker),pos(victim),attacker.mark,PLACES,int(w.time/DAY)+1)
@@ -272,7 +274,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 		e.warning-=dt
 		if e.warning<=0:
 			if nearest<1.6 and target.dodge<=0:
-				target.hp-=18
+				Armor.hit(target,18)
 				target.hurt=0.22
 				if target.hp<=0: die(w,target_id,"늑대와의 전투")
 			e.cooldown=1.3
@@ -294,6 +296,15 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	var p: Dictionary=w.people[id]
 	if not p.alive: return "삶을 마쳤습니다. 새 인물로 세계를 이어가세요."
 	outfit(p)
+	if kind=="equip_body":
+		if value=="none":
+			p.equipment.body="none"
+			p.equipped_ids.erase("body")
+		elif p.gear_instances.get(value) in Armor.KINDS:
+			p.equipment.body=p.gear_instances[value]
+			p.equipped_ids.body=value
+		else: return "현재 소지한 갑옷을 선택하세요."
+		return "착용 갑옷을 변경했습니다."
 	if kind=="equip_weapon":
 		if value=="none":
 			p.equipment.weapon="none"
@@ -330,6 +341,8 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="armor_menu": return "방어구 제작"
+	if kind=="craft_armor": return ArmorCraft.craft(w,p,value)
 	if kind=="upgrade_sword": return Upgrade.apply(w,p,value)
 	if kind=="market_buy": return Market.trade(w,p,value,true)
 	if kind=="market_sell": return Market.trade(w,p,value,false)
@@ -355,8 +368,8 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if kind=="identify": return Investigation.Witness.identify(w,p,value)
 	if kind=="investigate": return Investigation.investigate(w,p)
 	if kind=="dodge":
-		if p.stamina>=30 and p.dodge<=0:
-			p.stamina-=30
+		if p.stamina>=Armor.dodge_cost(p) and p.dodge<=0:
+			p.stamina-=Armor.dodge_cost(p)
 			p.dodge=0.4
 		return ""
 	if kind=="heal":
@@ -457,7 +470,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=14
+	w.version=15
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

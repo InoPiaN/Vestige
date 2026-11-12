@@ -3,7 +3,7 @@ const Items=preload("res://items.gd")
 const Storage=preload("res://house_storage.gd")
 const LOCATION=Vector2(14,14)
 const DAY=2880.0
-const GOODS={"cloth":{"price":3,"stock":8},"bent_nail":{"price":2,"stock":12},"broken_cup":{"price":3,"stock":3},"herb":{"price":3,"stock":8},"ore":{"price":4,"stock":8}}
+const GOODS={"hide":{"price":3,"stock":10},"cloth":{"price":3,"stock":8},"bent_nail":{"price":2,"stock":12},"broken_cup":{"price":3,"stock":3},"herb":{"price":3,"stock":8},"ore":{"price":4,"stock":8}}
 const SELL={"cloth":1,"bent_nail":1,"broken_cup":1,"herb":1,"ore":2,"bandage":3,"repair_kit":4,"mug":3,"herbal_tea":2}
 static func prepare(w: Dictionary) -> void:
 	var day:=int(w.time/DAY)
@@ -11,13 +11,15 @@ static func prepare(w: Dictionary) -> void:
 	if w.market.stock.is_empty() or day>int(w.market.day):
 		w.market.day=day
 		for id in GOODS: w.market.stock[id]=GOODS[id].stock
+	if not w.market.stock.has("hide"): w.market.stock.hide=GOODS.hide.stock
 static func valid(w: Dictionary) -> bool:
 	var market=w.get("market")
 	if not market is Dictionary or not market.get("stock") is Dictionary: return false
 	var day=market.get("day")
 	if not (day is int or day is float) or not is_finite(day) or day<0 or day!=floor(day) or day>int(w.time/DAY): return false
-	if market.stock.size()!=GOODS.size(): return false
+	if market.stock.size()!=(GOODS.size() if w.version>=15 or market.stock.has("hide") else GOODS.size()-1): return false
 	for id in GOODS:
+		if id=="hide" and w.version<15 and not market.stock.has(id): continue
 		var n=market.stock.get(id)
 		if not (n is int or n is float) or not is_finite(n) or n<0 or n>GOODS[id].stock or n!=floor(n): return false
 	return true

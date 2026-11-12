@@ -3,7 +3,7 @@ const FIELDS={"smithing":"대장 기술","handicraft":"생활 공예","herbalism
 const STAGES=["입문","견습","숙련","장인"]
 const THRESHOLDS=[0,100,400,1000]
 const RATES=[{"common":70,"fine":20,"great":10},{"common":65,"fine":23,"great":12},{"common":57,"fine":27,"great":16},{"common":45,"fine":30,"great":25}]
-const RECIPES={"iron_sword":{"field":"smithing","xp":12,"difficulty":1},"repair_kit":{"field":"handicraft","xp":10,"difficulty":1},"mug":{"field":"handicraft","xp":8,"difficulty":0},"bandage":{"field":"herbalism","xp":8,"difficulty":0},"herbal_tea":{"field":"herbalism","xp":10,"difficulty":1}}
+const RECIPES={"leather":{"field":"handicraft","xp":14,"difficulty":1},"iron_armor":{"field":"smithing","xp":18,"difficulty":2},"iron_sword":{"field":"smithing","xp":12,"difficulty":1},"repair_kit":{"field":"handicraft","xp":10,"difficulty":1},"mug":{"field":"handicraft","xp":8,"difficulty":0},"bandage":{"field":"herbalism","xp":8,"difficulty":0},"herbal_tea":{"field":"herbalism","xp":10,"difficulty":1}}
 static func prepare(p: Dictionary) -> void:
 	if not p.has("craft_xp"): p.craft_xp={"smithing":0,"handicraft":0,"herbalism":0}
 static func xp(p: Dictionary,field: String) -> int:

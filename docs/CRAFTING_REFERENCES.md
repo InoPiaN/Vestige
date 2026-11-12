@@ -51,3 +51,10 @@ Vestige 적용안 +1~+3, 단계마다 공격력+2, 재료·은화 소비, 확정
 
 Lineage II Classic 공식 출시 패치노트의 강화 무기 발광을 참고했다. https://www.lineage2.com/en-us/news/lineage-ii-classic-launch-patch-notes
 사용자는 +1은빛/+2푸른빛·작은입자/+3선명한빛·짧은공격잔상 적용안을 승인하고, 이어 캐릭터/장비 도트 밀도를 높인 비교시안도 승인했다. 표현은 Vestige 자체 도트/색과 선으로 제작한다. 맵은 현재 픽셀크기를 유지하며 장비 빛이 캐릭터 디테일을 덮지 않도록 제한한다.
+
+## 방어구 제작과 방어 효과 · 사용자 승인 (2026-11-12)
+
+- ESO 공식 Clothing 안내: 섬유와 가죽으로 방어구를 만들고 제작 활동으로 기술을 성장시키는 구조. https://help.elderscrollsonline.com/app/answers/detail/a_id/4012/
+- Elden Ring 공식 능력치 안내: 장비 하중과 회피 성능의 관계. https://www.bandainamcoent.com/news/elden-ring-introduction-part-2-advanced-stats
+
+사용자는 가죽/철제 몸통 방어구 두 종류, 실제 피해감소와 회피 부담, 제작품질, 내구/수선, 개별착용/이력/유품계승을 승인했다. Vestige는 하중비율이나 회피모션 저하를 복제하지 않고 기력32/38로 단순화했다. 기본의복30. 피해감소/재료/가격은 자체 초기값이며 본문 GAME_DESIGN과 README에 명시한다. 방어구 자동생산·강화·거래확장은 별도 범위다.

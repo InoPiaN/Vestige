@@ -24,14 +24,20 @@ static func reconcile(p: Dictionary) -> void:
 			var id: String="gear-"+Crypto.new().generate_random_bytes(12).hex_encode()
 			p.gear_instances[id]=kind
 			ids.append(id)
-		var slot: String=Items.CATALOG[kind].slot
-		if p.get("equipment",{}).get(slot,"none")!=kind or ids.is_empty(): p.equipped_ids.erase(slot)
+	# Resolve each slot once: multiple body kinds must not erase each other.
+	for slot in ["body","head","cloak","weapon"]:
+		var kind: String=p.get("equipment",{}).get(slot,"none")
+		var ids: Array=[]
+		for id in p.gear_instances:
+			if p.gear_instances[id]==kind: ids.append(id)
+		if ids.is_empty(): p.equipped_ids.erase(slot)
 		elif not ids.has(p.equipped_ids.get(slot,"")): p.equipped_ids[slot]=ids[0]
 	for id in p.gear_instances:
 		if not p.gear_records.has(id): p.gear_records[id]=Record.empty()
 		if not p.gear_condition.has(id): p.gear_condition[id]=100
 		if not p.gear_quality.has(id): p.gear_quality[id]={"tier":"common","attack":22 if p.gear_instances[id]=="iron_sword" else 0}
 		if not p.gear_quality[id].has("upgrade"): p.gear_quality[id].upgrade=0
+		if not p.gear_quality[id].has("defense"): p.gear_quality[id].defense=3 if p.gear_instances[id]=="leather" else (6 if p.gear_instances[id]=="iron_armor" else 0)
 	for id in p.gear_condition.keys():
 		if not p.gear_instances.has(id): p.gear_condition.erase(id)
 	for id in p.gear_records.keys():
@@ -130,6 +136,13 @@ static func valid(w: Dictionary) -> bool:
 					var upgrade=q.get("upgrade")
 					if not (upgrade is int or upgrade is float) or not is_finite(float(upgrade)) or upgrade!=floor(upgrade) or upgrade<0 or upgrade>3: return false
 					if p.gear_instances[id]!="iron_sword" and upgrade!=0: return false
+				if w.version>=15:
+					var d=q.get("defense")
+					if not (d is int or d is float) or not is_finite(float(d)) or d!=floor(d): return false
+					if p.gear_instances[id] in ["leather","iron_armor"]:
+						var bounds: Array=preload("res://armor_stats.gd").DEFENSE[p.gear_instances[id]][q.tier]
+						if d<bounds[0] or d>bounds[1]: return false
+					elif d!=0: return false
 				var n=q.get("attack")
 				if not (n is int or n is float) or not is_finite(float(n)) or n!=floor(n): return false
 				if p.gear_instances[id]=="iron_sword":

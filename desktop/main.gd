@@ -16,6 +16,8 @@ var status: Label
 var inventory: Label
 var market: Panel
 var planner: Panel
+var armor_bench: Panel
+var body_stamp:=""
 var forge: Panel
 var bench: Panel
 var chest: Panel
@@ -54,7 +56,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -62,6 +64,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"armor": opening=demo.armor()
 				"detail": opening=demo.detail()
 				"upgrade": opening=demo.upgrade()
 				"legacy": opening=demo.legacy()
@@ -80,7 +83,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="detail": message("외형·장비에서 +0~+3 철검을 비교하세요. 이동과 공격으로 세밀해진 도트와 강화 효과를 확인할 수 있습니다.")
+			if kind=="armor": message("E → 가죽 / 철제 갑옷 제작. 외형·장비에서 갑옷의 방어·내구도와 회피 기력을 비교하세요.")
+			elif kind=="detail": message("외형·장비에서 +0~+3 철검을 비교하세요. 이동과 공격으로 세밀해진 도트와 강화 효과를 확인할 수 있습니다.")
 			elif kind=="upgrade": message("E로 대장간을 열고 철검을 선택해 비용과 강화 전후 공격력을 확인하세요.")
 			elif kind=="legacy": message("외형·장비에서 개별 철검을 선택해 착용하세요. 착용 철검 기록에서 은결의 제작 서명과 유품 회수 이력을 읽습니다.")
 			elif kind=="supply": message("E로 작업대를 열어 집 보관함의 천과 약초로 붕대를 만드세요. 완성품은 B로 확인합니다. 부재 계획에도 보관함을 설정할 수 있습니다.")
@@ -256,14 +260,14 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -293,6 +297,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		dressing.hide()
 		bag.hide()
 		chest.hide()
+		armor_bench.hide()
 		forge.hide()
 		market.hide()
 		planner.hide()
@@ -313,7 +318,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible: return
+	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
 		KEY_F: perform("investigate")
@@ -508,6 +513,9 @@ func build_ui() -> void:
 	planner=preload("res://craft_plan_panel.gd").new()
 	root.add_child(planner)
 	planner.action.connect(perform)
+	armor_bench=preload("res://armor_panel.gd").new()
+	root.add_child(armor_bench)
+	armor_bench.action.connect(perform)
 	forge=preload("res://forge_panel.gd").new()
 	root.add_child(forge)
 	forge.action.connect(perform)
@@ -520,13 +528,15 @@ func refresh() -> void:
 	var p: Dictionary=world.people[me]
 	if dressing.visible and dressing_mode=="gear":
 		portrait.person=p
-		dress_status.text="공격력 %d · 철검은 내구도에 따라 성능이 변합니다." % Rules.weapon_damage(p)
+		dress_status.text="공격력 %d · 물리 피해 감소 %d · 회피 기력 %d" % [Rules.weapon_damage(p),Rules.Armor.defense(p),Rules.Armor.dodge_cost(p)]
 		for slot in gear_pickers:
-			if slot!="weapon": gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
+			if slot not in ["weapon","body"]: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
 		refresh_weapon_picker(p)
+		refresh_body_picker(p)
 	if bag.visible: bag.refresh(p)
 	if chest.visible: chest.refresh(world,p)
 	if planner.visible: planner.refresh(world,p)
+	if armor_bench.visible: armor_bench.refresh(world,p)
 	if forge.visible: forge.refresh(world,p)
 	if bench.visible: bench.refresh(world,p)
 	if market.visible: market.refresh(world,p)
@@ -569,6 +579,7 @@ func style_meter(bar: ProgressBar, color: Color) -> void:
 func message(text: String) -> void:
 	if text.is_empty(): return
 	if text.begins_with("조사 기록\n"): show_pages(text)
+	elif text=="방어구 제작": open_armor()
 	elif text=="장터": open_market()
 	elif text=="작업대": open_crafting()
 	elif text=="보관함": open_storage()
@@ -581,9 +592,11 @@ func message(text: String) -> void:
 		if bench.visible: bench.feedback.text=text
 		if planner.visible: planner.feedback.text=text
 		if market.visible: market.feedback.text=text
+		if armor_bench.visible: armor_bench.feedback.text=text
 		if forge.visible: forge.feedback.text=text
 
 func show_pages(text: String) -> void:
+	armor_bench.hide()
 	forge.hide()
 	market.hide()
 	planner.hide()
@@ -671,11 +684,16 @@ func build_dressing(root: Control) -> void:
 	dress_controls.add_theme_constant_override("separation",12)
 	dressing.add_child(dress_controls)
 	dress_status=label_at(dressing,"",Vector2(32,455),15)
-	label_at(dressing,"의복·후드·망토는 시작 장비입니다. 철검은 제작 후 착용합니다.\n외형은 능력치와 독립적이며, 철검 공격력은 착용할 때 적용됩니다.",Vector2(32,490),15)
-	gear_record_button=button_at(dressing,"착용 철검 기록",Vector2(32,550),220,func():
+	label_at(dressing,"후드·망토는 외형 장비입니다. 갑옷은 방어와 회피 기력에 영향을 줍니다.\n선택한 장비의 능력치와 내구도는 착용할 때 적용됩니다.",Vector2(32,490),15)
+	gear_record_button=button_at(dressing,"착용 장비 기록",Vector2(32,550),220,func():
 		var p: Dictionary=world.people[me]
-		var id: String=p.equipped_ids.get("weapon","")
-		if not id.is_empty(): show_pages(preload("res://items.gd").definition(p,id).name+"\n\n"+preload("res://items.gd").definition(p,id).description))
+		var pages: Array=[]
+		for slot in ["body","weapon"]:
+			var id: String=p.equipped_ids.get(slot,"")
+			if id.is_empty(): continue
+			var def:=preload("res://items.gd").definition(p,id)
+			pages.append(def.name+"\n\n"+def.description)
+		if not pages.is_empty(): show_pages("\n\n────────────────────\n\n".join(pages)))
 	gear_record_button.hide()
 	dress_confirm=button_at(dressing,"외형 선택 완료",Vector2(290,560),420,func():
 		input_name.text=dress_name.text.replace("|","").strip_edges()
@@ -687,6 +705,7 @@ func build_dressing(root: Control) -> void:
 	dressing.hide()
 
 func open_dressing(purpose: String) -> void:
+	armor_bench.hide()
 	forge.hide()
 	market.hide()
 	planner.hide()
@@ -697,6 +716,7 @@ func open_dressing(purpose: String) -> void:
 	dressing_mode=purpose
 	gear_pickers.clear()
 	weapon_stamp=""
+	body_stamp=""
 	gear_record_button.visible=purpose=="gear"
 	for child in dress_controls.get_children():
 		dress_controls.remove_child(child)
@@ -709,6 +729,14 @@ func open_dressing(purpose: String) -> void:
 	if purpose=="gear":
 		portrait.person=world.people[me]
 		for slot in Rules.GEAR:
+			if slot=="body":
+				var body:=OptionButton.new()
+				body.add_theme_font_size_override("font_size",16)
+				body.custom_minimum_size=Vector2(420,40)
+				body.item_selected.connect(func(i): perform("equip_body",body.get_item_metadata(i)))
+				gear_pickers.body=body
+				dress_controls.add_child(body)
+				continue
 			if slot=="weapon":
 				var weapon:=OptionButton.new()
 				weapon.add_theme_font_size_override("font_size",16)
@@ -743,6 +771,7 @@ func open_dressing(purpose: String) -> void:
 	if purpose=="gear": refresh()
 
 func open_inventory() -> void:
+	armor_bench.hide()
 	forge.hide()
 	market.hide()
 	planner.hide()
@@ -756,6 +785,7 @@ func open_inventory() -> void:
 	bag.show()
 
 func open_storage(remains_mode: bool=false) -> void:
+	armor_bench.hide()
 	forge.hide()
 	market.hide()
 	planner.hide()
@@ -772,6 +802,7 @@ func open_storage(remains_mode: bool=false) -> void:
 
 func open_crafting() -> void:
 	planner.hide()
+	armor_bench.hide()
 	forge.hide()
 	market.hide()
 	if world.is_empty() or not world.people.has(me): return
@@ -784,6 +815,7 @@ func open_crafting() -> void:
 	bench.show()
 
 func open_market() -> void:
+	armor_bench.hide()
 	forge.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
@@ -802,6 +834,7 @@ func open_planner() -> void:
 	dressing.hide()
 	bag.hide()
 	chest.hide()
+	armor_bench.hide()
 	forge.hide()
 	market.hide()
 	bench.hide()
@@ -829,9 +862,10 @@ func refresh_weapon_picker(p: Dictionary) -> void:
 	for i in range(picker.item_count):
 		if picker.get_item_metadata(i)==worn: picker.select(i)
 	picker.disabled=not p.alive
-	gear_record_button.disabled=worn=="none"
+	gear_record_button.disabled=worn=="none" and p.equipped_ids.get("body","").is_empty()
 
 func open_forge() -> void:
+	armor_bench.hide()
 	market.hide()
 	planner.hide()
 	bench.hide()
@@ -842,3 +876,31 @@ func open_forge() -> void:
 	forge.feedback.text=""
 	forge.refresh(world,world.people[me])
 	forge.show()
+
+func open_armor() -> void:
+	open_forge()
+	forge.hide()
+	armor_bench.feedback.text=""
+	armor_bench.refresh(world,world.people[me])
+	armor_bench.show()
+
+func refresh_body_picker(p: Dictionary) -> void:
+	if not gear_pickers.has("body"): return
+	var picker: OptionButton=gear_pickers.body
+	var stamp:=JSON.stringify([p.gear_instances,p.gear_quality,p.gear_condition])
+	if stamp!=body_stamp:
+		body_stamp=stamp
+		picker.clear()
+		picker.add_item("기본 의복 · 피해 감소 0 · 회피 30")
+		picker.set_item_metadata(0,"none")
+		for id in p.gear_instances:
+			if p.gear_instances[id] not in Rules.Armor.KINDS: continue
+			var def:=preload("res://items.gd").definition(p,id)
+			var reduction: int=p.gear_quality[id].defense if p.gear_condition[id]>0 else 0
+			picker.add_item("%s · 방어 %d · 내구 %d" % [def.name,reduction,p.gear_condition[id]])
+			picker.set_item_metadata(picker.item_count-1,id)
+			picker.set_item_tooltip(picker.item_count-1,def.description)
+	var worn: String=p.equipped_ids.get("body","none")
+	for i in range(picker.item_count):
+		if picker.get_item_metadata(i)==worn: picker.select(i)
+	picker.disabled=not p.alive

@@ -2,7 +2,7 @@ extends RefCounted
 # Existing resource counters remain the single source of truth for old saves.
 const BASE_CATALOG := {
 	"bandage":{"name":"약초 붕대","category":"소모품","limit":10,"color":"c7c5a1","description":"체력 45 회복. 천 1개와 약초 1개로 제작합니다."},
-	"repair_kit":{"name":"간이 수선 도구","category":"재료","limit":10,"color":"b6a07b","description":"집 작업대에서 선택한 철검 내구도 +40. 천 1개와 못 2개로 제작합니다."},
+	"repair_kit":{"name":"간이 수선 도구","category":"재료","limit":10,"color":"b6a07b","description":"집 작업대에서 선택한 철검·갑옷 내구도 +40. 천 1개와 못 2개로 제작합니다."},
 	"mug":{"name":"고친 찻잔","category":"재료","limit":5,"color":"c0bd9a","description":"약초차 제작 도구. 사용할 때 사라지지 않습니다."},
 	"herbal_tea":{"name":"약초차","category":"소모품","limit":10,"color":"8da67a","description":"체력 20 · 기력 40 회복. 찻잔과 켜진 벽난로가 있어야 약초 1개로 만듭니다."},
 	"cloth":{"name":"낡은 천 조각","category":"재료","limit":20,"color":"a29a80","description":"서랍에 남은 수선용 천. 보관하거나 유품으로 남길 수 있습니다. 집 작업대에서 붕대·수선 도구·찻잔 수선에 사용합니다."},
@@ -11,7 +11,9 @@ const BASE_CATALOG := {
 	"ore":{"name":"철광석","category":"재료","field":"ore","limit":20,"color":"92a6a1","description":"철검 제작 재료. 대장간에서 2개를 소비합니다."},
 	"herb":{"name":"달빛 약초","category":"소모품","field":"herb","limit":20,"color":"8ab88e","description":"1개를 사용해 체력 30을 회복합니다."},
 	"iron_sword":{"name":"철검","category":"장비","field":"sword","limit":5,"slot":"weapon","color":"c4d4d0","description":"착용 시 공격력 22. 명중할 때 내구도 5 소모.\n내구도 0이면 공격력 9. 검은 사라지지 않습니다."},
-	"leather":{"name":"가죽 갑옷","category":"장비","limit":1,"slot":"body","color":"ae8257","description":"여행자를 위한 시작 방어구.\n현재는 외형 장비이며 방어력은 없습니다."},
+	"leather":{"name":"가죽 갑옷","category":"장비","limit":3,"slot":"body","color":"ae8257","description":"가벼운 몸통 방어구. 물리 피해 감소 · 회피 기력 +2. 내구도 0이면 방어 효과가 사라집니다."},
+	"hide":{"name":"손질한 가죽","category":"재료","limit":20,"color":"99764f","description":"장터에서 구입하는 방어구 제작 재료."},
+	"iron_armor":{"name":"철제 갑옷","category":"장비","limit":3,"slot":"body","color":"a3b5b6","description":"금속판 몸통 방어구. 물리 피해 감소 · 회피 기력 +8."},
 	"hood":{"name":"여행 후드","category":"장비","limit":1,"slot":"head","color":"749995","description":"머리를 덮는 시작 장비.\n투구 숨김 설정은 외형 · 장비에서 변경합니다."},
 	"traveler":{"name":"여행 망토","category":"장비","limit":1,"slot":"cloak","color":"648c9e","description":"어깨에서 내려오는 시작 망토.\n착용하면 인물의 실루엣이 바뀝니다."},
 	"relic":{"name":"이렌의 유물","category":"기록","field":"relic","limit":1,"color":"d1b777","description":"예배당에서 발견한 유물.\n서재에서 이렌의 기록을 읽을 수 있습니다."}
@@ -27,7 +29,7 @@ static func make_catalog() -> Dictionary:
 			item.name=("양품 " if tier=="fine" else "대성공 ")+item.name
 			item.color="94b9ad" if tier=="fine" else "e2c481"
 			if base=="bandage": item.description="체력 %d 회복." % (48 if tier=="fine" else 54)
-			if base=="repair_kit": item.description="작업대에서 철검 내구도 %d 복원." % (44 if tier=="fine" else 50)
+			if base=="repair_kit": item.description="작업대에서 철검·갑옷 내구도 %d 복원." % (44 if tier=="fine" else 50)
 			if base=="herbal_tea": item.description="체력 %d · 기력 %d 회복." % [22 if tier=="fine" else 25,44 if tier=="fine" else 50]
 			if base=="mug": item.description="재사용 찻잔. 약초차 대성공 확률 +%d%%p." % (2 if tier=="fine" else 5)
 			catalog[base+"_"+tier]=item
@@ -54,6 +56,11 @@ static func definition(p: Dictionary,id: String) -> Dictionary:
 			def.description="공격력 %d · 내구도 0이면 9.\n명중 시 내구도 5 소모." % preload("res://craft_quality.gd").attack(p,id)
 			def.description+="\n내구도 %d / 100" % int(p.get("gear_condition",{}).get(id,100))
 			def.description+="\n\n"+preload("res://gear_record.gd").describe(p,id)
+		if p.gear_instances[id] in ["leather","iron_armor"]:
+			var q: Dictionary=p.gear_quality[id]
+			def.name=preload("res://craft_quality.gd").LABELS[q.tier]+" "+def.name
+			var reduction: int=q.get("defense",3 if p.gear_instances[id]=="leather" else 6)
+			def.description="물리 피해 감소 %d · 회피 기력 %d\n피격 시 내구도 5 소모 · 내구도 0이면 피해 감소 0\n내구도 %d / 100\n\n%s" % [reduction,32 if p.gear_instances[id]=="leather" else 38,p.gear_condition[id],preload("res://gear_record.gd").describe(p,id)]
 		return def
 	return CATALOG.get(id,p.get("evidence_items",{}).get(id,{}))
 static func quantity(p: Dictionary, id: String) -> int:

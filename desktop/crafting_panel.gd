@@ -55,18 +55,18 @@ func _ready() -> void:
 	description.size=Vector2(510,300)
 	description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	craft_button=button("1개 만들기",Vector2(400,365),240,func(): action.emit("craft_home",current))
-	label("철검 수선 · 도구 1개로 내구도 +40~50",Vector2(28,420),19)
+	label("장비 수선 · 도구 1개로 내구도 +40~50",Vector2(28,420),19)
 	gear=OptionButton.new()
 	gear.position=Vector2(28,460)
 	gear.size=Vector2(340,40)
 	gear.item_selected.connect(func(i): sword=gear.get_item_metadata(i); refresh(world,person))
 	add_child(gear)
 	condition=label("",Vector2(400,422),17)
-	repair_button=button("선택한 철검 수선",Vector2(400,460),240,func(): action.emit("repair_gear",sword))
+	repair_button=button("선택한 장비 수선",Vector2(400,460),240,func(): action.emit("repair_gear",sword))
 	feedback=label("",Vector2(28,525),17)
 	feedback.size=Vector2(900,45)
 	feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
-	label("집 보관함 연동은 본인 집의 생활 제작에만 적용됩니다. 철검 수선은 소지 도구를 사용합니다.\n완성품은 I에서 사용합니다. 싱글은 작업대 창을 여는 동안 멈춥니다.",Vector2(28,580),16)
+	label("집 보관함 연동은 본인 집의 생활 제작에만 적용됩니다. 장비 수선은 소지 도구를 사용합니다.\n완성품은 I에서 사용합니다. 싱글은 작업대 창을 여는 동안 멈춥니다.",Vector2(28,580),16)
 	hide()
 func label(text: String,at: Vector2,font_size: int) -> Label:
 	var node:=Label.new()
@@ -108,10 +108,16 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 		gear_stamp=stamp
 		gear.clear()
 		for id in p.gear_instances:
-			if p.gear_instances[id]!="iron_sword": continue
-			gear.add_item("철검 · %s · %d / 100" % [id.right(4),p.gear_condition[id]])
+			if p.gear_instances[id] not in ["iron_sword","leather","iron_armor"]: continue
+			gear.add_item("%s · %d / 100" % [Items.definition(p,id).name,p.gear_condition[id]])
 			gear.set_item_metadata(gear.item_count-1,id)
-		if p.gear_instances.get(sword,"")!="iron_sword": sword=gear.get_item_metadata(0) if gear.item_count else ""
+		if p.gear_instances.get(sword,"") not in ["iron_sword","leather","iron_armor"]:
+			sword=gear.get_item_metadata(0) if gear.item_count else ""
+			for i in range(gear.item_count):
+				var candidate: String=gear.get_item_metadata(i)
+				if p.gear_condition[candidate]<100:
+					sword=candidate
+					break
 		for i in range(gear.item_count):
 			if gear.get_item_metadata(i)==sword: gear.select(i)
 	condition.text="수선 도구 %d개 · 좋은 품질부터 사용합니다." % Items.family_quantity(p,"repair_kit")

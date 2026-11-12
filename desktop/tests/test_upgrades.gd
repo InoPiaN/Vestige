@@ -90,7 +90,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	loaded=R.load_world(path+".old",false)
-	check(not loaded.is_empty() and loaded.version==14 and R.Upgrade.level(loaded.people.local,id)==0 and loaded.people.local.gear_quality[id].attack==base,"Version thirteen migrates to unenhanced without rerolling base")
+	check(not loaded.is_empty() and loaded.version==15 and R.Upgrade.level(loaded.people.local,id)==0 and loaded.people.local.gear_quality[id].attack==base,"Version thirteen migrates to unenhanced without rerolling base")
 	for entry in [path,path+".old"]:
 		for ext in ["",".bak"]: DirAccess.remove_absolute(entry+ext)
 	quit(1 if failures else 0)

@@ -180,3 +180,22 @@ static func detail() -> Dictionary:
 		if grade==3: Rules.act(w,"local","equip_weapon",id)
 		grade+=1
 	return w
+
+static func armor() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","방어구 장인")
+	var p: Dictionary=w.people.local
+	p.x=5
+	p.y=8
+	p.ore=20
+	p.gold=40
+	p.belongings.hide=20
+	p.belongings.cloth=20
+	p.belongings.repair_kit=3
+	p.craft_xp.smithing=400
+	p.craft_xp.handicraft=400
+	w.craft_rng=8
+	for kind in ["leather","leather","iron_armor","iron_armor"]: Rules.act(w,"local","craft_armor",kind)
+	for id in p.gear_instances:
+		if p.gear_instances[id]=="iron_armor": Rules.act(w,"local","equip_body",id)
+	return w

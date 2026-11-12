@@ -38,6 +38,14 @@ func run() -> void:
 		var changed:=p.duplicate(true)
 		changed.equipment[slot]={"body":"leather","head":"hood","cloak":"traveler"}[slot]
 		check(await frame(changed)!=base,"Actual pixels change for equipment: "+slot)
+	var metal:=p.duplicate(true)
+	metal.equipment.body="iron_armor"
+	var leather:=p.duplicate(true)
+	leather.equipment.body="leather"
+	check(await frame(metal)!=await frame(leather),"Iron and leather armor have distinct actual pixels")
+	metal.direction="up"
+	leather.direction="up"
+	check(await frame(metal)!=await frame(leather),"Iron armor back plate differs from leather")
 	var hood:=p.duplicate(true)
 	hood.equipment.head="hood"
 	hood.hide_helmet=true

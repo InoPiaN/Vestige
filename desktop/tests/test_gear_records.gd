@@ -73,7 +73,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	var migrated:=R.load_world(path+".legacy",false)
-	check(not migrated.is_empty() and migrated.version==15 and migrated.people.local.gear_records[id].maker.is_empty(),"Legacy save receives unknown provenance without invented makers")
+	check(not migrated.is_empty() and migrated.version==16 and migrated.people.local.gear_records[id].maker.is_empty(),"Legacy save receives unknown provenance without invented makers")
 	var offline:=R.fresh()
 	R.born(offline,"worker","대장장이")
 	var worker: Dictionary=offline.people.worker

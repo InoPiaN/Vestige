@@ -199,3 +199,15 @@ static func armor() -> Dictionary:
 	for id in p.gear_instances:
 		if p.gear_instances[id]=="iron_armor": Rules.act(w,"local","equip_body",id)
 	return w
+
+static func queue() -> Dictionary:
+	var w:=plan()
+	var p: Dictionary=w.people.local
+	p.ore=12
+	p.herb=5
+	p.belongings.cloth=12
+	p.belongings.hide=5
+	Rules.Plan.configure(p,"0|bandage|target|2|bag|bag",false)
+	Rules.Plan.configure(p,"1|iron_armor|count|1|bag|bag",false)
+	Rules.Plan.configure(p,"2|leather|count|1|bag|bag",false)
+	return w

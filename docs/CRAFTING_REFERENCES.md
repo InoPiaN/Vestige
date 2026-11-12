@@ -58,3 +58,10 @@ Lineage II Classic 공식 출시 패치노트의 강화 무기 발광을 참고�
 - Elden Ring 공식 능력치 안내: 장비 하중과 회피 성능의 관계. https://www.bandainamcoent.com/news/elden-ring-introduction-part-2-advanced-stats
 
 사용자는 가죽/철제 몸통 방어구 두 종류, 실제 피해감소와 회피 부담, 제작품질, 내구/수선, 개별착용/이력/유품계승을 승인했다. Vestige는 하중비율이나 회피모션 저하를 복제하지 않고 기력32/38로 단순화했다. 기본의복30. 피해감소/재료/가격은 자체 초기값이며 본문 GAME_DESIGN과 README에 명시한다. 방어구 자동생산·강화·거래확장은 별도 범위다.
+
+
+## 2026-11-12 · 복수 제작 계획 · 사용자 승인 완료
+
+- RimWorld Bill: https://rimworldwiki.com/wiki/Bill — 커뮤니티 위키의 위에서 아래 우선순위, 실행 불가 주문 건너뛰기, 지정 횟수/목표 재고, 일시정지/재정렬을 참고.
+- Factorio Crafting: https://wiki.factorio.com/Crafting — 공식 위키의 제작 대기 목록과 개별 취소, 부족 재료 표기를 참고.
+- Vestige 적용: 최대3개, 전체 하루1개, 회복 우선, 완료/불가/정지 건너뛰기, 갑옷 추가, 기록/저장 보존. 팩토리오의 재료 선차감은 채택하지 않고 실제 제작 때만 소비한다. 그래픽·고유 문구·데이터를 복제하지 않는다.

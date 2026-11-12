@@ -56,7 +56,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -64,6 +64,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"queue": opening=demo.queue()
 				"armor": opening=demo.armor()
 				"detail": opening=demo.detail()
 				"upgrade": opening=demo.upgrade()
@@ -83,7 +84,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="armor": message("E → 가죽 / 철제 갑옷 제작. 외형·장비에서 갑옷의 방어·내구도와 회피 기력을 비교하세요.")
+			if kind=="queue": message("부재 중의 하루 → 제작 계획 설정. 붕대·철제 갑옷·가죽 갑옷 순서를 조정하고 생활 맡기기 후 하루 진행으로 확인하세요.")
+			elif kind=="armor": message("E → 가죽 / 철제 갑옷 제작. 외형·장비에서 갑옷의 방어·내구도와 회피 기력을 비교하세요.")
 			elif kind=="detail": message("외형·장비에서 +0~+3 철검을 비교하세요. 이동과 공격으로 세밀해진 도트와 강화 효과를 확인할 수 있습니다.")
 			elif kind=="upgrade": message("E로 대장간을 열고 철검을 선택해 비용과 강화 전후 공격력을 확인하세요.")
 			elif kind=="legacy": message("외형·장비에서 개별 철검을 선택해 착용하세요. 착용 철검 기록에서 은결의 제작 서명과 유품 회수 이력을 읽습니다.")

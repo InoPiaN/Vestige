@@ -57,7 +57,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":15,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":16,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -125,7 +125,7 @@ static func advance(w: Dictionary, seconds: float) -> void:
 			if p.offline:
 				if p.hp < 40 or p.policy == "rest":
 					if p.policy=="plan":
-						p.craft_plan.status="몸 상태가 나빠 회복 우선"
+						Plan.recovery(p)
 						p.events.append("부재 제작 · 몸 상태가 나빠 회복을 먼저 했다.")
 					p.hp=mini(100,p.hp+25)
 					p.events.append("여관에서 쉬며 몸을 추슬렀다.")
@@ -224,7 +224,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 		p.dodge=maxf(0,p.dodge-dt)
 		p.stamina=minf(100,p.stamina+dt*16)
 		if p.alive and p.offline:
-			if p.policy=="plan" and not p.craft_plan.is_empty() and p.craft_plan.recipe!="iron_sword" and w.estate.owner==p.life:
+			if p.policy=="plan" and not p.craft_plan.is_empty() and Plan.next_recipe(w,p) not in Plan.FORGE and not Plan.next_recipe(w,p).is_empty() and w.estate.owner==p.life:
 				if Interior.inside(p):
 					var next:=pos(p).move_toward(Vector2(15,12),dt*1.1)
 					if Interior.walkable(next):
@@ -243,7 +243,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 				p.y=14.0
 			var destination:=Vector2(11,12)
 			if p.policy=="work": destination=Vector2(5,8)
-			if p.policy=="plan": destination=Vector2(5,8) if p.craft_plan.get("recipe")=="iron_sword" else Vector2(7,14)
+			if p.policy=="plan": destination=Vector2(5,8) if Plan.next_recipe(w,p) in Plan.FORGE else (Vector2(11,12) if Plan.next_recipe(w,p).is_empty() else Vector2(7,14))
 			if p.policy=="gather": destination=Vector2(15,13)
 			if p.policy=="train": destination=Vector2(9,9)
 			var previous:=pos(p)
@@ -326,8 +326,10 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		return "투구 표시를 변경했습니다."
 	if kind=="craft_supply": return Supply.configure(p,value)
 	if kind in ["plan_save","plan_start"]: return Plan.configure(p,value,kind=="plan_start")
+	if kind in ["plan_pause","plan_delete","plan_up","plan_down"]: return Plan.manage(p,kind,value)
 	if kind=="plan_cancel":
 		p.craft_plan={}
+		p.craft_queue=[]
 		p.policy="rest"
 		return "제작 계획을 취소하고 휴식합니다."
 	if kind=="policy":
@@ -470,7 +472,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=15
+	w.version=16
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

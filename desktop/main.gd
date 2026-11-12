@@ -54,7 +54,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -62,6 +62,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"detail": opening=demo.detail()
 				"upgrade": opening=demo.upgrade()
 				"legacy": opening=demo.legacy()
 				"supply": opening=demo.supply()
@@ -79,7 +80,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="upgrade": message("E로 대장간을 열고 철검을 선택해 비용과 강화 전후 공격력을 확인하세요.")
+			if kind=="detail": message("외형·장비에서 +0~+3 철검을 비교하세요. 이동과 공격으로 세밀해진 도트와 강화 효과를 확인할 수 있습니다.")
+			elif kind=="upgrade": message("E로 대장간을 열고 철검을 선택해 비용과 강화 전후 공격력을 확인하세요.")
 			elif kind=="legacy": message("외형·장비에서 개별 철검을 선택해 착용하세요. 착용 철검 기록에서 은결의 제작 서명과 유품 회수 이력을 읽습니다.")
 			elif kind=="supply": message("E로 작업대를 열어 집 보관함의 천과 약초로 붕대를 만드세요. 완성품은 B로 확인합니다. 부재 계획에도 보관함을 설정할 수 있습니다.")
 			elif kind=="plan": message("부재 중의 하루에서 제작 계획 설정을 선택하세요. 붕대 3개를 맡기고 하루 진행으로 결과를 확인할 수 있습니다.")
@@ -403,16 +405,17 @@ func build_ui() -> void:
 	label_at(menu,"싱글은 인터넷 없이 실행됩니다. 공유 세계는 별도 서버가 필요합니다.",Vector2(95,637),14,Color("899a8b"))
 	# Decorative pixel scene on the title screen, using the same original art.
 	var title_view:=SubViewport.new()
-	title_view.size=Vector2i(480,320)
+	title_view.size=Vector2i(960,640)
 	title_view.render_target_update_mode=SubViewport.UPDATE_ALWAYS
 	var title_art:=PixelWorld.new()
 	title_view.add_child(title_art)
 	var title_container:=SubViewportContainer.new()
 	title_container.position=Vector2(600,160)
-	title_container.scale=Vector2(1.2,1.2)
+	title_container.scale=Vector2(0.6,0.6)
 	title_container.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	menu.add_child(title_container)
 	title_container.add_child(title_view)
+	title_view.canvas_transform=Transform2D(0,Vector2(2,2),0,Vector2.ZERO)
 	ui=Control.new()
 	root.add_child(ui)
 	ui.hide()
@@ -420,13 +423,14 @@ func build_ui() -> void:
 	date_label=label_at(ui,"",Vector2(600,24),16)
 	var container:=SubViewportContainer.new()
 	container.position=Vector2(16,80)
-	container.scale=Vector2(2,2)
+	container.scale=Vector2.ONE
 	container.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	ui.add_child(container)
 	var viewport:=SubViewport.new()
-	viewport.size=Vector2i(480,320)
+	viewport.size=Vector2i(960,640)
 	viewport.render_target_update_mode=SubViewport.UPDATE_ALWAYS
 	container.add_child(viewport)
+	viewport.canvas_transform=Transform2D(0,Vector2(2,2),0,Vector2.ZERO)
 	view=PixelWorld.new()
 	viewport.add_child(view)
 	status=label_at(ui,"",Vector2(1000,88),19)
@@ -644,15 +648,16 @@ func build_dressing(root: Control) -> void:
 	button_at(dressing,"닫기",Vector2(620,24),100,func(): dressing.hide())
 	var vc:=SubViewportContainer.new()
 	vc.position=Vector2(42,125)
-	vc.scale=Vector2(6,6)
+	vc.scale=Vector2(3,3)
 	vc.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
 	vc.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	dressing.add_child(vc)
 	var vp:=SubViewport.new()
-	vp.size=Vector2i(32,36)
+	vp.size=Vector2i(64,72)
 	vp.transparent_bg=true
 	vp.render_target_update_mode=SubViewport.UPDATE_ALWAYS
 	vc.add_child(vp)
+	vp.canvas_transform=Transform2D(0,Vector2(2,2),0,Vector2.ZERO)
 	portrait=preload("res://portrait.gd").new()
 	vp.add_child(portrait)
 	dress_name=LineEdit.new()

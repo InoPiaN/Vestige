@@ -166,3 +166,17 @@ static func upgrade() -> Dictionary:
 	w.people.local.ore=20
 	w.people.local.gold=40
 	return w
+
+static func detail() -> Dictionary:
+	var w:=upgrade()
+	var p: Dictionary=w.people.local
+	Rules.act(w,"local","interact")
+	p.ore=20
+	p.gold=40
+	var grade:=0
+	for id in p.gear_instances:
+		if p.gear_instances[id]!="iron_sword": continue
+		for n in range(grade): Rules.act(w,"local","upgrade_sword",id+"|"+str(n))
+		if grade==3: Rules.act(w,"local","equip_weapon",id)
+		grade+=1
+	return w

@@ -103,114 +103,13 @@ func hero(x: float,y: float,p: Dictionary,other: bool=false) -> void:
 	if not p.get("alive",true): return
 	var pose:=CharacterMotion.pose(p)
 	var mirror: float=-1.0 if pose.direction=="left" else 1.0
-	draw_set_transform(Vector2(roundf(x),roundf(y)),0,Vector2(mirror,1))
-	hero_pose(0,pose.bob,p,other,pose)
+	var person:=p.duplicate()
+	if not person.has("look"): person.look={"cloth":2 if other else 0}
+	var painter:=preload("res://character_detail.gd").new()
+	painter.canvas=self
+	draw_set_transform(Vector2(roundf(x)-8*mirror,roundf(y)+pose.bob-17.5),0,Vector2(0.5*mirror,0.5))
+	painter.draw_character(person,pose,clock)
 	draw_set_transform(Vector2.ZERO)
-
-func hero_pose(x: float,y: float,p: Dictionary,other: bool,pose: Dictionary) -> void:
-	var bob: int=pose.stride
-	var side: bool=pose.direction in ["left","right"]
-	var back: bool=pose.direction=="up"
-	box(x-5,y+5,11,3,"18251f")
-	var look: Dictionary=Rules.clean_look(p.get("look",{"cloth":2 if other else 0}))
-	var gear: Dictionary=p.get("equipment",{"weapon":"iron_sword" if p.get("sword",0)>0 else "none"})
-	var skin: String=["e0b78a","b88963","805c49"][look.skin]
-	var hair: String=["594a38","aa8854","754a43","a9aaa0"][look.hair_color]
-	var cloth: String=["9b6652","637e9b","63877b","967fa0"][look.cloth]
-	if gear.get("cloak")=="traveler":
-		box(x-7,y-7,14,12,"263a42")
-		box(x-6,y-6,3,10,"55727c")
-		box(x+4,y-3,3,8,"55727c")
-	if pose.dodging: cloth="b8d4cb"
-	if pose.hurt: cloth="edd6b0"
-	# A 16x24 silhouette: swept hair, one steel pauldron, split cloak.
-	box(x-5,y-8,10,12,"222c2c")
-	box(x-4,y-7,8,10,cloth)
-	box(x-4,y-5,2,9,"45423a")
-	box(x+3,y-4,2,7,"45423a")
-	box(x-3,y+3+bob,3,4,"272c2c")
-	box(x+1,y+3-bob,3,4,"272c2c")
-	box(x-3,y+3,2,1,"8c7860")
-	box(x+1,y+3,2,1,"8c7860")
-	box(x-3,y-15,7,8,"292c2d")
-	box(x-2,y-12,5,4,"b88963")
-	box(x-1,y-12,4,2,skin)
-	box(x+2,y-11,1,1,"292c2d")
-	if not side: box(x-1,y-11,1,1,"292c2d")
-	box(x-4,y-15,8,3,hair)
-	box(x-2,y-17,5,3,hair)
-	box(x-2,y-16,4,1,"a48a59")
-	box(x-3,y-14,2,3,hair)
-	if look.hair==1:
-		box(x-5,y-15,3,12,hair)
-		box(x+3,y-14,2,8,hair)
-	elif look.hair==2:
-		box(x-1,y-19,3,3,hair)
-		box(x+4,y-15,3,5,hair)
-	if gear.get("head")=="hood" and not p.get("hide_helmet",false):
-		box(x-4,y-19,8,6,"354c50")
-		box(x+4,y-15,3,5,"354c50")
-		box(x-5,y-14,3,7,"55727c")
-		box(x+3,y-14,2,7,"354c50")
-	box(x-5,y-8,5,4,"45585b")
-	box(x-5,y-8,4,1,"b0bcb0")
-	box(x-4,y-7,3,1,"7b9290")
-	box(x,y-7,2,6,"c0a273")
-	if gear.get("body")=="leather":
-		box(x-3,y-5,7,6,"594432")
-		box(x-2,y-5,5,1,"b09765")
-		box(x,y-4,1,4,"c8b788")
-	box(x-3,y,7,2,"473a30")
-	box(x,y,2,1,"d3ad61")
-	box(x-6,y-4,2,5,"45585b")
-	box(x+4,y-5,2,6,cloth)
-	box(x-6,y,2,2,skin)
-	box(x+4,y,2,2,skin)
-	# Back-facing layers cover the face and belt; side view narrows the torso.
-	if side:
-		box(x-4,y-6,3,7,"45423a")
-		box(x-2,y-12,3,4,hair)
-	if back:
-		box(x-3,y-14,7,7,hair)
-		if look.hair==1: box(x-4,y-13,8,11,hair)
-		if gear.get("head")=="hood" and not p.get("hide_helmet",false):
-			box(x-4,y-17,9,11,"354c50")
-			box(x-3,y-16,3,8,"55727c")
-		box(x-3,y-6,7,8,cloth if gear.get("body")!="leather" else "594432")
-		if gear.get("cloak")=="traveler":
-			box(x-5,y-7,11,12,"354c58")
-			box(x-4,y-6,3,10,"66868b")
-			box(x+1,y-5,1,9,"263a42")
-	var hand:=Vector2(x+5,y+1)
-	var tip:=Vector2(x+7,y-12)
-	if pose.phase=="strike":
-		if back:
-			hand=Vector2(x+4,y-10)
-			tip=Vector2(x+4,y-24)
-		elif side:
-			hand=Vector2(x+9,y-4)
-			tip=Vector2(x+23,y-4)
-		else:
-			hand=Vector2(x+4,y+5)
-			tip=Vector2(x+4,y+19)
-	elif pose.phase=="recover":
-		hand+=Vector2(2,-2)
-		tip+=Vector2(4,3)
-	if pose.phase!="idle":
-		draw_line(Vector2(x+4,y-5),hand,Color(cloth),2,false)
-	box(hand.x-1,hand.y-1,3,3,skin)
-	if gear.get("weapon")=="iron_sword":
-		# Integer raster lines keep the blade sharp through every pose.
-		draw_line(hand,tip,Color("738e90"),2,false)
-		draw_line(hand+Vector2(-1,0),tip+Vector2(-1,0),Color("dce0c3"),1,false)
-		var cross:=Vector2(3,0) if absf(tip.y-hand.y)>absf(tip.x-hand.x) else Vector2(0,3)
-		draw_line(hand-cross,hand+cross,Color("b89a5d"),2,false)
-	if pose.phase=="strike" and gear.get("weapon")=="iron_sword":
-		var center: float=-PI/2 if back else (0.0 if side else PI/2)
-		draw_arc(Vector2(x,y-3),19,center-0.65,center+0.65,6,Color("f4dc99"),1,false)
-	if pose.hurt:
-		box(x-9,y-10,2,2,"f2ddba")
-		box(x+9,y-7,2,2,"f2ddba")
 
 func ruin(x: float,y: float) -> void:
 	box(x-24,y-10,47,25,"4b5448")

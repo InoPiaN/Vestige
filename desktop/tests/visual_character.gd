@@ -81,6 +81,40 @@ func run() -> void:
 	p.equipment.weapon="iron_sword"
 	p.equipped_ids.weapon="legacy"
 	check(await frame(p)==base,"Unknown legacy enhancement defaults to unenhanced rendering")
+	var armor:=p.duplicate(true)
+	armor.equipment.weapon="none"
+	armor.equipped_ids.body="armor"
+	armor.gear_instances={"armor":"iron_armor"}
+	armor.gear_quality.armor={"upgrade":0}
+	armor.equipment.body="iron_armor"
+	var plain:=await frame(armor)
+	var previous:=plain
+	for grade in range(1,4):
+		armor.gear_quality.armor.upgrade=grade
+		var current:=await frame(armor)
+		check(current!=previous,"Armor enhancement distinct pixels: +"+str(grade))
+		previous=current
+	check(await frame(armor,0.0)!=await frame(armor,0.6),"Armor +3 particles animate")
+	for direction in ["left","right","up"]:
+		armor.direction=direction
+		armor.gear_quality.armor.upgrade=0
+		var unenhanced:=await frame(armor)
+		armor.gear_quality.armor.upgrade=3
+		check(await frame(armor)!=unenhanced,"Armor enhancement follows direction: "+direction)
+	armor.equipment.cloak="traveler"
+	var covered:=await frame(armor)
+	armor.gear_quality.armor.upgrade=0
+	check(await frame(armor)==covered,"Back cloak occludes armor highlights")
+	armor.direction="down"
+	armor.equipment.body="none"
+	var unequipped:=await frame(armor)
+	armor.gear_quality.armor.upgrade=3
+	check(await frame(armor)==unequipped,"Removed armor leaves no glow")
+	armor.equipment.body="leather"
+	armor.gear_instances.armor="leather"
+	var glowing_leather:=await frame(armor)
+	armor.gear_quality.armor.upgrade=0
+	check(await frame(armor)!=glowing_leather,"Leather armor also displays upgrade")
 	p.alive=false
 	var dead:=await frame(p)
 	var empty:=Image.create(128,128,false,Image.FORMAT_RGBA8)

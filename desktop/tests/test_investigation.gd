@@ -90,6 +90,6 @@ func _initialize() -> void:
 	legacy.people.a.erase("notebook")
 	Rules.save_world(legacy,path)
 	var migrated:=Rules.load_world(path)
-	check(migrated.version==16 and migrated.people.a.name=="구버전" and not migrated.people.a.life.is_empty() and migrated.estate.owner=="","Version 1 save acquires persistent life and empty plot")
+	check(migrated.version==17 and migrated.people.a.name=="구버전" and not migrated.people.a.life.is_empty() and migrated.estate.owner=="","Version 1 save acquires persistent life and empty plot")
 	for suffix in ["",".bak"]: DirAccess.remove_absolute(path+suffix)
 	quit(1 if failed else 0)

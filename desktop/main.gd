@@ -56,7 +56,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -64,6 +64,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"armor-upgrade": opening=demo.armor_upgrade()
 				"queue": opening=demo.queue()
 				"armor": opening=demo.armor()
 				"detail": opening=demo.detail()
@@ -84,7 +85,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="queue": message("부재 중의 하루 → 제작 계획 설정. 붕대·철제 갑옷·가죽 갑옷 순서를 조정하고 생활 맡기기 후 하루 진행으로 확인하세요.")
+			if kind=="armor-upgrade": message("E로 대장간을 열고 개별 갑옷을 선택해 강화하세요. 외형·장비에서 착용하면 단계별 빛과 방어 효과를 확인할 수 있습니다.")
+			elif kind=="queue": message("부재 중의 하루 → 제작 계획 설정. 붕대·철제 갑옷·가죽 갑옷 순서를 조정하고 생활 맡기기 후 하루 진행으로 확인하세요.")
 			elif kind=="armor": message("E → 가죽 / 철제 갑옷 제작. 외형·장비에서 갑옷의 방어·내구도와 회피 기력을 비교하세요.")
 			elif kind=="detail": message("외형·장비에서 +0~+3 철검을 비교하세요. 이동과 공격으로 세밀해진 도트와 강화 효과를 확인할 수 있습니다.")
 			elif kind=="upgrade": message("E로 대장간을 열고 철검을 선택해 비용과 강화 전후 공격력을 확인하세요.")
@@ -898,7 +900,7 @@ func refresh_body_picker(p: Dictionary) -> void:
 		for id in p.gear_instances:
 			if p.gear_instances[id] not in Rules.Armor.KINDS: continue
 			var def:=preload("res://items.gd").definition(p,id)
-			var reduction: int=p.gear_quality[id].defense if p.gear_condition[id]>0 else 0
+			var reduction: int=Rules.Armor.rating(p,id) if p.gear_condition[id]>0 else 0
 			picker.add_item("%s · 방어 %d · 내구 %d" % [def.name,reduction,p.gear_condition[id]])
 			picker.set_item_metadata(picker.item_count-1,id)
 			picker.set_item_tooltip(picker.item_count-1,def.description)

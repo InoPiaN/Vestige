@@ -89,7 +89,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	var migrated:=R.load_world(path+".old",false)
-	check(not migrated.is_empty() and migrated.version==16 and migrated.market.stock.cloth==8 and migrated.people.local.gold==p.gold,"Legacy save gains market without changing wallet")
+	check(not migrated.is_empty() and migrated.version==17 and migrated.market.stock.cloth==8 and migrated.people.local.gold==p.gold,"Legacy save gains market without changing wallet")
 	for entry in [path,path+".old"]:
 		for ext in ["",".bak"]: DirAccess.remove_absolute(entry+ext)
 	quit(1 if failures else 0)

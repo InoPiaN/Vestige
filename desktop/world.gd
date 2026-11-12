@@ -7,6 +7,7 @@ const Supply=preload("res://craft_supply.gd")
 const Plan=preload("res://craft_plan.gd")
 const Mastery=preload("res://craft_mastery.gd")
 const Armor=preload("res://armor_stats.gd")
+const ArmorUpgrade=preload("res://armor_upgrade.gd")
 const ArmorCraft=preload("res://armor_crafting.gd")
 const Upgrade=preload("res://sword_upgrade.gd")
 const Quality=preload("res://craft_quality.gd")
@@ -57,7 +58,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":16,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":17,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -345,6 +346,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if p.offline: return "직접 조종을 먼저 선택하세요."
 	if kind=="armor_menu": return "방어구 제작"
 	if kind=="craft_armor": return ArmorCraft.craft(w,p,value)
+	if kind=="upgrade_armor": return ArmorUpgrade.apply(w,p,value)
 	if kind=="upgrade_sword": return Upgrade.apply(w,p,value)
 	if kind=="market_buy": return Market.trade(w,p,value,true)
 	if kind=="market_sell": return Market.trade(w,p,value,false)
@@ -472,7 +474,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=16
+	w.version=17
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

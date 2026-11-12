@@ -135,7 +135,8 @@ static func valid(w: Dictionary) -> bool:
 				if w.version>=14:
 					var upgrade=q.get("upgrade")
 					if not (upgrade is int or upgrade is float) or not is_finite(float(upgrade)) or upgrade!=floor(upgrade) or upgrade<0 or upgrade>3: return false
-					if p.gear_instances[id]!="iron_sword" and upgrade!=0: return false
+					if upgrade!=0 and p.gear_instances[id]!="iron_sword":
+						if w.version<17 or p.gear_instances[id] not in ["leather","iron_armor"]: return false
 				if w.version>=15:
 					var d=q.get("defense")
 					if not (d is int or d is float) or not is_finite(float(d)) or d!=floor(d): return false

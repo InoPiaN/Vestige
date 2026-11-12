@@ -190,6 +190,7 @@ func draw_character(p: Dictionary,animation: Dictionary,clock: float) -> void:
 			r(8,23,4,18,"577277")
 			r(12,24,1,17,"78908c")
 			r(19,25,2,17,"20343b")
+	armor_effect(p)
 	weapon(p)
 func weapon(p: Dictionary) -> void:
 	var back: bool=pose.direction=="up"
@@ -246,3 +247,25 @@ func weapon(p: Dictionary) -> void:
 	if pose.hurt:
 		canvas.draw_rect(Rect2(0,17,2,2),Color("f2ddba"))
 		canvas.draw_rect(Rect2(31,22,2,2),Color("f2ddba"))
+
+func armor_effect(p: Dictionary) -> void:
+	var id: String=p.get("equipped_ids",{}).get("body","")
+	var kind: String=p.get("gear_instances",{}).get(id,"")
+	if kind not in ["leather","iron_armor"] or gear.get("body")!=kind: return
+	# The cloak occludes the back plate and its highlights.
+	if pose.direction=="up" and gear.get("cloak")=="traveler": return
+	var grade:=clampi(int(p.get("gear_quality",{}).get(id,{}).get("upgrade",0)),0,3)
+	if grade==0: return
+	var top:=25 if kind=="leather" else 23
+	var edge: String="c6b58a" if grade==1 else "b5d6cb"
+	r(10,top,1,7,edge)
+	r(20,top,1,7,edge)
+	r(11,top,3,1,edge)
+	if grade>=2:
+		r(11,top+1,1,6,"83b8bd70")
+		r(19,top+1,1,6,"83b8bd70")
+		r(17,top,3,1,"d6e5c8")
+	if grade==3:
+		var frame:=int(time*5)%8
+		if frame<5: r(7,top+6-frame,1,1,"b7dedb")
+		if frame>=3: r(23,top+8-frame,1,1,"d8e5bf")

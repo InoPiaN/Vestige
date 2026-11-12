@@ -59,7 +59,8 @@ static func definition(p: Dictionary,id: String) -> Dictionary:
 		if p.gear_instances[id] in ["leather","iron_armor"]:
 			var q: Dictionary=p.gear_quality[id]
 			def.name=preload("res://craft_quality.gd").LABELS[q.tier]+" "+def.name
-			var reduction: int=q.get("defense",3 if p.gear_instances[id]=="leather" else 6)
+			if int(q.get("upgrade",0))>0: def.name+=" +%d" % int(q.upgrade)
+			var reduction: int=preload("res://armor_stats.gd").rating(p,id)
 			def.description="물리 피해 감소 %d · 회피 기력 %d\n피격 시 내구도 5 소모 · 내구도 0이면 피해 감소 0\n내구도 %d / 100\n\n%s" % [reduction,32 if p.gear_instances[id]=="leather" else 38,p.gear_condition[id],preload("res://gear_record.gd").describe(p,id)]
 		return def
 	return CATALOG.get(id,p.get("evidence_items",{}).get(id,{}))

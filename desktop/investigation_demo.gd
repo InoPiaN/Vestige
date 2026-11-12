@@ -211,3 +211,13 @@ static func queue() -> Dictionary:
 	Rules.Plan.configure(p,"1|iron_armor|count|1|bag|bag",false)
 	Rules.Plan.configure(p,"2|leather|count|1|bag|bag",false)
 	return w
+
+static func armor_upgrade() -> Dictionary:
+	var w:=armor()
+	var p: Dictionary=w.people.local
+	p.ore=20
+	p.gold=80
+	p.belongings.hide=20
+	p.belongings.cloth=20
+	p.equipment.cloak="none"
+	return w

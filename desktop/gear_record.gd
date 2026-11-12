@@ -26,7 +26,7 @@ static func valid(record: Variant,day: int) -> bool:
 		if not maker.get("life") is String or maker.life.is_empty() or not maker.get("name") is String or not maker.get("place") is String or maker.get("stage") not in STAGES: return false
 		if not number(maker.get("day")) or maker.day>day: return false
 	for event in record.events:
-		if not event is Dictionary or event.get("kind") not in ["crafted","repaired","recovered"]: return false
+		if not event is Dictionary or event.get("kind") not in ["crafted","repaired","recovered","upgraded"]: return false
 		if not number(event.get("day")) or event.day>day: return false
 		if not event.get("actor") is String or event.actor.is_empty() or not event.get("name") is String or not event.get("detail") is String: return false
 	return true

@@ -14,7 +14,11 @@ static func roll(w: Dictionary,bonus: int=0,base: Dictionary={"common":70,"fine"
 	var tier: String="great" if chance<int(base.great)+bonus else ("fine" if chance<int(base.great)+int(base.fine)+bonus else "common")
 	var spread:=next(w)
 	var attack: int=27+spread%3 if tier=="great" else (24+spread%3 if tier=="fine" else 20+spread%5)
-	return {"tier":tier,"attack":attack}
+	return {"tier":tier,"attack":attack,"upgrade":0}
 static func valid(w: Dictionary) -> bool:
 	var seed=w.get("craft_rng")
 	return (seed is int or seed is float) and is_finite(float(seed)) and seed>=0 and seed<2147483647 and seed==floor(seed)
+
+static func attack(p: Dictionary,id: String) -> int:
+	var q: Dictionary=p.get("gear_quality",{}).get(id,{"attack":22})
+	return int(q.attack)+2*int(q.get("upgrade",0))

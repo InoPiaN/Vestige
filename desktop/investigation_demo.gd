@@ -160,3 +160,9 @@ static func legacy() -> Dictionary:
 	for id in ids:
 		if w.remains[life].contents.gear_instances[id]=="iron_sword": Rules.act(w,"local","take_remains",life+"|"+id)
 	return w
+
+static func upgrade() -> Dictionary:
+	var w:=legacy()
+	w.people.local.ore=20
+	w.people.local.gold=40
+	return w

@@ -6,6 +6,7 @@ const Remains=preload("res://death_belongings.gd")
 const Supply=preload("res://craft_supply.gd")
 const Plan=preload("res://craft_plan.gd")
 const Mastery=preload("res://craft_mastery.gd")
+const Upgrade=preload("res://sword_upgrade.gd")
 const Quality=preload("res://craft_quality.gd")
 const Market=preload("res://village_market.gd")
 const Crafting=preload("res://home_crafting.gd")
@@ -54,7 +55,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":13,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":14,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -177,7 +178,7 @@ static func forge_sword(w: Dictionary,p: Dictionary,equip: bool,day: int=-1) -> 
 static func weapon_damage(p: Dictionary) -> int:
 	if p.equipment.get("weapon")!="iron_sword": return 9
 	var id: String=p.get("equipped_ids",{}).get("weapon","")
-	return int(p.get("gear_quality",{}).get(id,{"attack":22}).attack) if p.get("gear_condition",{}).get(id,100)>0 else 9
+	return Quality.attack(p,id) if p.get("gear_condition",{}).get(id,100)>0 else 9
 
 static func pos(p: Dictionary) -> Vector2:
 	return Vector2(p.x,p.y)
@@ -329,6 +330,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="upgrade_sword": return Upgrade.apply(w,p,value)
 	if kind=="market_buy": return Market.trade(w,p,value,true)
 	if kind=="market_sell": return Market.trade(w,p,value,false)
 	if kind=="craft_home": return Crafting.craft(w,p,value)
@@ -455,7 +457,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=13
+	w.version=14
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

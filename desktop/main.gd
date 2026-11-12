@@ -16,6 +16,7 @@ var status: Label
 var inventory: Label
 var market: Panel
 var planner: Panel
+var forge: Panel
 var bench: Panel
 var chest: Panel
 var bag: Panel
@@ -53,7 +54,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -61,6 +62,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"upgrade": opening=demo.upgrade()
 				"legacy": opening=demo.legacy()
 				"supply": opening=demo.supply()
 				"plan": opening=demo.plan()
@@ -77,7 +79,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="legacy": message("외형·장비에서 개별 철검을 선택해 착용하세요. 착용 철검 기록에서 은결의 제작 서명과 유품 회수 이력을 읽습니다.")
+			if kind=="upgrade": message("E로 대장간을 열고 철검을 선택해 비용과 강화 전후 공격력을 확인하세요.")
+			elif kind=="legacy": message("외형·장비에서 개별 철검을 선택해 착용하세요. 착용 철검 기록에서 은결의 제작 서명과 유품 회수 이력을 읽습니다.")
 			elif kind=="supply": message("E로 작업대를 열어 집 보관함의 천과 약초로 붕대를 만드세요. 완성품은 B로 확인합니다. 부재 계획에도 보관함을 설정할 수 있습니다.")
 			elif kind=="plan": message("부재 중의 하루에서 제작 계획 설정을 선택하세요. 붕대 3개를 맡기고 하루 진행으로 결과를 확인할 수 있습니다.")
 			elif kind=="mastery": message("E로 작업대를 열어 붕대 1개를 만드세요. 약초 조제가 견습으로 성장하고 확률이 바뀝니다. J에서 모든 분야를 확인합니다.")
@@ -251,14 +254,14 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -288,6 +291,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		dressing.hide()
 		bag.hide()
 		chest.hide()
+		forge.hide()
 		market.hide()
 		planner.hide()
 		bench.hide()
@@ -307,7 +311,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible: return
+	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
 		KEY_F: perform("investigate")
@@ -322,6 +326,7 @@ func interact() -> void:
 		return
 	var t:=Rules.nearby(world.people[me])
 	if t.get("kind","")=="home": perform("enter_home")
+	elif t.get("kind","")=="forge": open_forge()
 	elif t.get("kind","")=="library": open_library()
 	elif t.get("kind","")=="grave": open_graves()
 	else: perform("interact")
@@ -499,6 +504,9 @@ func build_ui() -> void:
 	planner=preload("res://craft_plan_panel.gd").new()
 	root.add_child(planner)
 	planner.action.connect(perform)
+	forge=preload("res://forge_panel.gd").new()
+	root.add_child(forge)
+	forge.action.connect(perform)
 	bench=preload("res://crafting_panel.gd").new()
 	root.add_child(bench)
 	bench.action.connect(perform)
@@ -515,6 +523,7 @@ func refresh() -> void:
 	if bag.visible: bag.refresh(p)
 	if chest.visible: chest.refresh(world,p)
 	if planner.visible: planner.refresh(world,p)
+	if forge.visible: forge.refresh(world,p)
 	if bench.visible: bench.refresh(world,p)
 	if market.visible: market.refresh(world,p)
 	view.world=world
@@ -531,7 +540,7 @@ func refresh() -> void:
 	var t:=Rules.nearby(p)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
-	if t.get("kind")=="forge": prompt.text="E · 철검 제작 · "+Rules.Mastery.progress(p,"smithing")+"  |  "+Rules.Mastery.rate_text(p,"smithing")+" · 완성 경험치 +%d" % Rules.Mastery.gain(p,"iron_sword")
+	if t.get("kind")=="forge": prompt.text="E · 대장간 제작 / 강화 · "+Rules.Mastery.progress(p,"smithing")+"  |  "+Rules.Mastery.rate_text(p,"smithing")+" · 완성 경험치 +%d" % Rules.Mastery.gain(p,"iron_sword")
 	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 들어가기   B · 보관함"
 	if t.get("kind") in ["home","grave"] or not Rules.Investigation.traces(world,p).is_empty():
 		prompt.text+="   F · 흔적 조사"
@@ -568,8 +577,10 @@ func message(text: String) -> void:
 		if bench.visible: bench.feedback.text=text
 		if planner.visible: planner.feedback.text=text
 		if market.visible: market.feedback.text=text
+		if forge.visible: forge.feedback.text=text
 
 func show_pages(text: String) -> void:
+	forge.hide()
 	market.hide()
 	planner.hide()
 	bench.hide()
@@ -671,6 +682,7 @@ func build_dressing(root: Control) -> void:
 	dressing.hide()
 
 func open_dressing(purpose: String) -> void:
+	forge.hide()
 	market.hide()
 	planner.hide()
 	bench.hide()
@@ -726,6 +738,7 @@ func open_dressing(purpose: String) -> void:
 	if purpose=="gear": refresh()
 
 func open_inventory() -> void:
+	forge.hide()
 	market.hide()
 	planner.hide()
 	bench.hide()
@@ -738,6 +751,7 @@ func open_inventory() -> void:
 	bag.show()
 
 func open_storage(remains_mode: bool=false) -> void:
+	forge.hide()
 	market.hide()
 	planner.hide()
 	bench.hide()
@@ -753,6 +767,7 @@ func open_storage(remains_mode: bool=false) -> void:
 
 func open_crafting() -> void:
 	planner.hide()
+	forge.hide()
 	market.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
@@ -764,6 +779,7 @@ func open_crafting() -> void:
 	bench.show()
 
 func open_market() -> void:
+	forge.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
 	dressing.hide()
@@ -781,6 +797,7 @@ func open_planner() -> void:
 	dressing.hide()
 	bag.hide()
 	chest.hide()
+	forge.hide()
 	market.hide()
 	bench.hide()
 	planner.setup(world,world.people[me])
@@ -798,7 +815,7 @@ func refresh_weapon_picker(p: Dictionary) -> void:
 		for id in p.gear_instances:
 			if p.gear_instances[id]!="iron_sword": continue
 			var item:=preload("res://items.gd").definition(p,id)
-			var damage: int=p.gear_quality[id].attack if p.gear_condition[id]>0 else 9
+			var damage: int=Rules.Quality.attack(p,id) if p.gear_condition[id]>0 else 9
 			var index:=picker.item_count
 			picker.add_item("%s · 공격 %d · 내구 %d" % [item.name,damage,p.gear_condition[id]])
 			picker.set_item_metadata(index,id)
@@ -808,3 +825,15 @@ func refresh_weapon_picker(p: Dictionary) -> void:
 		if picker.get_item_metadata(i)==worn: picker.select(i)
 	picker.disabled=not p.alive
 	gear_record_button.disabled=worn=="none"
+
+func open_forge() -> void:
+	market.hide()
+	planner.hide()
+	bench.hide()
+	bag.hide()
+	chest.hide()
+	dressing.hide()
+	panel.hide()
+	forge.feedback.text=""
+	forge.refresh(world,world.people[me])
+	forge.show()

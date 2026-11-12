@@ -49,8 +49,9 @@ static func definition(p: Dictionary,id: String) -> Dictionary:
 		if p.gear_instances[id]=="iron_sword":
 			var quality: Dictionary=p.get("gear_quality",{}).get(id,{"tier":"common","attack":22})
 			def.name=preload("res://craft_quality.gd").LABELS[quality.tier]+" "+def.name
+			if int(quality.get("upgrade",0))>0: def.name+=" +%d" % int(quality.upgrade)
 			if quality.tier!="common": def.color="94b9ad" if quality.tier=="fine" else "e2c481"
-			def.description="공격력 %d · 내구도 0이면 9.\n명중 시 내구도 5 소모." % quality.attack
+			def.description="공격력 %d · 내구도 0이면 9.\n명중 시 내구도 5 소모." % preload("res://craft_quality.gd").attack(p,id)
 			def.description+="\n내구도 %d / 100" % int(p.get("gear_condition",{}).get(id,100))
 			def.description+="\n\n"+preload("res://gear_record.gd").describe(p,id)
 		return def

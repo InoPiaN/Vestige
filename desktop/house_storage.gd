@@ -31,6 +31,7 @@ static func reconcile(p: Dictionary) -> void:
 		if not p.gear_records.has(id): p.gear_records[id]=Record.empty()
 		if not p.gear_condition.has(id): p.gear_condition[id]=100
 		if not p.gear_quality.has(id): p.gear_quality[id]={"tier":"common","attack":22 if p.gear_instances[id]=="iron_sword" else 0}
+		if not p.gear_quality[id].has("upgrade"): p.gear_quality[id].upgrade=0
 	for id in p.gear_condition.keys():
 		if not p.gear_instances.has(id): p.gear_condition.erase(id)
 	for id in p.gear_records.keys():
@@ -125,6 +126,10 @@ static func valid(w: Dictionary) -> bool:
 			for id in p.gear_instances:
 				var q=p.gear_quality.get(id)
 				if not q is Dictionary or q.get("tier") not in ["common","fine","great"]: return false
+				if w.version>=14:
+					var upgrade=q.get("upgrade")
+					if not (upgrade is int or upgrade is float) or not is_finite(float(upgrade)) or upgrade!=floor(upgrade) or upgrade<0 or upgrade>3: return false
+					if p.gear_instances[id]!="iron_sword" and upgrade!=0: return false
 				var n=q.get("attack")
 				if not (n is int or n is float) or not is_finite(float(n)) or n!=floor(n): return false
 				if p.gear_instances[id]=="iron_sword":

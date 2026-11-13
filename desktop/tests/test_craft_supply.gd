@@ -112,7 +112,7 @@ func run() -> void:
 	var f:=FileAccess.open(path+".old",FileAccess.WRITE)
 	f.store_string(JSON.stringify(old));f.close()
 	var migrated:=R.load_world(path+".old",false)
-	check(not migrated.is_empty() and migrated.version==17 and migrated.people.local.craft_supply.source=="bag" and migrated.people.local.craft_plan.destination=="bag" and migrated.people.local.craft_plan.remaining==1,"Legacy saves default to bag-only without resetting plan")
+	check(not migrated.is_empty() and migrated.version==18 and migrated.people.local.craft_supply.source=="bag" and migrated.people.local.craft_plan.destination=="bag" and migrated.people.local.craft_plan.remaining==1,"Legacy saves default to bag-only without resetting plan")
 	var bad:=w.duplicate(true)
 	bad.people.local.craft_supply.source="other_player"
 	check(not R.Store.valid(bad),"Invalid saved routing rejected")

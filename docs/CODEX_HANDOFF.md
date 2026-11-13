@@ -1,3 +1,5 @@
+> 최신 작업 (2026-11-13): **0.5.13 장비 거래·되사기·유료 수리**. 작업트리 `/private/tmp/vestige-gear-provenance`, 브랜치 `codex/equipment-trade-repair`. [최신 인수인계](handoffs/equipment-trade-repair.md)와 [전체 기능 점검표](PROJECT_STATUS.md)를 먼저 읽으세요.
+
 > 최신 작업 (2026-11-12): **0.5.12 방어구 강화와 도트 효과**. 실제 작업트리 `/private/tmp/vestige-gear-provenance`, 브랜치 `codex/armor-upgrades`. [최신 인수인계](handoffs/armor-upgrades.md)를 먼저 읽으세요.
 
 > 최신 작업 (2026-11-12): **0.5.11 복수 부재 제작 계획**. 실제 작업트리 `/private/tmp/vestige-gear-provenance`, 브랜치 `codex/offline-crafting-queue`. [최신 인수인계](handoffs/offline-crafting-queue.md)를 먼저 읽으세요. 아래는 초기 단계의 기록입니다.

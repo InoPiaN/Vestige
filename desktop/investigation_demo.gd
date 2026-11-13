@@ -221,3 +221,12 @@ static func armor_upgrade() -> Dictionary:
 	p.belongings.cloth=20
 	p.equipment.cloak="none"
 	return w
+
+static func trade_repair() -> Dictionary:
+	var w:=armor_upgrade()
+	var p: Dictionary=w.people.local
+	var id: String=p.equipped_ids.body
+	Rules.act(w,"local","upgrade_armor",id+"|0")
+	p.gear_condition[id]=35
+	p.gold=80
+	return w

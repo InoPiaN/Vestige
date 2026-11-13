@@ -103,7 +103,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	var migrated:=R.load_world(path+".old",false)
-	check(not migrated.is_empty() and migrated.version==17 and migrated.people.local.craft_plan.is_empty() and migrated.people.local.policy=="work","Legacy work policy remains unchanged without invented plan")
+	check(not migrated.is_empty() and migrated.version==18 and migrated.people.local.craft_plan.is_empty() and migrated.people.local.policy=="work","Legacy work policy remains unchanged without invented plan")
 	R.act(w,"local","plan_cancel")
 	check(p.craft_plan.is_empty() and p.policy=="rest","Cancel removes plan and chooses rest")
 	R.act(w,"local","plan_start","bandage|count|1")

@@ -105,6 +105,11 @@ static func valid(w: Dictionary) -> bool:
 	if not w.estate.get("storage") is Dictionary: return false
 	var containers: Array=w.people.values()
 	containers.append(w.estate.storage)
+	if w.version>=18:
+		for person in w.people.values():
+			if not person.get("buyback") is Dictionary: return false
+			if total(person.buyback)!=person.buyback.get("gear_instances",{}).size() or not person.buyback.get("equipped_ids",{}).is_empty(): return false
+			containers.append(person.buyback)
 	if not w.get("remains",{}) is Dictionary: return false
 	for row in w.get("remains",{}).values():
 		if not row is Dictionary or not row.get("contents") is Dictionary: return false

@@ -128,7 +128,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	loaded=R.load_world(path+".old",false)
-	check(not loaded.is_empty() and loaded.version==17 and loaded.market.stock.cloth==1 and loaded.market.stock.hide==10,"Legacy market gains hide without resetting existing stock")
+	check(not loaded.is_empty() and loaded.version==18 and loaded.market.stock.cloth==1 and loaded.market.stock.hide==10,"Legacy market gains hide without resetting existing stock")
 	for id in loaded.people.local.gear_instances:
 		if loaded.people.local.gear_instances[id]=="leather": check(loaded.people.local.gear_quality[id].defense==3 and loaded.people.local.gear_records[id].maker.is_empty(),"Legacy starter armor gets baseline defense without invented maker")
 	var shop:=R.fresh()

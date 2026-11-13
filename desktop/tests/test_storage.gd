@@ -110,7 +110,7 @@ func run() -> void:
 	f.store_string(JSON.stringify(legacy))
 	f.close()
 	var migrated:=R.load_world(legacy_path,false)
-	check(not migrated.is_empty() and migrated.version==17 and migrated.people.local.gear_instances.size()==4,"Legacy counters migrate to stable individual gear")
+	check(not migrated.is_empty() and migrated.version==18 and migrated.people.local.gear_instances.size()==4,"Legacy counters migrate to stable individual gear")
 	game.queue_free()
 	for path in [game.save_path,legacy_path]:
 		for ext in ["",".bak"]: DirAccess.remove_absolute(path+ext)

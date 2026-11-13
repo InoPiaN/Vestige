@@ -92,7 +92,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	var migrated:=R.load_world(path+".old",false)
-	check(not migrated.is_empty() and migrated.version==17 and migrated.people.local.skill==17 and migrated.people.local.craft_xp.smithing==0,"Legacy generic skill preserved without inventing profession history")
+	check(not migrated.is_empty() and migrated.version==18 and migrated.people.local.skill==17 and migrated.people.local.craft_xp.smithing==0,"Legacy generic skill preserved without inventing profession history")
 	for value in [-1,0.5,1001,"invalid"]:
 		var invalid:=w.duplicate(true)
 		invalid.people.local.craft_xp.herbalism=value

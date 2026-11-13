@@ -1,4 +1,6 @@
 extends "res://crafting_panel.gd"
+const Repair=preload("res://forge_repair.gd")
+var repair_status: Label
 const U=preload("res://sword_upgrade.gd")
 const AU=preload("res://armor_upgrade.gd")
 const Q=preload("res://craft_quality.gd")
@@ -11,12 +13,12 @@ func _ready() -> void:
 	style.border_color=Color("a28e64")
 	style.set_border_width_all(2)
 	add_theme_stylebox_override("panel",style)
-	label("잿불 대장간 · 제작과 강화",Vector2(28,24),24)
+	label("잿불 대장간 · 제작·강화·수리",Vector2(28,24),24)
 	button("닫기 · ESC",Vector2(770,20),160,hide)
 	label("새 철검 제작 · 철광석 2개",Vector2(28,90),20)
 	craft_button=button("철검 1개 제작",Vector2(650,85),280,func(): action.emit("interact",""))
 	condition=label("",Vector2(28,140),16)
-	label("강화할 소지 장비",Vector2(28,205),20)
+	label("강화 / 수리할 소지 장비",Vector2(28,205),20)
 	gear=OptionButton.new()
 	gear.position=Vector2(28,245)
 	gear.size=Vector2(470,42)
@@ -26,8 +28,12 @@ func _ready() -> void:
 	description.size=Vector2(900,135)
 	description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	upgrade_button=button("선택한 장비 강화",Vector2(650,245),280,submit_upgrade)
-	feedback=label("",Vector2(28,465),17)
-	feedback.size=Vector2(900,60)
+	repair_button=button("선택한 장비 완전 수리",Vector2(650,450),280,func(): action.emit("forge_repair",sword+"|"+str(person.gear_condition.get(sword,-1))+"|"+str(Repair.price(person,sword))))
+	repair_status=label("",Vector2(28,450),16)
+	repair_status.size=Vector2(610,48)
+	repair_status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	feedback=label("",Vector2(28,505),16)
+	feedback.size=Vector2(900,38)
 	feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	label("강화는 확정 성공 · 최대 +3.\n품질·제작자·내구도를 보존합니다.",Vector2(28,545),16)
 	button("가죽 / 철제 갑옷 제작",Vector2(650,545),280,func(): action.emit("armor_menu",""))
@@ -54,6 +60,10 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 	condition.text=M.progress(p,"smithing")+"\n"+M.rate_text(p,"smithing")
 	var near: bool=p.alive and not p.offline and p.get("room","village")=="village" and Vector2(p.x,p.y).distance_to(Vector2(5,7))<2
 	craft_button.disabled=not near or p.ore<2 or p.sword>=5
+	var repair_why:=Repair.reason(p,sword)
+	repair_button.disabled=not repair_why.is_empty()
+	repair_status.text="수리 · 내구도 %d → 100 · 은화 %d / 보유 %d" % [p.gear_condition.get(sword,100),Repair.price(p,sword),p.gold]
+	if not repair_why.is_empty(): repair_status.text+="\n"+repair_why
 	if p.gear_instances.get(sword) in AU.Stats.KINDS:
 		refresh_armor(p)
 		return

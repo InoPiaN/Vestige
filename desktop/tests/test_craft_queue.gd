@@ -72,7 +72,7 @@ func run() -> void:
 	f.store_string(JSON.stringify(legacy))
 	f.close()
 	var migrated:=R.load_world(path+".old",false)
-	check(not migrated.is_empty() and migrated.version==17 and migrated.people.local.craft_queue.is_empty() and migrated.people.local.craft_plan.amount==3,"Version fifteen preserves single plan as first priority")
+	check(not migrated.is_empty() and migrated.version==18 and migrated.people.local.craft_queue.is_empty() and migrated.people.local.craft_plan.amount==3,"Version fifteen preserves single plan as first priority")
 	R.act(w,"local","plan_cancel")
 	check(R.Plan.plans(p).is_empty() and p.policy=="rest","Cancel clears all instructions")
 	# Compare the shared armor quality and mastery path; catch-up dates stay per-day.

@@ -60,7 +60,7 @@ func _initialize() -> void:
 	check(FileAccess.get_file_as_string(path)==original and FileAccess.get_file_as_string(path+".bak")==old_backup,"failed checkpoint preserves both files")
 	DirAccess.remove_absolute(path+".tmp")
 	var future:=Store.read(path)
-	future.version=18
+	future.version=19
 	var raw:=JSON.stringify(future)
 	write(path,raw)
 	check(Rules.load_world(path).is_empty() and FileAccess.get_file_as_string(path)==raw,"newer save version is preserved")

@@ -105,6 +105,6 @@ func run() -> void:
 	f.store_string(JSON.stringify(old))
 	f.close()
 	var loaded:=R.load_world(path,false)
-	check(not loaded.is_empty() and loaded.version==17 and JSON.parse_string(JSON.stringify(loaded.people.local.gear_quality))==JSON.parse_string(JSON.stringify(expected)),"Version sixteen armor stats and unenhanced state migrate unchanged")
+	check(not loaded.is_empty() and loaded.version==18 and JSON.parse_string(JSON.stringify(loaded.people.local.gear_quality))==JSON.parse_string(JSON.stringify(expected)),"Version sixteen armor stats and unenhanced state migrate unchanged")
 	for ext in ["",".bak"]: DirAccess.remove_absolute(path+ext)
 	quit(1 if failures else 0)

@@ -11,6 +11,7 @@ const ArmorUpgrade=preload("res://armor_upgrade.gd")
 const ArmorCraft=preload("res://armor_crafting.gd")
 const Upgrade=preload("res://sword_upgrade.gd")
 const Quality=preload("res://craft_quality.gd")
+const ForgeRepair=preload("res://forge_repair.gd")
 const Market=preload("res://village_market.gd")
 const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
@@ -40,6 +41,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 	return result
 
 static func outfit(p: Dictionary) -> void:
+	Market.prepare_person(p)
 	Mastery.prepare(p)
 	Plan.prepare(p)
 	Supply.prepare(p)
@@ -58,7 +60,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":17,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":18,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -348,6 +350,8 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if kind=="craft_armor": return ArmorCraft.craft(w,p,value)
 	if kind=="upgrade_armor": return ArmorUpgrade.apply(w,p,value)
 	if kind=="upgrade_sword": return Upgrade.apply(w,p,value)
+	if kind=="forge_repair": return ForgeRepair.apply(w,p,value)
+	if kind=="market_repurchase": return Market.repurchase(w,p,value)
 	if kind=="market_buy": return Market.trade(w,p,value,true)
 	if kind=="market_sell": return Market.trade(w,p,value,false)
 	if kind=="craft_home": return Crafting.craft(w,p,value)
@@ -474,7 +478,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=17
+	w.version=18
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

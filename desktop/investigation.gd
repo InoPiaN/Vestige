@@ -125,6 +125,8 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 		other.erase("craft_plan")
 		other.erase("craft_queue")
 		other.erase("craft_supply")
+		other.erase("buyback")
+		other.erase("buyback_orders")
 		other.erase("evidence_items")
 		other.erase("gear_instances")
 		other.erase("gear_condition")

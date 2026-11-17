@@ -1,5 +1,5 @@
 extends RefCounted
-const KINDS=["iron_sword","leather","iron_armor"]
+const KINDS=["iron_sword","shortbow","leather","iron_armor"]
 static func price(p: Dictionary,id: String) -> int:
 	if p.get("gear_instances",{}).get(id) not in KINDS: return 0
 	return ceili((100-int(p.gear_condition[id]))/20.0)*(1+int(p.gear_quality[id].get("upgrade",0)))

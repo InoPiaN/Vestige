@@ -1,6 +1,6 @@
 data/
 .DS_Store
-.tools/
+.tools
 builds/
 desktop/.godot/
 
@@ -22,3 +22,6 @@ export_credentials.cfg
 # Temporary saves and recovery files
 *.tmp
 *.bak
+
+# Persistent nested worktrees are separate Git checkouts
+/worktrees/

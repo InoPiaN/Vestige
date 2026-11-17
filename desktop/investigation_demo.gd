@@ -230,3 +230,16 @@ static func trade_repair() -> Dictionary:
 	p.gear_condition[id]=35
 	p.gold=80
 	return w
+
+static func professions() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","길을 찾는 여행자")
+	var p: Dictionary=w.people.local
+	p.x=8
+	p.y=7
+	p.ore=6
+	p.herb=4
+	p.gold=30
+	p.belongings.wood=3
+	p.belongings.cloth=2
+	return w

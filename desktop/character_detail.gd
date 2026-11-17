@@ -193,6 +193,9 @@ func draw_character(p: Dictionary,animation: Dictionary,clock: float) -> void:
 	armor_effect(p)
 	weapon(p)
 func weapon(p: Dictionary) -> void:
+	if gear.get("weapon")=="shortbow":
+		bow()
+		return
 	var back: bool=pose.direction=="up"
 	var side: bool=pose.direction in ["left","right"]
 	var hand:=Vector2(28,36)
@@ -269,3 +272,19 @@ func armor_effect(p: Dictionary) -> void:
 		var frame:=int(time*5)%8
 		if frame<5: r(7,top+6-frame,1,1,"b7dedb")
 		if frame>=3: r(23,top+8-frame,1,1,"d8e5bf")
+
+func bow() -> void:
+	var center:=Vector2(30,29)
+	if pose.direction=="up": center=Vector2(26,16)
+	elif pose.direction=="down": center=Vector2(28,36)
+	var pull:=5 if pose.phase in ["windup","strike"] else 1
+	var points:=PackedVector2Array([center+Vector2(-2,-14),center+Vector2(3,-10),center+Vector2(6,-4),center+Vector2(6,4),center+Vector2(3,10),center+Vector2(-2,14)])
+	canvas.draw_polyline(points,Color("3a3026"),3,false)
+	canvas.draw_polyline(points,Color("c1a26c"),1,false)
+	canvas.draw_line(points[0],center+Vector2(-pull,0),Color("d6ceb0"),1,false)
+	canvas.draw_line(center+Vector2(-pull,0),points[5],Color("d6ceb0"),1,false)
+	canvas.draw_rect(Rect2(center+Vector2(4,-3),Vector2(3,6)),Color("745640"))
+	canvas.draw_line(Vector2(22,27),center+Vector2(-pull,0),SKINS[look.skin],3,false)
+	if pose.phase!="idle":
+		canvas.draw_line(center+Vector2(-pull,0),center+Vector2(19,0),Color("d8c28c"),1,false)
+		canvas.draw_line(center+Vector2(16,-2),center+Vector2(19,0),Color("c2d3cc"),1,false)

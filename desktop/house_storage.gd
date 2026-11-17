@@ -35,7 +35,7 @@ static func reconcile(p: Dictionary) -> void:
 	for id in p.gear_instances:
 		if not p.gear_records.has(id): p.gear_records[id]=Record.empty()
 		if not p.gear_condition.has(id): p.gear_condition[id]=100
-		if not p.gear_quality.has(id): p.gear_quality[id]={"tier":"common","attack":22 if p.gear_instances[id]=="iron_sword" else 0}
+		if not p.gear_quality.has(id): p.gear_quality[id]={"tier":"common","attack":22 if p.gear_instances[id]=="iron_sword" else (16 if p.gear_instances[id]=="shortbow" else 0)}
 		if not p.gear_quality[id].has("upgrade"): p.gear_quality[id].upgrade=0
 		if not p.gear_quality[id].has("defense"): p.gear_quality[id].defense=3 if p.gear_instances[id]=="leather" else (6 if p.gear_instances[id]=="iron_armor" else 0)
 	for id in p.gear_condition.keys():
@@ -151,9 +151,12 @@ static func valid(w: Dictionary) -> bool:
 					elif d!=0: return false
 				var n=q.get("attack")
 				if not (n is int or n is float) or not is_finite(float(n)) or n!=floor(n): return false
-				if p.gear_instances[id]=="iron_sword":
+				if p.gear_instances[id] in ["iron_sword","shortbow"]:
 					var low: int=20 if q.tier=="common" else (24 if q.tier=="fine" else 27)
 					var high: int=24 if q.tier=="common" else (26 if q.tier=="fine" else 29)
+					if p.gear_instances[id]=="shortbow":
+						low-=6
+						high-=6
 					if n<low or n>high: return false
 				elif n!=0: return false
 		for id in p.gear_instances:

@@ -6,7 +6,7 @@ static func create(p: Dictionary,id: String,day: int,stage: int,field: String="�
 	p.gear_records[id]={"maker":{"life":p.life,"name":p.name,"day":day,"place":"잿불 마을 대장간","stage":STAGES[stage],"field":field},"events":[]}
 	append(p,id,"crafted",day,"잿불 마을 대장간에서 제작")
 static func append(p: Dictionary,id: String,kind: String,day: int,detail: String) -> void:
-	if p.gear_instances.get(id) not in ["iron_sword","leather","iron_armor"]: return
+	if p.gear_instances.get(id) not in ["iron_sword","shortbow","leather","iron_armor"]: return
 	p.gear_records[id].events.append({"kind":kind,"day":day,"actor":p.life,"name":p.name,"detail":detail})
 static func describe(p: Dictionary,id: String) -> String:
 	var record: Dictionary=p.get("gear_records",{}).get(id,empty())

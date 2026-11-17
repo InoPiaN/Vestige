@@ -115,6 +115,22 @@ func run() -> void:
 	var glowing_leather:=await frame(armor)
 	armor.gear_quality.armor.upgrade=0
 	check(await frame(armor)!=glowing_leather,"Leather armor also displays upgrade")
+	var bow:=p.duplicate(true)
+	bow.equipment.weapon="shortbow"
+	var bow_pixels:=await frame(bow)
+	check(bow_pixels!=base and bow_pixels!=bare,"Bow has distinct actual pixels from sword and bare hand")
+	bow.attack=0.7
+	check(await frame(bow)!=bow_pixels,"Bow draw animation differs from idle")
+	bow.attack=0
+	var bow_directions: Array=[]
+	for direction in ["down","up","left","right"]:
+		bow.direction=direction
+		var pixels:=await frame(bow)
+		check(not bow_directions.has(pixels),"Bow directional pixels: "+direction)
+		bow_directions.append(pixels)
+	bow.direction="down"
+	bow.guard_time=2
+	check(await frame(bow)!=bow_pixels,"Guard stance draws readable protection arc")
 	p.alive=false
 	var dead:=await frame(p)
 	var empty:=Image.create(128,128,false,Image.FORMAT_RGBA8)

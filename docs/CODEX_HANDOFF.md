@@ -1,3 +1,5 @@
+> 최신 작업 (2026-11-17): **0.5.14 전사·사냥꾼 / 스승 / 단궁 / 기술** 완료. 현재 작업 트리는 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`, 브랜치 `codex/professions-and-skills`. 임시 경로에서 영구 경로로 이동했습니다. [최신 인수인계](handoffs/professions-and-skills.md)와 [전체 기능 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래 경로/버전은 과거 기록입니다.
+
 > 추가 요청 (2026-11-13): 직업·NPC·아이템·스킬 확장을 개발 계획에 등록했다. `PROJECT_STATUS.md`와 `DEVELOPMENT_ROADMAP.md`의 신규 확장 계획 참조. 이번 변경은 문서만이며 실행본은0.5.13 유지. 세부 후보는 미확정, 구현 전 참고 조사/승인 필요.
 
 > 최신 작업 (2026-11-13): **0.5.13 장비 거래·되사기·유료 수리**. 작업트리 `/private/tmp/vestige-gear-provenance`, 브랜치 `codex/equipment-trade-repair`. [최신 인수인계](handoffs/equipment-trade-repair.md)와 [전체 기능 점검표](PROJECT_STATUS.md)를 먼저 읽으세요.

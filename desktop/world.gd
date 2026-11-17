@@ -17,8 +17,11 @@ const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
+const Professions=preload("res://professions.gd")
 const DAY := 2880.0
 const PLACES := [
+	{"kind":"warrior","name":"경비대 교관 라온 · 전사 입문","x":8,"y":6},
+	{"kind":"hunter","name":"사냥꾼 스승 세린 · 사냥꾼 입문","x":16,"y":8},
 	{"kind":"market","name":"잿불 장터 · 재료 구매 / 물품 판매","x":14,"y":14},
 	{"kind":"forge","name":"잿불 대장간","x":5,"y":7},
 	{"kind":"library","name":"기억의 서재","x":10,"y":4},
@@ -31,7 +34,7 @@ const PLACES := [
 ]
 
 const LOOK_OPTIONS := {"hair":3,"hair_color":4,"skin":3,"cloth":4}
-const GEAR := {"body":["none","leather","iron_armor"],"head":["none","hood"],"cloak":["none","traveler"],"weapon":["none","iron_sword"]}
+const GEAR := {"body":["none","leather","iron_armor"],"head":["none","hood"],"cloak":["none","traveler"],"weapon":["none","iron_sword","shortbow"]}
 
 static func clean_look(value: Dictionary) -> Dictionary:
 	var result: Dictionary={}
@@ -41,6 +44,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 	return result
 
 static func outfit(p: Dictionary) -> void:
+	Professions.prepare(p)
 	Market.prepare_person(p)
 	Mastery.prepare(p)
 	Plan.prepare(p)
@@ -51,7 +55,7 @@ static func outfit(p: Dictionary) -> void:
 		p.equipment={"body":"none","head":"none","cloak":"none","weapon":"iron_sword" if p.sword>0 else "none"}
 	for slot in GEAR:
 		if not p.equipment.get(slot,"none") in GEAR[slot]: p.equipment[slot]="none"
-	if p.sword<=0: p.equipment.weapon="none"
+	if preload("res://items.gd").quantity(p,p.equipment.weapon)<=0: p.equipment.weapon="none"
 	if not p.has("hide_helmet"): p.hide_helmet=false
 	if not p.has("direction"): p.direction="left" if p.get("facing",1)<0 else "down"
 	if not p.has("motion"): p.motion=0.0
@@ -60,7 +64,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":18,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0}}
+	var w: Dictionary={"version":19,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
 
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -117,10 +121,13 @@ static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: V
 static func advance(w: Dictionary, seconds: float) -> void:
 	var old_day := int(w.time / DAY)
 	w.time += maxf(0, seconds)
+	w.wolf.slow=maxf(0,w.wolf.get("slow",0.0)-maxf(0,seconds))
 	Market.prepare(w)
 	var days := int(w.time / DAY) - old_day
 	for id in w.people:
 		var p: Dictionary = w.people[id]
+		Professions.prepare(p)
+		Professions.tick(p,maxf(0,seconds))
 		if not p.alive:
 			continue
 		var count := mini(days, int(p.limit-p.age))
@@ -181,7 +188,7 @@ static func forge_sword(w: Dictionary,p: Dictionary,equip: bool,day: int=-1) -> 
 	return ""
 
 static func weapon_damage(p: Dictionary) -> int:
-	if p.equipment.get("weapon")!="iron_sword": return 9
+	if p.equipment.get("weapon") not in ["iron_sword","shortbow"]: return 9
 	var id: String=p.get("equipped_ids",{}).get("weapon","")
 	return Quality.attack(p,id) if p.get("gear_condition",{}).get(id,100)>0 else 9
 
@@ -284,7 +291,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 	elif nearest<1.2 and e.cooldown<=0:
 		e.warning=0.65
 	elif nearest>1.0:
-		var v:=pos(e).move_toward(pos(target),dt*1.7)
+		var v:=pos(e).move_toward(pos(target),dt*1.7*(0.5 if e.slow>0 else 1.0))
 		e.x=v.x
 		e.y=v.y
 
@@ -312,10 +319,10 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		if value=="none":
 			p.equipment.weapon="none"
 			p.equipped_ids.erase("weapon")
-		elif p.gear_instances.get(value)=="iron_sword":
-			p.equipment.weapon="iron_sword"
+		elif p.gear_instances.get(value) in ["iron_sword","shortbow"]:
+			p.equipment.weapon=p.gear_instances[value]
 			p.equipped_ids.weapon=value
-		else: return "현재 소지한 철검을 선택하세요."
+		else: return "현재 소지한 무기를 선택하세요."
 		return "착용 무기를 변경했습니다."
 	if kind=="equip":
 		var parts:=value.split(":")
@@ -346,6 +353,14 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="lesson": return Professions.lesson(p,value)
+	if kind=="skill_slot": return Professions.assign(p,value)
+	if kind=="craft_bow": return Professions.craft_bow(w,p)
+	if kind=="use_skill":
+		if value not in ["0","1"]: return "기술 슬롯을 확인하세요."
+		var skill: String=p.skill_slots[int(value)]
+		if skill.is_empty(): return "K에서 배운 기술을 준비하세요."
+		return Professions.strike(w,p,skill)
 	if kind=="armor_menu": return "방어구 제작"
 	if kind=="craft_armor": return ArmorCraft.craft(w,p,value)
 	if kind=="upgrade_armor": return ArmorUpgrade.apply(w,p,value)
@@ -386,23 +401,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.herb-=1
 		p.hp=mini(100,p.hp+30)
 		return "달빛 약초로 체력 30을 회복했습니다."
-	if kind=="attack":
-		if p.attack>0 or p.stamina<12: return ""
-		p.attack=0.5
-		p.action="attack"
-		p.stamina-=12
-		if w.wolf.hp>0 and pos(p).distance_to(pos(w.wolf))<2:
-			if pos(p).distance_to(pos(w.wolf))>0.1: p.direction=CharacterMotion.direction(pos(w.wolf)-pos(p))
-			w.wolf.hp-=weapon_damage(p)
-			var weapon: String=p.equipped_ids.get("weapon","")
-			if p.gear_instances.get(weapon)=="iron_sword": p.gear_condition[weapon]=maxi(0,int(p.gear_condition[weapon])-5)
-			if w.wolf.hp<=0:
-				w.wolf.hp=0
-				w.wolf.respawn=w.time+DAY
-				p.gold+=8
-				p.events.append("예배당의 길목에서 늑대를 물리쳤다.")
-				return "늑대를 물리쳤습니다. 은화 +8"
-		return ""
+	if kind=="attack": return Professions.strike(w,p)
 	if kind!="interact": return ""
 	var t:=nearby(p)
 	if t.is_empty(): return "시설이나 자원 가까이에서 E를 누르세요."
@@ -478,7 +477,8 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=18
+	w.version=19
+	if not w.wolf.has("slow"): w.wolf.slow=0.0
 	Quality.prepare(w)
 	Market.prepare(w)
 	Interior.prepare(w)

@@ -1,8 +1,10 @@
 extends RefCounted
 # Existing resource counters remain the single source of truth for old saves.
 const BASE_CATALOG := {
+	"wood":{"name":"활 제작용 목재","category":"재료","limit":20,"color":"ac8957","description":"단궁 제작 재료. 장터에서 구입합니다."},
+	"shortbow":{"name":"단궁","category":"장비","limit":3,"slot":"weapon","color":"c3a574","description":"6칸 원거리 무기. 목재 3개와 천 2개로 대장간에서 제작합니다."},
 	"bandage":{"name":"약초 붕대","category":"소모품","limit":10,"color":"c7c5a1","description":"체력 45 회복. 천 1개와 약초 1개로 제작합니다."},
-	"repair_kit":{"name":"간이 수선 도구","category":"재료","limit":10,"color":"b6a07b","description":"집 작업대에서 선택한 철검·갑옷 내구도 +40. 천 1개와 못 2개로 제작합니다."},
+	"repair_kit":{"name":"간이 수선 도구","category":"재료","limit":10,"color":"b6a07b","description":"집 작업대에서 선택한 무기·갑옷 내구도 +40. 천 1개와 못 2개로 제작합니다."},
 	"mug":{"name":"고친 찻잔","category":"재료","limit":5,"color":"c0bd9a","description":"약초차 제작 도구. 사용할 때 사라지지 않습니다."},
 	"herbal_tea":{"name":"약초차","category":"소모품","limit":10,"color":"8da67a","description":"체력 20 · 기력 40 회복. 찻잔과 켜진 벽난로가 있어야 약초 1개로 만듭니다."},
 	"cloth":{"name":"낡은 천 조각","category":"재료","limit":20,"color":"a29a80","description":"서랍에 남은 수선용 천. 보관하거나 유품으로 남길 수 있습니다. 집 작업대에서 붕대·수선 도구·찻잔 수선에 사용합니다."},
@@ -29,7 +31,7 @@ static func make_catalog() -> Dictionary:
 			item.name=("양품 " if tier=="fine" else "대성공 ")+item.name
 			item.color="94b9ad" if tier=="fine" else "e2c481"
 			if base=="bandage": item.description="체력 %d 회복." % (48 if tier=="fine" else 54)
-			if base=="repair_kit": item.description="작업대에서 철검·갑옷 내구도 %d 복원." % (44 if tier=="fine" else 50)
+			if base=="repair_kit": item.description="작업대에서 무기·갑옷 내구도 %d 복원." % (44 if tier=="fine" else 50)
 			if base=="herbal_tea": item.description="체력 %d · 기력 %d 회복." % [22 if tier=="fine" else 25,44 if tier=="fine" else 50]
 			if base=="mug": item.description="재사용 찻잔. 약초차 대성공 확률 +%d%%p." % (2 if tier=="fine" else 5)
 			catalog[base+"_"+tier]=item
@@ -48,12 +50,13 @@ static func definition(p: Dictionary,id: String) -> Dictionary:
 		var def: Dictionary=CATALOG[p.gear_instances[id]].duplicate()
 		def.name+=" · "+id.right(4)
 		def.limit=1
-		if p.gear_instances[id]=="iron_sword":
+		if p.gear_instances[id] in ["iron_sword","shortbow"]:
 			var quality: Dictionary=p.get("gear_quality",{}).get(id,{"tier":"common","attack":22})
 			def.name=preload("res://craft_quality.gd").LABELS[quality.tier]+" "+def.name
 			if int(quality.get("upgrade",0))>0: def.name+=" +%d" % int(quality.upgrade)
 			if quality.tier!="common": def.color="94b9ad" if quality.tier=="fine" else "e2c481"
 			def.description="공격력 %d · 내구도 0이면 9.\n명중 시 내구도 5 소모." % preload("res://craft_quality.gd").attack(p,id)
+			if p.gear_instances[id]=="shortbow": def.description+="\n사거리 6칸 · 건물에 가로막히면 발사 불가"
 			def.description+="\n내구도 %d / 100" % int(p.get("gear_condition",{}).get(id,100))
 			def.description+="\n\n"+preload("res://gear_record.gd").describe(p,id)
 		if p.gear_instances[id] in ["leather","iron_armor"]:

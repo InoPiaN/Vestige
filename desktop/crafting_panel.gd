@@ -108,10 +108,10 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 		gear_stamp=stamp
 		gear.clear()
 		for id in p.gear_instances:
-			if p.gear_instances[id] not in ["iron_sword","leather","iron_armor"]: continue
+			if p.gear_instances[id] not in ["iron_sword","shortbow","leather","iron_armor"]: continue
 			gear.add_item("%s · %d / 100" % [Items.definition(p,id).name,p.gear_condition[id]])
 			gear.set_item_metadata(gear.item_count-1,id)
-		if p.gear_instances.get(sword,"") not in ["iron_sword","leather","iron_armor"]:
+		if p.gear_instances.get(sword,"") not in ["iron_sword","shortbow","leather","iron_armor"]:
 			sword=gear.get_item_metadata(0) if gear.item_count else ""
 			for i in range(gear.item_count):
 				var candidate: String=gear.get_item_metadata(i)

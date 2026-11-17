@@ -140,7 +140,7 @@ func run() -> void:
 	f.store_string(JSON.stringify(legacy))
 	f.close()
 	loaded=R.load_world(path+".old",false)
-	check(not loaded.is_empty() and loaded.version==18 and loaded.people.local.buyback_orders.is_empty(),"Version seventeen migrates with no invented sales")
+	check(not loaded.is_empty() and loaded.version==19 and loaded.people.local.buyback_orders.is_empty(),"Version seventeen migrates with no invented sales")
 	R.die(w,"local","노환")
 	R.born(w,"local","후계자")
 	check(w.people.local.buyback_orders.is_empty(),"New life does not inherit personal repurchase rights")

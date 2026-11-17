@@ -110,6 +110,13 @@ func hero(x: float,y: float,p: Dictionary,other: bool=false) -> void:
 	draw_set_transform(Vector2(roundf(x)-8*mirror,roundf(y)+pose.bob-17.5),0,Vector2(0.5*mirror,0.5))
 	painter.draw_character(person,pose,clock)
 	draw_set_transform(Vector2.ZERO)
+	if p.get("guard_time",0)>0:
+		draw_arc(Vector2(x,y),12,PI,TAU,12,Color("9ccddd"),1,false)
+	if p.get("shot_time",0)>0:
+		var origin:=Vector2(x,y-5)
+		var target:=Vector2(p.shot_x*16,p.shot_y*16-5)
+		var tip:=origin.lerp(target,1.0-float(p.shot_time)/0.2)
+		draw_line(tip-(target-origin).normalized()*7,tip,Color("dfc999"),1,false)
 
 func ruin(x: float,y: float) -> void:
 	box(x-24,y-10,47,25,"4b5448")
@@ -153,6 +160,10 @@ func _draw() -> void:
 		var x: float=t.x*16
 		var y: float=t.y*16
 		match t.kind:
+			"warrior","hunter":
+				var hunter: bool=t.kind=="hunter"
+				hero(x,y,{"look":{"hair":2 if hunter else 0,"hair_color":1 if hunter else 3,"skin":1,"cloth":2 if hunter else 1},"equipment":{"weapon":"shortbow" if hunter else "iron_sword","body":"leather" if hunter else "iron_armor","cloak":"traveler"},"direction":"down"},true)
+				draw_string(font,Vector2(x-13,y+14),"!",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e5d39e"))
 			"market":
 				box(x-16,y-20,2,24,"8b7650")
 				box(x+14,y-20,2,24,"8b7650")

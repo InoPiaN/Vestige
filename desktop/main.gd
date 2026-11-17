@@ -15,6 +15,8 @@ var view: Node2D
 var status: Label
 var inventory: Label
 var market: Panel
+var professions: Panel
+var skills_hud: Label
 var planner: Panel
 var armor_bench: Panel
 var body_stamp:=""
@@ -56,7 +58,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -64,6 +66,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"professions": opening=demo.professions()
 				"trade": opening=demo.trade_repair()
 				"armor-upgrade": opening=demo.armor_upgrade()
 				"queue": opening=demo.queue()
@@ -86,7 +89,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="trade": message("E로 대장간에서 손상된 갑옷을 수리하세요. 장터에서는 착용을 해제한 장비를 판매하고 되사기에서 같은 장비를 회수할 수 있습니다.")
+			if kind=="professions": message("E로 스승에게 입문 과제를 받으세요. K에서 성장 경로와 준비할 기술을 확인하고, 전투에서 1 / 2로 사용합니다.")
+			elif kind=="trade": message("E로 대장간에서 손상된 갑옷을 수리하세요. 장터에서는 착용을 해제한 장비를 판매하고 되사기에서 같은 장비를 회수할 수 있습니다.")
 			elif kind=="armor-upgrade": message("E로 대장간을 열고 개별 갑옷을 선택해 강화하세요. 외형·장비에서 착용하면 단계별 빛과 방어 효과를 확인할 수 있습니다.")
 			elif kind=="queue": message("부재 중의 하루 → 제작 계획 설정. 붕대·철제 갑옷·가죽 갑옷 순서를 조정하고 생활 맡기기 후 하루 진행으로 확인하세요.")
 			elif kind=="armor": message("E → 가죽 / 철제 갑옷 제작. 외형·장비에서 갑옷의 방어·내구도와 회피 기력을 비교하세요.")
@@ -266,14 +270,14 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -303,11 +307,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		dressing.hide()
 		bag.hide()
 		chest.hide()
+		professions.hide()
 		armor_bench.hide()
 		forge.hide()
 		market.hide()
 		planner.hide()
 		bench.hide()
+		return
+	if event.physical_keycode==KEY_K:
+		if professions.visible: professions.hide()
+		else: open_professions()
 		return
 	if event.physical_keycode==KEY_G:
 		if chest.visible and chest.remains_mode: chest.hide()
@@ -324,8 +333,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible: return
+	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible: return
 	match event.physical_keycode:
+		KEY_1: perform("use_skill","0")
+		KEY_2: perform("use_skill","1")
 		KEY_E: interact()
 		KEY_F: perform("investigate")
 		KEY_SPACE: perform("attack")
@@ -339,6 +350,7 @@ func interact() -> void:
 		return
 	var t:=Rules.nearby(world.people[me])
 	if t.get("kind","")=="home": perform("enter_home")
+	elif t.get("kind","") in Rules.Professions.Mentors: open_professions(t.kind)
 	elif t.get("kind","")=="forge": open_forge()
 	elif t.get("kind","")=="library": open_library()
 	elif t.get("kind","")=="grave": open_graves()
@@ -398,7 +410,7 @@ func build_ui() -> void:
 	label_at(menu,"V E S T I G E",Vector2(90,100),64,Color("e1d1a3"))
 	label_at(menu,"잿불의 기록",Vector2(95,183),24)
 	label_at(menu,"당신이 떠난 뒤에도,\n이곳의 삶은 계속된다.",Vector2(95,260),30)
-	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.13 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
+	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.14 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
 	input_name=LineEdit.new()
 	input_name.text="에단"
 	input_name.max_length=20
@@ -431,6 +443,7 @@ func build_ui() -> void:
 	root.add_child(ui)
 	ui.hide()
 	label_at(ui,"V E S T I G E",Vector2(24,17),27,Color("dccb9b"))
+	skills_hud=label_at(ui,"",Vector2(24,54),15)
 	date_label=label_at(ui,"",Vector2(600,24),16)
 	var container:=SubViewportContainer.new()
 	container.position=Vector2(16,80)
@@ -506,6 +519,9 @@ func build_ui() -> void:
 	panel_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	column.add_child(panel_text)
 	panel.hide()
+	professions=preload("res://profession_panel.gd").new()
+	root.add_child(professions)
+	professions.action.connect(perform)
 	build_dressing(root)
 	bag=preload("res://inventory_panel.gd").new()
 	root.add_child(bag)
@@ -539,6 +555,15 @@ func refresh() -> void:
 			if slot not in ["weapon","body"]: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
 		refresh_weapon_picker(p)
 		refresh_body_picker(p)
+	if professions.visible: professions.refresh(p)
+	var skill_text: Array[String]=["K · 성장과 기술"]
+	for i in range(2):
+		var id: String=p.skill_slots[i]
+		if id.is_empty(): skill_text.append("[%d] 미준비" % (i+1)); continue
+		var skill: Dictionary=Rules.Professions.SKILLS[id]
+		var state: String="%.1f초" % p.skill_cooldowns[id] if p.skill_cooldowns[id]>0 else ("준비" if p.equipment.weapon==Rules.Professions.Mentors[skill.field].weapon else "무기 필요")
+		skill_text.append("[%d] %s · 기력%d · %s" % [i+1,skill.name,skill.cost,state])
+	skills_hud.text="    |    ".join(skill_text)
 	if bag.visible: bag.refresh(p)
 	if chest.visible: chest.refresh(world,p)
 	if planner.visible: planner.refresh(world,p)
@@ -599,9 +624,11 @@ func message(text: String) -> void:
 		if planner.visible: planner.feedback.text=text
 		if market.visible: market.feedback.text=text
 		if armor_bench.visible: armor_bench.feedback.text=text
+		if professions.visible: professions.feedback.text=text
 		if forge.visible: forge.feedback.text=text
 
 func show_pages(text: String) -> void:
+	professions.hide()
 	armor_bench.hide()
 	forge.hide()
 	market.hide()
@@ -711,6 +738,7 @@ func build_dressing(root: Control) -> void:
 	dressing.hide()
 
 func open_dressing(purpose: String) -> void:
+	professions.hide()
 	armor_bench.hide()
 	forge.hide()
 	market.hide()
@@ -777,6 +805,7 @@ func open_dressing(purpose: String) -> void:
 	if purpose=="gear": refresh()
 
 func open_inventory() -> void:
+	professions.hide()
 	armor_bench.hide()
 	forge.hide()
 	market.hide()
@@ -791,6 +820,7 @@ func open_inventory() -> void:
 	bag.show()
 
 func open_storage(remains_mode: bool=false) -> void:
+	professions.hide()
 	armor_bench.hide()
 	forge.hide()
 	market.hide()
@@ -808,6 +838,7 @@ func open_storage(remains_mode: bool=false) -> void:
 
 func open_crafting() -> void:
 	planner.hide()
+	professions.hide()
 	armor_bench.hide()
 	forge.hide()
 	market.hide()
@@ -821,6 +852,7 @@ func open_crafting() -> void:
 	bench.show()
 
 func open_market() -> void:
+	professions.hide()
 	armor_bench.hide()
 	forge.hide()
 	if world.is_empty() or not world.people.has(me): return
@@ -840,6 +872,7 @@ func open_planner() -> void:
 	dressing.hide()
 	bag.hide()
 	chest.hide()
+	professions.hide()
 	armor_bench.hide()
 	forge.hide()
 	market.hide()
@@ -857,7 +890,7 @@ func refresh_weapon_picker(p: Dictionary) -> void:
 		picker.add_item("맨손 · 공격력 9")
 		picker.set_item_metadata(0,"none")
 		for id in p.gear_instances:
-			if p.gear_instances[id]!="iron_sword": continue
+			if p.gear_instances[id] not in ["iron_sword","shortbow"]: continue
 			var item:=preload("res://items.gd").definition(p,id)
 			var damage: int=Rules.Quality.attack(p,id) if p.gear_condition[id]>0 else 9
 			var index:=picker.item_count
@@ -871,6 +904,7 @@ func refresh_weapon_picker(p: Dictionary) -> void:
 	gear_record_button.disabled=worn=="none" and p.equipped_ids.get("body","").is_empty()
 
 func open_forge() -> void:
+	professions.hide()
 	armor_bench.hide()
 	market.hide()
 	planner.hide()
@@ -910,3 +944,11 @@ func refresh_body_picker(p: Dictionary) -> void:
 	for i in range(picker.item_count):
 		if picker.get_item_metadata(i)==worn: picker.select(i)
 	picker.disabled=not p.alive
+
+func open_professions(field: String="") -> void:
+	if world.is_empty() or not world.people.has(me): return
+	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench]: modal.hide()
+	if field in Rules.Professions.Mentors: professions.field=field
+	professions.feedback.text=""
+	professions.refresh(world.people[me])
+	professions.show()

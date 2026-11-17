@@ -1,4 +1,4 @@
-# Vestige · 설치형 도트 시제품 0.5.13
+# Vestige · 설치형 도트 시제품 0.5.14
 
 ## 빌드 보관 원칙
 
@@ -6,11 +6,33 @@
 
 ## 바로 실행
 
-- Mac 최신: `builds/Vestige-0.5.13.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `builds/windows-0.5.13/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.14.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.14/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
+
+### 전사·사냥꾼, 스승과 기술 · 0.5.14
+
+현재 개발 작업 트리: `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`, 브랜치 `codex/professions-and-skills`. 오래된 상위 checkout을 덮어쓰지 않고 별도로 작업합니다. 임시 경로의 자동 정리로 파일이 사라지는 문제를 막기 위해 영구 경로로 옮겼습니다.
+
+[Mac 성장 체험 실행](/Users/junheejang/Documents/Vestige/builds/Play-Professions.command). Windows는 최신 패키지 안의 **Play-Professions.cmd**를 실행합니다. `-- --professions-demo`는 기존 싱글과 분리된 `professions-demo.json`을 사용합니다.
+
+1. 시작 위치에서 **E → 전사 입문 과제 받기**. 대장간에서 철검을 제작해 착용하고 교관에게 철광석2개를 전달합니다.
+2. 대장간에서 **단궁 제작**(목재3·천2). **외형·장비 → 무기**에서 단궁을 직접 착용합니다. 재료는 장터에서도 구입할 수 있습니다.
+3. 마을 동쪽 사냥꾼 세린에게 입문 과제를 받고, 단궁을 착용한 채 약초2개를 전달합니다. 두 길은 같은 인물이 모두 배울 수 있습니다.
+4. **K**에서 배운 기술 두 개를 준비하고, 근교 늑대와 전투하며 **1 / 2**로 사용합니다. **SPACE**는 기본 공격입니다. 실제 명중마다 해당 길 경험치+5, 늑대 처치 보상 은화8입니다.
+
+| 기술 | 무기 | 기력 / 재사용 | 효과 |
+|---|---|---|---|
+| 강타 | 철검 | 24 / 4초 | 근접 피해 ×1.6 |
+| 방어 자세 | 철검 | 18 / 6초 | 2초간 물리 피해 절반 후 갑옷 방어 적용 |
+| 조준 사격 | 단궁 | 22 / 4초 | 7칸 사거리, 피해 ×1.5 |
+| 둔화 사격 | 단궁 | 18 / 5초 | 6칸 사거리, 적 이동속도 3초간 절반 |
+
+단궁 기본 사거리는6칸이며 건물에 가로막힌 적을 공격할 수 없습니다. 일반/양품/대성공 공격력14~18/18~20/21~23, 소지한도3, 명중 시 내구5 소모, 파손 시 공격력9입니다. 제작은 생활 공예 경험치14를 주며 숙련에 따른 품질 확률을 사용합니다. 제작자·내구도·보관·수리·거래/되사기·유품 이력이 유지됩니다. 현재 화살 탄약 소모와 단궁 강화는 없습니다.
+
+각 입문 과제는 은화4와 기술2개를 한 번만 줍니다. 전투 숙련 단계는0/100/400/1000이며 이번에는 단계 표시와 기록만 적용합니다. 숙련 수치에 따른 추가 전투 보너스·수명 연장·스승의 자율 생활·추가 적/의뢰는 후속입니다. 저장19는 기존1~18을 보존해 이관하며, 새 생애는 기술을 다시 배웁니다.
 
 ### 장비 거래·되사기·유료 수리 · 0.5.13
 
@@ -207,7 +229,7 @@ Mac은 빌드 폴더의 **Play-Witness.command**, Windows는 **Play-Witness.cmd*
 프로젝트 루트에서 다음 명령으로 독립 싱글 저장 `investigation-demo.json`을 열 수 있습니다. 일반 월드에서는 마을 서남쪽 언덕집 문 앞에서 E로 은화 8개에 집을 매입합니다. 이후 E를 누를 때마다 그때까지의 일지를 책장에 보관합니다.
 
 ```sh
-builds/Vestige-0.5.13.app/Contents/MacOS/Vestige -- --investigation-demo
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.14.app/Contents/MacOS/Vestige -- --investigation-demo
 ```
 
 Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 실행합니다. 체험 월드는 약초꾼 소율이 예배당으로 떠난 뒤 새 여행자가 도착한 상태에서 시작합니다.
@@ -259,7 +281,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-builds/Vestige-0.5.13.app/Contents/MacOS/Vestige --headless -- --server
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.14.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -295,7 +317,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py builds/Vestige-0.5.13.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.14.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

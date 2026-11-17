@@ -7,7 +7,7 @@ const Storage=preload("res://house_storage.gd")
 const Interior=preload("res://house_interior.gd")
 const RECIPES={
 	"bandage":{"name":"약초 붕대","cost":{"cloth":1,"herb":1},"result":"bandage","description":"체력 45 회복. 소지품에서 사용합니다."},
-	"repair_kit":{"name":"간이 수선 도구","cost":{"cloth":1,"bent_nail":2},"result":"repair_kit","description":"작업대에서 철검·갑옷 내구도를 40 복원합니다."},
+	"repair_kit":{"name":"간이 수선 도구","cost":{"cloth":1,"bent_nail":2},"result":"repair_kit","description":"작업대에서 무기·갑옷 내구도를 40 복원합니다."},
 	"mug":{"name":"찻잔 고치기","cost":{"broken_cup":1,"cloth":1},"result":"mug","description":"약초차를 만들 때 계속 사용하는 도구입니다."},
 	"herbal_tea":{"name":"약초차 달이기","cost":{"herb":1},"result":"herbal_tea","tool":"mug","fire":true,"description":"체력 20 · 기력 40 회복. 찻잔은 소비하지 않습니다."}}
 static func allowed(p: Dictionary) -> bool:
@@ -44,7 +44,7 @@ static func craft(w: Dictionary,p: Dictionary,id: String,automated: bool=false,s
 	return text
 static func repair(p: Dictionary,id: String,day: int=1) -> String:
 	if not allowed(p): return "집 작업대 가까이에서 수선하세요."
-	if p.gear_instances.get(id,"") not in ["iron_sword","leather","iron_armor"]: return "소지한 철검이나 갑옷 하나를 선택하세요."
+	if p.gear_instances.get(id,"") not in ["iron_sword","shortbow","leather","iron_armor"]: return "소지한 무기나 갑옷 하나를 선택하세요."
 	var condition: int=p.gear_condition[id]
 	if condition>=100: return "이미 온전한 장비입니다."
 	var kit:=Items.best(p,"repair_kit")

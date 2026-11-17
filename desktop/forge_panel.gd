@@ -1,6 +1,7 @@
 extends "res://crafting_panel.gd"
 const Repair=preload("res://forge_repair.gd")
 var repair_status: Label
+var bow_button: Button
 const U=preload("res://sword_upgrade.gd")
 const AU=preload("res://armor_upgrade.gd")
 const Q=preload("res://craft_quality.gd")
@@ -17,6 +18,7 @@ func _ready() -> void:
 	button("닫기 · ESC",Vector2(770,20),160,hide)
 	label("새 철검 제작 · 철광석 2개",Vector2(28,90),20)
 	craft_button=button("철검 1개 제작",Vector2(650,85),280,func(): action.emit("interact",""))
+	bow_button=button("단궁 제작 · 목재3 / 천2",Vector2(650,140),280,func(): action.emit("craft_bow",""))
 	condition=label("",Vector2(28,140),16)
 	label("강화 / 수리할 소지 장비",Vector2(28,205),20)
 	gear=OptionButton.new()
@@ -46,7 +48,7 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 		gear_stamp=stamp
 		gear.clear()
 		for id in p.gear_instances:
-			if p.gear_instances[id] not in ["iron_sword","leather","iron_armor"]: continue
+			if p.gear_instances[id] not in ["iron_sword","shortbow","leather","iron_armor"]: continue
 			gear.add_item(Items.definition(p,id).name)
 			gear.set_item_metadata(gear.item_count-1,id)
 		if not p.gear_instances.has(sword):
@@ -60,10 +62,16 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 	condition.text=M.progress(p,"smithing")+"\n"+M.rate_text(p,"smithing")
 	var near: bool=p.alive and not p.offline and p.get("room","village")=="village" and Vector2(p.x,p.y).distance_to(Vector2(5,7))<2
 	craft_button.disabled=not near or p.ore<2 or p.sword>=5
+	bow_button.disabled=not preload("res://professions.gd").bow_reason(p).is_empty()
+	bow_button.tooltip_text=preload("res://professions.gd").bow_reason(p)
 	var repair_why:=Repair.reason(p,sword)
 	repair_button.disabled=not repair_why.is_empty()
 	repair_status.text="수리 · 내구도 %d → 100 · 은화 %d / 보유 %d" % [p.gear_condition.get(sword,100),Repair.price(p,sword),p.gold]
 	if not repair_why.is_empty(): repair_status.text+="\n"+repair_why
+	if p.gear_instances.get(sword)=="shortbow":
+		upgrade_button.disabled=true
+		description.text="단궁 · 공격력 %d · 사거리 6칸\n내구도 %d / 100 · 수리 가능\n단궁 강화는 아직 지원하지 않습니다." % [Q.attack(p,sword),p.gear_condition[sword]]
+		return
 	if p.gear_instances.get(sword) in AU.Stats.KINDS:
 		refresh_armor(p)
 		return

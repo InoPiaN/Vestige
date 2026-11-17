@@ -4,7 +4,7 @@ const Storage=preload("res://house_storage.gd")
 const LOCATION=Vector2(14,14)
 const GEAR_FIELDS=["gear_instances","gear_condition","gear_quality","gear_records"]
 const DAY=2880.0
-const GOODS={"hide":{"price":3,"stock":10},"cloth":{"price":3,"stock":8},"bent_nail":{"price":2,"stock":12},"broken_cup":{"price":3,"stock":3},"herb":{"price":3,"stock":8},"ore":{"price":4,"stock":8}}
+const GOODS={"wood":{"price":2,"stock":10},"hide":{"price":3,"stock":10},"cloth":{"price":3,"stock":8},"bent_nail":{"price":2,"stock":12},"broken_cup":{"price":3,"stock":3},"herb":{"price":3,"stock":8},"ore":{"price":4,"stock":8}}
 const SELL={"cloth":1,"bent_nail":1,"broken_cup":1,"herb":1,"ore":2,"bandage":3,"repair_kit":4,"mug":3,"herbal_tea":2}
 static func prepare_person(p: Dictionary) -> void:
 	if not p.has("buyback"): p.buyback=Storage.empty()
@@ -42,14 +42,19 @@ static func prepare(w: Dictionary) -> void:
 	if w.market.stock.is_empty() or day>int(w.market.day):
 		w.market.day=day
 		for id in GOODS: w.market.stock[id]=GOODS[id].stock
-	if not w.market.stock.has("hide"): w.market.stock.hide=GOODS.hide.stock
+	for id in GOODS:
+		if not w.market.stock.has(id): w.market.stock[id]=GOODS[id].stock
 static func valid(w: Dictionary) -> bool:
 	var market=w.get("market")
 	if not market is Dictionary or not market.get("stock") is Dictionary: return false
 	var day=market.get("day")
 	if not (day is int or day is float) or not is_finite(day) or day<0 or day!=floor(day) or day>int(w.time/DAY): return false
-	if market.stock.size()!=(GOODS.size() if w.version>=15 or market.stock.has("hide") else GOODS.size()-1): return false
+	var missing:=0
+	if w.version<15 and not market.stock.has("hide"): missing+=1
+	if w.version<19 and not market.stock.has("wood"): missing+=1
+	if market.stock.size()!=GOODS.size()-missing: return false
 	for id in GOODS:
+		if id=="wood" and w.version<19 and not market.stock.has(id): continue
 		if id=="hide" and w.version<15 and not market.stock.has(id): continue
 		var n=market.stock.get(id)
 		if not (n is int or n is float) or not is_finite(n) or n<0 or n>GOODS[id].stock or n!=floor(n): return false
@@ -62,7 +67,7 @@ static func valid(w: Dictionary) -> bool:
 			for row in p.buyback_orders:
 				if not row is Dictionary or not row.get("id") is String or not row.get("token") is String: return false
 				if row.id in ids or row.token in tokens or not row.token.begins_with("sale-"): return false
-				if p.buyback.gear_instances.get(row.id) not in ["iron_sword","leather","iron_armor"]: return false
+				if p.buyback.gear_instances.get(row.id) not in ["iron_sword","shortbow","leather","iron_armor"]: return false
 				var coins=row.get("price")
 				if not (coins is int or coins is float) or not is_finite(float(coins)) or coins!=floor(coins) or coins<1 or coins>26: return false
 				ids.append(row.id)
@@ -72,10 +77,10 @@ static func allowed(p: Dictionary) -> bool:
 	return p.alive and not p.offline and p.get("room","village")=="village" and Vector2(p.x,p.y).distance_to(LOCATION)<2
 static func price(p: Dictionary,id: String) -> int:
 	var kind: String=p.get("gear_instances",{}).get(id,"")
-	if kind in ["iron_sword","leather","iron_armor"]:
+	if kind in ["iron_sword","shortbow","leather","iron_armor"]:
 		if kind!="iron_sword" and p.gear_records[id].maker.is_empty(): return 0
 		var q: Dictionary=p.gear_quality[id]
-		var prices: Dictionary={"iron_sword":{"common":4,"fine":5,"great":6},"leather":{"common":8,"fine":10,"great":12},"iron_armor":{"common":14,"fine":17,"great":20}}
+		var prices: Dictionary={"shortbow":{"common":5,"fine":6,"great":7},"iron_sword":{"common":4,"fine":5,"great":6},"leather":{"common":8,"fine":10,"great":12},"iron_armor":{"common":14,"fine":17,"great":20}}
 		var base: int=prices[kind][q.tier]+2*int(q.get("upgrade",0))
 		return maxi(1,int(base*float(p.gear_condition[id])/100.0))
 	var base:=Items.base_id(id)

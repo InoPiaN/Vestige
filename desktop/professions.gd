@@ -1,4 +1,5 @@
 extends RefCounted
+const Expedition=preload("res://expedition.gd")
 const Items=preload("res://items.gd")
 const Storage=preload("res://house_storage.gd")
 const Quality=preload("res://craft_quality.gd")
@@ -89,9 +90,11 @@ static func strike(w: Dictionary,p: Dictionary,id: String="") -> String:
 	var cost: int=SKILLS[id].cost if not id.is_empty() else 12
 	if p.attack>0 or p.stamina<cost: return "공격 준비 또는 기력이 부족합니다."
 	var reach:=7.0 if id=="aim" else (6.0 if kind=="shortbow" else 2.0)
-	var target:=Vector2(w.wolf.x,w.wolf.y)
+	var enemy_id:=Expedition.selected(w,p)
+	var enemy: Dictionary=Expedition.all(w).get(enemy_id,{"x":p.x,"y":p.y,"hp":0})
+	var target:=Vector2(enemy.x,enemy.y)
 	var origin:=Vector2(p.x,p.y)
-	var hit: bool=w.wolf.hp>0 and origin.distance_to(target)<reach and clear_line(origin,target)
+	var hit: bool=enemy.hp>0 and origin.distance_to(target)<reach and clear_line(origin,target)
 	if not id.is_empty() and id!="guard" and not hit: return "공격 가능한 거리와 시야에 적이 없습니다."
 	p.stamina-=cost
 	p.attack=0.7 if kind=="shortbow" else 0.5
@@ -105,8 +108,8 @@ static func strike(w: Dictionary,p: Dictionary,id: String="") -> String:
 	var damage: int=Quality.attack(p,weapon) if kind in ["iron_sword","shortbow"] and p.gear_condition.get(weapon,0)>0 else 9
 	if id=="heavy": damage=roundi(damage*1.6)
 	if id=="aim": damage=roundi(damage*1.5)
-	w.wolf.hp=maxi(0,int(w.wolf.hp)-damage)
-	if id=="slow": w.wolf.slow=3.0
+	enemy.hp=maxi(0,int(enemy.hp)-damage)
+	if id=="slow": enemy.slow=3.0
 	if kind in ["iron_sword","shortbow"]:
 		p.gear_condition[weapon]=maxi(0,int(p.gear_condition[weapon])-5)
 		var field: String="warrior" if kind=="iron_sword" else "hunter"
@@ -118,7 +121,8 @@ static func strike(w: Dictionary,p: Dictionary,id: String="") -> String:
 		p.shot_time=0.2
 		p.shot_x=target.x
 		p.shot_y=target.y
-	if w.wolf.hp==0:
+	if enemy.hp==0 and enemy_id!="wolf": return Expedition.defeated(w,p,enemy_id)
+	if enemy.hp==0:
 		w.wolf.respawn=w.time+2880.0
 		p.gold+=8
 		p.events.append("예배당의 길목에서 늑대를 물리쳤다.")

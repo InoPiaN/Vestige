@@ -17,6 +17,7 @@ const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
+const Expedition=preload("res://expedition.gd")
 const Professions=preload("res://professions.gd")
 const DAY := 2880.0
 const PLACES := [
@@ -44,6 +45,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 	return result
 
 static func outfit(p: Dictionary) -> void:
+	Expedition.person(p)
 	Professions.prepare(p)
 	Market.prepare_person(p)
 	Mastery.prepare(p)
@@ -64,8 +66,9 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":19,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
+	var w: Dictionary={"version":20,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
 
+	Expedition.prepare(w)
 	Investigation.prepare(w)
 	Storage.prepare(w)
 	Remains.prepare(w)
@@ -121,11 +124,13 @@ static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: V
 static func advance(w: Dictionary, seconds: float) -> void:
 	var old_day := int(w.time / DAY)
 	w.time += maxf(0, seconds)
+	Expedition.advance(w,maxf(0,seconds))
 	w.wolf.slow=maxf(0,w.wolf.get("slow",0.0)-maxf(0,seconds))
 	Market.prepare(w)
 	var days := int(w.time / DAY) - old_day
 	for id in w.people:
 		var p: Dictionary = w.people[id]
+		Expedition.person(p)
 		Professions.prepare(p)
 		Professions.tick(p,maxf(0,seconds))
 		if not p.alive:
@@ -264,6 +269,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 				p.steps+=v.distance_to(previous)*2.5
 				p.motion=0.12
 				p.direction=CharacterMotion.direction(v-previous)
+	Expedition.tick(w,dt,die)
 	var e: Dictionary=w.wolf
 	if e.hp<=0:
 		return
@@ -353,6 +359,9 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="cycle_target": return Expedition.cycle(w,p)
+	if kind=="expedition": return Expedition.quest(p,value)
+	if kind=="take_field_loot": return Expedition.collect(w,p)
 	if kind=="lesson": return Professions.lesson(p,value)
 	if kind=="skill_slot": return Professions.assign(p,value)
 	if kind=="craft_bow": return Professions.craft_bow(w,p)
@@ -477,7 +486,8 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=19
+	w.version=20
+	Expedition.prepare(w)
 	if not w.wolf.has("slow"): w.wolf.slow=0.0
 	Quality.prepare(w)
 	Market.prepare(w)

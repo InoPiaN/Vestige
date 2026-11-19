@@ -243,3 +243,27 @@ static func professions() -> Dictionary:
 	p.belongings.wood=3
 	p.belongings.cloth=2
 	return w
+
+static func expedition() -> Dictionary:
+	var w:=professions()
+	var p: Dictionary=w.people.local
+	p.x=5
+	p.y=8
+	Rules.act(w,"local","interact")
+	var sword: String=p.equipped_ids.weapon
+	Rules.act(w,"local","craft_bow")
+	p.x=8
+	p.y=7
+	Rules.act(w,"local","lesson","warrior")
+	Rules.act(w,"local","lesson","warrior")
+	p.x=16
+	p.y=8
+	for id in p.gear_instances:
+		if p.gear_instances[id]=="shortbow": Rules.act(w,"local","equip_weapon",id)
+	Rules.act(w,"local","lesson","hunter")
+	Rules.act(w,"local","lesson","hunter")
+	Rules.act(w,"local","equip_weapon",sword)
+	p.herb=8
+	p.x=8
+	p.y=7
+	return w

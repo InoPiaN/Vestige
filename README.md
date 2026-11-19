@@ -1,4 +1,4 @@
-# Vestige · 설치형 도트 시제품 0.5.14
+# Vestige · 설치형 도트 시제품 0.5.15
 
 ## 빌드 보관 원칙
 
@@ -6,15 +6,36 @@
 
 ## 바로 실행
 
-- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.14.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.14/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.15.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.15/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
 
+### 잿빛 숲 원정 · 0.5.15
+
+[Mac 원정 체험 실행](/Users/junheejang/Documents/Vestige/builds/Play-Expedition.command). Windows는 최신 패키지의 **Play-Expedition.cmd**, 직접 실행은 `-- --expedition-demo`입니다. 기존 저장과 분리된 `expedition-demo.json`을 사용하며, 두 성장 경로를 배운 인물과 철검·단궁·약초를 준비합니다. 의뢰는 직접 수락하세요.
+
+1. 교관 라온 근처에서 **E → 원정 의뢰 수락**. 사냥꾼 세린에게서도 두 번째 의뢰를 받을 수 있습니다. 일반 새 인물은 해당 스승의 입문 과제부터 완료합니다.
+2. **K**로 기술을 준비하고 **외형·장비**에서 무기를 고릅니다. 기존 마을 북동쪽 숲에는 들멧돼지, 남동쪽 숲에는 망령 궁수가 있습니다.
+3. **TAB**으로 근처 살아 있는 적을 전환합니다. 현재 대상은 원형 표시와 상단 이름/체력으로 확인합니다. **1 / 2**는 준비한 기술, **SPACE**는 기본 공격입니다.
+4. 들멧돼지의 돌진 예고선을 옆으로 피하고, 망령 궁수의 고정 조준선에서 벗어나거나 회피하세요. 체력·내구도가 부족하면 마을로 돌아와 회복/수리할 수 있습니다.
+5. 처치 현장에서 **R**로 전리품을 회수합니다. 스승에게 돌아가 **귀환 보고 / 보상**을 누릅니다.
+
+| 원정 | 적의 행동 | 현장 전리품 | 귀환 보상 |
+|---|---|---|---:|
+| 북쪽 숲길의 위협 | 체력95, 1초 예고 후 직선 돌진·피해24 | 가죽2, 엄니1 | 은화14 |
+| 남쪽 숲의 잿빛 화살 | 체력75, 1.2초 조준 후 사격·피해18, 가까우면 회복 중 후퇴 | 잿가루2 | 은화16 |
+
+엄니/잿가루는 각각3/2은화, 가죽은1은화에 장터 판매 가능합니다. 소지 한도를 넘는 전리품은 현장에 남고 재접속해도 보존됩니다. 회수한 물품은 기존 인벤토리·집 보관·사망 유품 규칙을 따릅니다. 의뢰 수락/처치/전리품/귀환 보고는 일기에 기록됩니다.
+
+의뢰는 인물 생애별1회이며 수락 후 직접 처치해야 진행됩니다. **공유 세계는 마지막 일격을 가한 인물만 의뢰 진척을 얻고, 전리품은 먼저 회수한 인물이 가져갑니다.** 파티 공동 진척/개인별 드롭은 후속입니다. 새 적은 처치 후 월드 하루(48분)가 지나면 다시 등장합니다. 이번 원정은 기존 지도에 배치한 고정 콘텐츠입니다. 5~10분은 초기 플레이 목표이며 실제 사용자 플레이 시간과 난이도 조정은 후속 검증이 필요합니다.
+
+저장20으로 기존1~19를 이관합니다. 현재 기능/검증과 남은 일은 [전체 점검표](docs/PROJECT_STATUS.md), 기술 인계는 [원정 인수인계](docs/handoffs/ashwood-expedition.md)를 참고하세요.
+
 ### 전사·사냥꾼, 스승과 기술 · 0.5.14
 
-현재 개발 작업 트리: `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`, 브랜치 `codex/professions-and-skills`. 오래된 상위 checkout을 덮어쓰지 않고 별도로 작업합니다. 임시 경로의 자동 정리로 파일이 사라지는 문제를 막기 위해 영구 경로로 옮겼습니다.
+현재 개발 작업 트리: `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`, 브랜치 `codex/ashwood-expedition`. 오래된 상위 checkout을 덮어쓰지 않고 별도로 작업합니다. 임시 경로의 자동 정리로 파일이 사라지는 문제를 막기 위해 영구 경로로 옮겼습니다.
 
 [Mac 성장 체험 실행](/Users/junheejang/Documents/Vestige/builds/Play-Professions.command). Windows는 최신 패키지 안의 **Play-Professions.cmd**를 실행합니다. `-- --professions-demo`는 기존 싱글과 분리된 `professions-demo.json`을 사용합니다.
 
@@ -229,7 +250,7 @@ Mac은 빌드 폴더의 **Play-Witness.command**, Windows는 **Play-Witness.cmd*
 프로젝트 루트에서 다음 명령으로 독립 싱글 저장 `investigation-demo.json`을 열 수 있습니다. 일반 월드에서는 마을 서남쪽 언덕집 문 앞에서 E로 은화 8개에 집을 매입합니다. 이후 E를 누를 때마다 그때까지의 일지를 책장에 보관합니다.
 
 ```sh
-/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.14.app/Contents/MacOS/Vestige -- --investigation-demo
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.15.app/Contents/MacOS/Vestige -- --investigation-demo
 ```
 
 Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 실행합니다. 체험 월드는 약초꾼 소율이 예배당으로 떠난 뒤 새 여행자가 도착한 상태에서 시작합니다.
@@ -281,7 +302,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.14.app/Contents/MacOS/Vestige --headless -- --server
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.15.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -317,7 +338,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.14.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.15.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

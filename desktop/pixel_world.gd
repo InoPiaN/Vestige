@@ -148,6 +148,7 @@ func _draw() -> void:
 	for x in range(284,450,25):
 		for y in range(38,290,37):
 			if abs(y-152)<30: continue
+			if Vector2(x,y).distance_to(Vector2(416,48))<36 or Vector2(x,y).distance_to(Vector2(432,256))<36: continue
 			if Vector2(x,y).distance_to(Vector2(336,80))<35: continue
 			if Vector2(x,y).distance_to(Vector2(352,224))<30: continue
 			if Vector2(x,y).distance_to(Vector2(432,144))<48: continue
@@ -224,6 +225,7 @@ func _draw() -> void:
 		box(x-14,y-6,5,3,"95968b")
 		box(x-12,y-19,25,2,"382b28")
 		box(x-12,y-19,maxf(0,e.hp/2.0),2,"bf735a")
+	preload("res://expedition_art.gd").draw(self,world,world.people.get(player_id,{}))
 	for id in world.people:
 		var p: Dictionary=world.people[id]
 		if not Rules.Interior.inside(p): hero(p.x*16,p.y*16,p,id!=player_id)

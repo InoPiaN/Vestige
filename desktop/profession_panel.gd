@@ -1,4 +1,5 @@
 extends Panel
+const E=preload("res://expedition.gd")
 const P=preload("res://professions.gd")
 signal action(kind: String,value: String)
 var field:="warrior"
@@ -6,6 +7,8 @@ var person: Dictionary={}
 var selector: OptionButton
 var details: Label
 var lesson_button: Button
+var quest_button: Button
+var quest_status: Label
 var feedback: Label
 var slots: Array[OptionButton]=[]
 var stamp:=""
@@ -46,6 +49,14 @@ func _ready() -> void:
 	lesson_button.size=Vector2(340,40)
 	lesson_button.pressed.connect(func(): action.emit("lesson",field))
 	add_child(lesson_button)
+	quest_button=Button.new()
+	quest_button.position=Vector2(680,280)
+	quest_button.size=Vector2(250,38)
+	quest_button.pressed.connect(func(): action.emit("expedition",field))
+	add_child(quest_button)
+	quest_status=label("",Vector2(28,280),16)
+	quest_status.size=Vector2(635,50)
+	quest_status.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	label("전투에 준비할 기술 · 1 / 2 키로 사용",Vector2(28,335),20)
 	for i in range(2):
 		var slot:=OptionButton.new()
@@ -54,7 +65,7 @@ func _ready() -> void:
 		slot.item_selected.connect(func(n): action.emit("skill_slot",str(i)+"|"+str(slot.get_item_metadata(n))))
 		add_child(slot)
 		slots.append(slot)
-	label("각 기술에는 맞는 무기가 필요합니다. 기력과 재사용 시간은 화면 위에 표시됩니다.\n두 길을 함께 배울 수 있습니다. 실제 명중으로 해당 길의 숙련을 쌓습니다.",Vector2(28,445),17)
+	label("각 기술에는 맞는 무기가 필요합니다. 기력과 재사용 시간은 화면 위에 표시됩니다.\n두 길을 함께 배울 수 있습니다. 실제 명중으로 해당 길의 숙련을 쌓습니다.\n공유 세계: 처치자만 의뢰 진척 · 전리품은 먼저 회수한 인물에게.",Vector2(28,445),17)
 	feedback=label("",Vector2(28,515),17)
 	feedback.size=Vector2(900,75)
 	feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
@@ -75,6 +86,10 @@ func refresh(p: Dictionary) -> void:
 		var skill: Dictionary=P.SKILLS[id]
 		if skill.field==field: lines.append("%s · 기력 %d / 재사용 %d초 · %s" % [skill.name,skill.cost,skill.cooldown,skill.description])
 	details.text="\n".join(lines)
+	var state: String=p.expeditions[field]
+	quest_status.text=E.QUESTS[field].name+" · "+{"new":"미수락","active":"처치 0/1","ready":"처치 1/1 · 스승에게 보고","done":"보상 수령 완료"}[state]+"\n"+("북동쪽 숲 · 들멧돼지" if field=="warrior" else "남동쪽 숲 · 망령 궁수")+" · 보고 보상 %d은화" % E.QUESTS[field].reward
+	quest_button.text={"new":"원정 의뢰 수락","active":"목표 다시 듣기","ready":"귀환 보고 / 보상","done":"의뢰 완료"}[state]
+	quest_button.disabled=not P.near(p,field) or row.state!="learned" or state=="done"
 	var next:=JSON.stringify([p.professions,p.skill_slots,p.alive,p.offline])
 	if next==stamp: return
 	stamp=next

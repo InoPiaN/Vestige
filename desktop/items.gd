@@ -1,6 +1,8 @@
 extends RefCounted
 # Existing resource counters remain the single source of truth for old saves.
 const BASE_CATALOG := {
+	"boar_tusk":{"name":"잿빛 멧돼지 엄니","category":"재료","limit":20,"color":"d4c39b","description":"북쪽 숲 들멧돼지의 전리품. 장터 판매가 3은화."},
+	"spectral_ash":{"name":"망령의 잿가루","category":"재료","limit":20,"color":"8bb7bd","description":"망령 궁수의 전리품. 장터 판매가 2은화."},
 	"wood":{"name":"활 제작용 목재","category":"재료","limit":20,"color":"ac8957","description":"단궁 제작 재료. 장터에서 구입합니다."},
 	"shortbow":{"name":"단궁","category":"장비","limit":3,"slot":"weapon","color":"c3a574","description":"6칸 원거리 무기. 목재 3개와 천 2개로 대장간에서 제작합니다."},
 	"bandage":{"name":"약초 붕대","category":"소모품","limit":10,"color":"c7c5a1","description":"체력 45 회복. 천 1개와 약초 1개로 제작합니다."},

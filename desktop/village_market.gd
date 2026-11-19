@@ -5,7 +5,7 @@ const LOCATION=Vector2(14,14)
 const GEAR_FIELDS=["gear_instances","gear_condition","gear_quality","gear_records"]
 const DAY=2880.0
 const GOODS={"wood":{"price":2,"stock":10},"hide":{"price":3,"stock":10},"cloth":{"price":3,"stock":8},"bent_nail":{"price":2,"stock":12},"broken_cup":{"price":3,"stock":3},"herb":{"price":3,"stock":8},"ore":{"price":4,"stock":8}}
-const SELL={"cloth":1,"bent_nail":1,"broken_cup":1,"herb":1,"ore":2,"bandage":3,"repair_kit":4,"mug":3,"herbal_tea":2}
+const SELL={"hide":1,"boar_tusk":3,"spectral_ash":2,"cloth":1,"bent_nail":1,"broken_cup":1,"herb":1,"ore":2,"bandage":3,"repair_kit":4,"mug":3,"herbal_tea":2}
 static func prepare_person(p: Dictionary) -> void:
 	if not p.has("buyback"): p.buyback=Storage.empty()
 	if not p.has("buyback_orders"): p.buyback_orders=[]

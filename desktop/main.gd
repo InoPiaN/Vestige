@@ -17,6 +17,7 @@ var inventory: Label
 var market: Panel
 var professions: Panel
 var skills_hud: Label
+var target_hud: Label
 var planner: Panel
 var armor_bench: Panel
 var body_stamp:=""
@@ -58,7 +59,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"expedition":"expedition","professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -66,6 +67,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"expedition": opening=demo.expedition()
 				"professions": opening=demo.professions()
 				"trade": opening=demo.trade_repair()
 				"armor-upgrade": opening=demo.armor_upgrade()
@@ -89,7 +91,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="professions": message("E로 스승에게 입문 과제를 받으세요. K에서 성장 경로와 준비할 기술을 확인하고, 전투에서 1 / 2로 사용합니다.")
+			if kind=="expedition": message("E로 스승에게 원정 의뢰를 받으세요. TAB 대상 전환 · R 전리품 회수 · K 기술 준비. 북동쪽 들멧돼지, 남동쪽 망령 궁수 처치 후 귀환 보고하세요.")
+			elif kind=="professions": message("E로 스승에게 입문 과제를 받으세요. K에서 성장 경로와 준비할 기술을 확인하고, 전투에서 1 / 2로 사용합니다.")
 			elif kind=="trade": message("E로 대장간에서 손상된 갑옷을 수리하세요. 장터에서는 착용을 해제한 장비를 판매하고 되사기에서 같은 장비를 회수할 수 있습니다.")
 			elif kind=="armor-upgrade": message("E로 대장간을 열고 개별 갑옷을 선택해 강화하세요. 외형·장비에서 착용하면 단계별 빛과 방어 효과를 확인할 수 있습니다.")
 			elif kind=="queue": message("부재 중의 하루 → 제작 계획 설정. 붕대·철제 갑옷·가죽 갑옷 순서를 조정하고 생활 맡기기 후 하루 진행으로 확인하세요.")
@@ -335,6 +338,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible: return
 	match event.physical_keycode:
+		KEY_R: perform("take_field_loot")
 		KEY_1: perform("use_skill","0")
 		KEY_2: perform("use_skill","1")
 		KEY_E: interact()
@@ -410,7 +414,7 @@ func build_ui() -> void:
 	label_at(menu,"V E S T I G E",Vector2(90,100),64,Color("e1d1a3"))
 	label_at(menu,"잿불의 기록",Vector2(95,183),24)
 	label_at(menu,"당신이 떠난 뒤에도,\n이곳의 삶은 계속된다.",Vector2(95,260),30)
-	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.14 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
+	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.15 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
 	input_name=LineEdit.new()
 	input_name.text="에단"
 	input_name.max_length=20
@@ -444,6 +448,7 @@ func build_ui() -> void:
 	ui.hide()
 	label_at(ui,"V E S T I G E",Vector2(24,17),27,Color("dccb9b"))
 	skills_hud=label_at(ui,"",Vector2(24,54),15)
+	target_hud=label_at(ui,"",Vector2(760,54),14)
 	date_label=label_at(ui,"",Vector2(600,24),16)
 	var container:=SubViewportContainer.new()
 	container.position=Vector2(16,80)
@@ -564,6 +569,8 @@ func refresh() -> void:
 		var state: String="%.1f초" % p.skill_cooldowns[id] if p.skill_cooldowns[id]>0 else ("준비" if p.equipment.weapon==Rules.Professions.Mentors[skill.field].weapon else "무기 필요")
 		skill_text.append("[%d] %s · 기력%d · %s" % [i+1,skill.name,skill.cost,state])
 	skills_hud.text="    |    ".join(skill_text)
+	var target:=Rules.Expedition.selected(world,p)
+	target_hud.text="TAB · 대상 없음" if target.is_empty() else "TAB · %s · 체력 %d" % [Rules.Expedition.title(target),Rules.Expedition.all(world)[target].hp]
 	if bag.visible: bag.refresh(p)
 	if chest.visible: chest.refresh(world,p)
 	if planner.visible: planner.refresh(world,p)
@@ -585,6 +592,7 @@ func refresh() -> void:
 	var t:=Rules.nearby(p)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
+	if not Rules.Expedition.nearby_loot(world,p).is_empty(): prompt.text="R · 현장 전리품 회수 (소지 한도 초과분은 현장 보존)"
 	if t.get("kind")=="forge": prompt.text="E · 대장간 제작 / 강화 · "+Rules.Mastery.progress(p,"smithing")+"  |  "+Rules.Mastery.rate_text(p,"smithing")+" · 완성 경험치 +%d" % Rules.Mastery.gain(p,"iron_sword")
 	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 들어가기   B · 보관함"
 	if t.get("kind") in ["home","grave"] or not Rules.Investigation.traces(world,p).is_empty():
@@ -952,3 +960,11 @@ func open_professions(field: String="") -> void:
 	professions.feedback.text=""
 	professions.refresh(world.people[me])
 	professions.show()
+
+func _input(event: InputEvent) -> void:
+	if mode not in ["single","client"] or not event is InputEventKey or not event.pressed or event.echo: return
+	if event.physical_keycode!=KEY_TAB: return
+	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions]:
+		if modal.visible: return
+	perform("cycle_target")
+	get_viewport().set_input_as_handled()

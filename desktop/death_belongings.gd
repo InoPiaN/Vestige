@@ -69,7 +69,7 @@ static func valid(w: Dictionary) -> bool:
 	for id in w.remains:
 		var row=w.remains[id]
 		if not id is String or id.is_empty() or not row is Dictionary: return false
-		if row.get("room","village") not in ["home","village"]: return false
+		if row.get("room","village") not in ["home","village","road","harbor"]: return false
 		if not row.get("name") is String or not row.get("contents") is Dictionary: return false
 		for key in ["x","y","day"]:
 			if not (row.get(key) is int or row.get(key) is float) or not is_finite(float(row[key])): return false

@@ -138,6 +138,9 @@ func _draw() -> void:
 	if world.get("people",{}).has(player_id) and Rules.Interior.inside(world.people[player_id]):
 		draw_interior()
 		return
+	if world.get("people",{}).has(player_id) and Rules.Travel.region(world.people[player_id])!="village":
+		draw_travel()
+		return
 	draw_texture(terrain,Vector2.ZERO)
 	for x in range(0,480,18):
 		tree(x,17,x%2)
@@ -192,6 +195,11 @@ func _draw() -> void:
 		if not world.is_empty() and world.people.has(player_id):
 			if Rules.pos(world.people[player_id]).distance_to(Rules.pos(t))<2:
 				draw_rect(Rect2(x-14,y+18,28,1),Color("e7c980"))
+	for place in Rules.Travel.PLACES.village:
+		if place.kind=="mail": hero(place.x*16,place.y*16,{"look":{"hair":1,"hair_color":2,"cloth":3},"equipment":{"cloak":"traveler"}})
+		else:
+			box(place.x*16-4,place.y*16-8,8,3,"d3bb80")
+			box(place.x*16,place.y*16-6,2,12,"806441")
 	# A well, market crates and two residents make the village readable.
 	box(111,170,20,12,"737967")
 	box(114,168,14,7,"252f2a")
@@ -228,7 +236,7 @@ func _draw() -> void:
 	preload("res://expedition_art.gd").draw(self,world,world.people.get(player_id,{}))
 	for id in world.people:
 		var p: Dictionary=world.people[id]
-		if not Rules.Interior.inside(p): hero(p.x*16,p.y*16,p,id!=player_id)
+		if p.get("room","village")=="village": hero(p.x*16,p.y*16,p,id!=player_id)
 	# Subtle night tint; never hides gameplay silhouettes.
 	var night: float=(sin(float(world.time)/Rules.DAY*TAU)+1)*0.5
 	draw_rect(Rect2(0,0,480,320),Color(0.025,0.05,0.12,night*0.12))
@@ -333,3 +341,42 @@ func draw_interior() -> void:
 		var p: Dictionary=world.people[id]
 		hero(p.x*16,p.y*16,p,id!=player_id)
 	if state.get("curtain",false): draw_rect(Rect2(80,64,320,208),Color(0.02,0.03,0.06,0.13))
+
+func draw_travel() -> void:
+	var p: Dictionary=world.people[player_id]
+	var region:=Rules.Travel.region(p)
+	box(0,0,480,320,"2b3c35")
+	if region=="road":
+		box(0,96,480,100,"555443")
+		for x in range(12,480,24):
+			tree(x,50,x%2)
+			tree(x+6,270,x%2)
+			box(x,143+(x%7),5,2,"8b8463")
+		for i in range(5):
+			box(0,65+i*43,480,9,"a4bdb008")
+		lamp(240,130)
+		box(225,140,26,8,"656655")
+	else:
+		box(365,0,115,320,"294752")
+		for y in range(12,310,19):
+			for x in range(373,475,27): box(x,y,14,1,"6e939765")
+		box(20,140,350,26,"625a45")
+		box(370,190,110,72,"6b5b43")
+		for x in range(374,480,8): box(x,191,1,70,"a28b66")
+		for y in [191,258]: box(369,y,110,3,"c0a87b")
+		house(144,64,"inn")
+		house(288,128,"library")
+		for x in [40,200,340]:
+			tree(x,35)
+			lamp(x,177)
+		for place in Rules.Travel.PLACES.harbor:
+			if place.kind in ["mail","harbor_shop"]:
+				hero(place.x*16,place.y*16,{"look":{"hair":1 if place.kind=="harbor_shop" else 0,"cloth":2,"hair_color":3},"equipment":{"cloak":"traveler"}})
+	for place in Rules.Travel.PLACES[region]:
+		if place.kind in ["gate","coach"]:
+			box(place.x*16-4,place.y*16-12,8,4,"d3bb80")
+			box(place.x*16,place.y*16-8,2,12,"806441")
+	for trace in Rules.Investigation.traces(world,p): box(trace.x*16-3,trace.y*16+4,7,3,"cfb985")
+	for id in world.people:
+		var other: Dictionary=world.people[id]
+		if other.get("room","village")==region: hero(other.x*16,other.y*16,other,id!=player_id)

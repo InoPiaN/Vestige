@@ -1,3 +1,5 @@
+> 최신 작업 (2026-11-19): **0.5.16 안개나루 여행** 완료. 브랜치 `codex/mist-harbor-travel`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [여행 인수인계](handoffs/mist-harbor-travel.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
+
 > 최신 작업 (2026-11-19): **0.5.15 잿빛 숲 원정** 완료. 현재 브랜치 `codex/ashwood-expedition`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [원정 인수인계](handoffs/ashwood-expedition.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
 
 > 최신 작업 (2026-11-17): **0.5.14 전사·사냥꾼 / 스승 / 단궁 / 기술** 완료. 현재 작업 트리는 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`, 브랜치 `codex/professions-and-skills`. 임시 경로에서 영구 경로로 이동했습니다. [최신 인수인계](handoffs/professions-and-skills.md)와 [전체 기능 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래 경로/버전은 과거 기록입니다.

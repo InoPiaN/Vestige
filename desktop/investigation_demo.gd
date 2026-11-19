@@ -267,3 +267,13 @@ static func expedition() -> Dictionary:
 	p.x=8
 	p.y=7
 	return w
+
+static func travel() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","안개길 여행자")
+	var p: Dictionary=w.people.local
+	p.x=3
+	p.y=9
+	p.gold=25
+	p.herb=3
+	return w

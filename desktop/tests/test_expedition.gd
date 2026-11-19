@@ -170,7 +170,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(old))
 	file.close()
 	loaded=R.load_world(path+".old",false)
-	check(not loaded.is_empty() and loaded.version==20 and loaded.people.local.expeditions.warrior=="new" and loaded.enemies.size()==2,"Version nineteen migrates without invented quest progress")
+	check(not loaded.is_empty() and loaded.version==21 and loaded.people.local.expeditions.warrior=="new" and loaded.enemies.size()==2,"Version nineteen migrates without invented quest progress")
 	for name in [path,path+".old"]:
 		for suffix in ["",".bak"]: DirAccess.remove_absolute(name+suffix)
 	quit(1 if failures else 0)

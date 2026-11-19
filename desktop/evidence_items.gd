@@ -37,6 +37,7 @@ static func collect(w: Dictionary,p: Dictionary) -> String:
 	sync(w)
 	return "\n".join(lines)
 static func deposit(w: Dictionary,p: Dictionary,item: String) -> String:
+	if p.get("room","village") not in ["village","home"]: return "잿불 마을의 집에서 보관하세요."
 	var id:=item.trim_prefix("evidence:")
 	if not item.begins_with("evidence:") or not w.cases.has(id): return "보관할 증거물이 없습니다."
 	var c: Dictionary=w.cases[id]
@@ -61,7 +62,7 @@ static func valid(w: Dictionary) -> bool:
 			continue
 		var obj=c.object
 		if not c.get("trace_mark") is String or not obj is Dictionary: return false
-		if obj.get("room","village") not in ["home","village"]: return false
+		if obj.get("room","village") not in ["home","village","road","harbor"]: return false
 		if not obj.get("place") in ["ground","house","carried"] or not obj.get("holder") is String: return false
 		for key in ["x","y"]:
 			if not (obj.get(key) is float or obj.get(key) is int) or not is_finite(float(obj[key])): return false

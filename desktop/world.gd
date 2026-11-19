@@ -17,6 +17,7 @@ const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
+const Travel=preload("res://travel.gd")
 const Expedition=preload("res://expedition.gd")
 const Professions=preload("res://professions.gd")
 const DAY := 2880.0
@@ -45,6 +46,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 	return result
 
 static func outfit(p: Dictionary) -> void:
+	Travel.prepare_person(p)
 	Expedition.person(p)
 	Professions.prepare(p)
 	Market.prepare_person(p)
@@ -66,8 +68,9 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":20,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
+	var w: Dictionary={"version":21,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
 
+	Travel.prepare(w)
 	Expedition.prepare(w)
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -75,6 +78,7 @@ static func fresh() -> Dictionary:
 	Interior.prepare(w)
 	Quality.prepare(w)
 	Market.prepare(w)
+	Travel.prepare(w)
 	return w
 
 static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) -> void:
@@ -95,7 +99,7 @@ static func die(w: Dictionary, id: String, cause: String, day: int=0) -> void:
 	p.offline=true
 	p.hp=0
 	Remains.leave(w,p,day if day>0 else int(w.time/DAY)+1)
-	w.graves.append({"name":p.name,"cause":cause,"day":day if day>0 else int(w.time/DAY)+1,"x":p.x,"y":p.y})
+	w.graves.append({"name":p.name,"cause":cause,"day":day if day>0 else int(w.time/DAY)+1,"x":p.x,"y":p.y,"room":p.get("room","village")})
 	w.books.append({"author":p.name,"pages":p.journal.duplicate(true),"last":" ".join(p.events)})
 	Investigation.Objects.drop(w,p)
 	Investigation.record_death(w,p,w.graves.back(),w.books.back())
@@ -106,7 +110,7 @@ static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: V
 	if not w.people.has(id) or damage<=0: return false
 	var victim: Dictionary=w.people[id]
 	if not victim.alive or w.estate.owner!=victim.life: return false
-	if Interior.inside(victim): return false
+	if victim.get("room","village")!="village": return false
 	if pos(victim).distance_to(pos(attacker))>Investigation.Witness.REACH: return false
 	Armor.hit(victim,damage)
 	victim.hurt=0.22
@@ -127,6 +131,7 @@ static func advance(w: Dictionary, seconds: float) -> void:
 	Expedition.advance(w,maxf(0,seconds))
 	w.wolf.slow=maxf(0,w.wolf.get("slow",0.0)-maxf(0,seconds))
 	Market.prepare(w)
+	Travel.prepare(w)
 	var days := int(w.time / DAY) - old_day
 	for id in w.people:
 		var p: Dictionary = w.people[id]
@@ -138,7 +143,10 @@ static func advance(w: Dictionary, seconds: float) -> void:
 		var count := mini(days, int(p.limit-p.age))
 		for i in range(count):
 			if p.offline:
-				if p.hp < 40 or p.policy == "rest":
+				if Travel.region(p)!="village":
+					p.hp=mini(100,p.hp+25)
+					p.events.append(Travel.NAMES[Travel.region(p)]+"에서 여행을 쉬며 몸을 추슬렀다.")
+				elif p.hp < 40 or p.policy == "rest":
 					if p.policy=="plan":
 						Plan.recovery(p)
 						p.events.append("부재 제작 · 몸 상태가 나빠 회복을 먼저 했다.")
@@ -218,10 +226,10 @@ static func move(w: Dictionary, id: String, direction: Vector2, dt: float) -> vo
 	var d:=direction.limit_length()*dt*(5.8 if p.dodge>0 else 3.2)
 	var old:=pos(p)
 	var next:=old+Vector2(d.x,0)
-	if (Interior.walkable(next) if Interior.inside(p) else walkable(next)):
+	if (Interior.walkable(next) if Interior.inside(p) else (walkable(next) if Travel.region(p)=="village" else Travel.walkable(p,next))):
 		p.x=next.x
 	next=pos(p)+Vector2(0,d.y)
-	if (Interior.walkable(next) if Interior.inside(p) else walkable(next)):
+	if (Interior.walkable(next) if Interior.inside(p) else (walkable(next) if Travel.region(p)=="village" else Travel.walkable(p,next))):
 		p.y=next.y
 	if d.length()>0:
 		p.direction=CharacterMotion.direction(d)
@@ -239,6 +247,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 		p.dodge=maxf(0,p.dodge-dt)
 		p.stamina=minf(100,p.stamina+dt*16)
 		if p.alive and p.offline:
+			if Travel.region(p)!="village": continue
 			if p.policy=="plan" and not p.craft_plan.is_empty() and Plan.next_recipe(w,p) not in Plan.FORGE and not Plan.next_recipe(w,p).is_empty() and w.estate.owner==p.life:
 				if Interior.inside(p):
 					var next:=pos(p).move_toward(Vector2(15,12),dt*1.1)
@@ -279,7 +288,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 	for id in w.people:
 		var p: Dictionary=w.people[id]
 		var dist:=pos(e).distance_to(pos(p))
-		if p.alive and not Interior.inside(p) and p.x>18 and dist<nearest:
+		if p.alive and p.get("room","village")=="village" and p.x>18 and dist<nearest:
 			nearest=dist
 			target_id=id
 	if target_id.is_empty():
@@ -302,6 +311,9 @@ static func tick(w: Dictionary, dt: float) -> void:
 		e.y=v.y
 
 static func nearby(p: Dictionary) -> Dictionary:
+	var travel:=Travel.nearby(p)
+	if not travel.is_empty(): return travel
+	if Travel.region(p)!="village": return {}
 	for t in PLACES:
 		if pos(p).distance_to(pos(t))<2.0:
 			return t
@@ -359,6 +371,12 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="coach": return Travel.coach(p)
+	if kind=="harbor_buy": return Travel.buy(w,p,value)
+	if kind=="interact":
+		var place:=Travel.nearby(p)
+		if not place.is_empty(): return Travel.interact(w,p,place)
+	if Travel.region(p)!="village" and kind in ["enter_home","identify","store_item","take_item","store_evidence"]: return "잿불 마을의 해당 시설에서 이용하세요."
 	if kind=="cycle_target": return Expedition.cycle(w,p)
 	if kind=="expedition": return Expedition.quest(p,value)
 	if kind=="take_field_loot": return Expedition.collect(w,p)
@@ -412,6 +430,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		return "달빛 약초로 체력 30을 회복했습니다."
 	if kind=="attack": return Professions.strike(w,p)
 	if kind!="interact": return ""
+	if Travel.region(p)!="village": return "시설이나 출구 가까이에서 E를 누르세요."
 	var t:=nearby(p)
 	if t.is_empty(): return "시설이나 자원 가까이에서 E를 누르세요."
 	match t.kind:
@@ -468,6 +487,7 @@ static func checkpoint(w: Dictionary, path: String, now: float, previous: Dictio
 	Interior.prepare(w)
 	Quality.prepare(w)
 	Market.prepare(w)
+	Travel.prepare(w)
 	var snapshot:=w.duplicate(false)
 	snapshot.saved=maxf(w.saved,now)
 	if not Store.replace(snapshot,path,previous):
@@ -486,11 +506,13 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=20
+	w.version=21
+	Travel.prepare(w)
 	Expedition.prepare(w)
 	if not w.wolf.has("slow"): w.wolf.slow=0.0
 	Quality.prepare(w)
 	Market.prepare(w)
+	Travel.prepare(w)
 	Interior.prepare(w)
 	Remains.prepare(w)
 	for p in w.people.values():

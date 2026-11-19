@@ -18,6 +18,7 @@ var market: Panel
 var professions: Panel
 var skills_hud: Label
 var target_hud: Label
+var travel: Panel
 var planner: Panel
 var armor_bench: Panel
 var body_stamp:=""
@@ -59,7 +60,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"expedition":"expedition","professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"travel":"travel","expedition":"expedition","professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -67,6 +68,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"travel": opening=demo.travel()
 				"expedition": opening=demo.expedition()
 				"professions": opening=demo.professions()
 				"trade": opening=demo.trade_repair()
@@ -91,7 +93,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="expedition": message("E로 스승에게 원정 의뢰를 받으세요. TAB 대상 전환 · R 전리품 회수 · K 기술 준비. 북동쪽 들멧돼지, 남동쪽 망령 궁수 처치 후 귀환 보고하세요.")
+			if kind=="travel": message("E로 전령 유나에게 서신을 받고 동쪽 출구로 향하세요. M 지역 지도 · 출구 E 이동 · 안개나루 도윤에게 전달 후 귀환.")
+			elif kind=="expedition": message("E로 스승에게 원정 의뢰를 받으세요. TAB 대상 전환 · R 전리품 회수 · K 기술 준비. 북동쪽 들멧돼지, 남동쪽 망령 궁수 처치 후 귀환 보고하세요.")
 			elif kind=="professions": message("E로 스승에게 입문 과제를 받으세요. K에서 성장 경로와 준비할 기술을 확인하고, 전투에서 1 / 2로 사용합니다.")
 			elif kind=="trade": message("E로 대장간에서 손상된 갑옷을 수리하세요. 장터에서는 착용을 해제한 장비를 판매하고 되사기에서 같은 장비를 회수할 수 있습니다.")
 			elif kind=="armor-upgrade": message("E로 대장간을 열고 개별 갑옷을 선택해 강화하세요. 외형·장비에서 착용하면 단계별 빛과 방어 효과를 확인할 수 있습니다.")
@@ -273,14 +276,14 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible and not travel.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -310,12 +313,17 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		dressing.hide()
 		bag.hide()
 		chest.hide()
+		travel.hide()
 		professions.hide()
 		armor_bench.hide()
 		forge.hide()
 		market.hide()
 		planner.hide()
 		bench.hide()
+		return
+	if event.physical_keycode==KEY_M:
+		if travel.visible: travel.hide()
+		else: open_travel()
 		return
 	if event.physical_keycode==KEY_K:
 		if professions.visible: professions.hide()
@@ -336,7 +344,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible: return
+	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible: return
 	match event.physical_keycode:
 		KEY_R: perform("take_field_loot")
 		KEY_1: perform("use_skill","0")
@@ -414,7 +422,7 @@ func build_ui() -> void:
 	label_at(menu,"V E S T I G E",Vector2(90,100),64,Color("e1d1a3"))
 	label_at(menu,"잿불의 기록",Vector2(95,183),24)
 	label_at(menu,"당신이 떠난 뒤에도,\n이곳의 삶은 계속된다.",Vector2(95,260),30)
-	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.15 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
+	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.16 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
 	input_name=LineEdit.new()
 	input_name.text="에단"
 	input_name.max_length=20
@@ -500,7 +508,7 @@ func build_ui() -> void:
 			message("하루가 흘렀습니다. J로 일기를 확인하세요.")
 			refresh())
 	new_button=button_at(ui,"새로운 삶 시작",Vector2(1000,606),250,func(): open_dressing("new"))
-	label_at(ui,"WASD  이동   E  상호작용\nSPACE  공격   SHIFT  회피\nQ  약초 사용   J  일기",Vector2(1000,670),14,Color("8fa394"))
+	label_at(ui,"WASD  이동   E  상호작용\nSPACE  공격   SHIFT  회피\nQ  약초 사용   J  일기   M  지도",Vector2(1000,670),14,Color("8fa394"))
 	prompt=label_at(ui,"",Vector2(30,730),16,Color("dfcd97"))
 	notice=label_at(ui,"",Vector2(30,762),14)
 	panel=PanelContainer.new()
@@ -524,6 +532,9 @@ func build_ui() -> void:
 	panel_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	column.add_child(panel_text)
 	panel.hide()
+	travel=preload("res://travel_panel.gd").new()
+	root.add_child(travel)
+	travel.action.connect(perform)
 	professions=preload("res://profession_panel.gd").new()
 	root.add_child(professions)
 	professions.action.connect(perform)
@@ -560,6 +571,7 @@ func refresh() -> void:
 			if slot not in ["weapon","body"]: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
 		refresh_weapon_picker(p)
 		refresh_body_picker(p)
+	if travel.visible: travel.refresh(world,p)
 	if professions.visible: professions.refresh(p)
 	var skill_text: Array[String]=["K · 성장과 기술"]
 	for i in range(2):
@@ -585,7 +597,7 @@ func refresh() -> void:
 	health.value=p.hp
 	stamina.value=p.stamina
 	inventory.text="체력 %d / 100\n철광석     %d\n달빛 약초  %d\n철검       %d\n유물       %d\n은화       %d   ·   기초 숙련 %d" % [p.hp,p.ore,p.herb,p.sword,p.relic,p.gold,p.skill]
-	date_label.text="잿불 마을   /   제 %d일   /   %s" % [int(world.time/Rules.DAY)+1,"나만의 세계" if mode=="single" else "공유 세계"]
+	date_label.text=Rules.Travel.NAMES[Rules.Travel.region(p)]+"   /   제 %d일   /   %s" % [int(world.time/Rules.DAY)+1,"나만의 세계" if mode=="single" else "공유 세계"]
 	policy.select(["rest","work","gather","train","plan"].find(p.policy))
 	day_button.visible=mode=="single"
 	new_button.visible=not p.alive
@@ -618,6 +630,7 @@ func style_meter(bar: ProgressBar, color: Color) -> void:
 func message(text: String) -> void:
 	if text.is_empty(): return
 	if text.begins_with("조사 기록\n"): show_pages(text)
+	elif text in ["지역 지도","나루 물자"]: open_travel()
 	elif text=="방어구 제작": open_armor()
 	elif text=="장터": open_market()
 	elif text=="작업대": open_crafting()
@@ -632,10 +645,12 @@ func message(text: String) -> void:
 		if planner.visible: planner.feedback.text=text
 		if market.visible: market.feedback.text=text
 		if armor_bench.visible: armor_bench.feedback.text=text
+		if travel.visible: travel.feedback.text=text
 		if professions.visible: professions.feedback.text=text
 		if forge.visible: forge.feedback.text=text
 
 func show_pages(text: String) -> void:
+	travel.hide()
 	professions.hide()
 	armor_bench.hide()
 	forge.hide()
@@ -746,6 +761,7 @@ func build_dressing(root: Control) -> void:
 	dressing.hide()
 
 func open_dressing(purpose: String) -> void:
+	travel.hide()
 	professions.hide()
 	armor_bench.hide()
 	forge.hide()
@@ -813,6 +829,7 @@ func open_dressing(purpose: String) -> void:
 	if purpose=="gear": refresh()
 
 func open_inventory() -> void:
+	travel.hide()
 	professions.hide()
 	armor_bench.hide()
 	forge.hide()
@@ -828,6 +845,7 @@ func open_inventory() -> void:
 	bag.show()
 
 func open_storage(remains_mode: bool=false) -> void:
+	travel.hide()
 	professions.hide()
 	armor_bench.hide()
 	forge.hide()
@@ -846,6 +864,7 @@ func open_storage(remains_mode: bool=false) -> void:
 
 func open_crafting() -> void:
 	planner.hide()
+	travel.hide()
 	professions.hide()
 	armor_bench.hide()
 	forge.hide()
@@ -860,6 +879,7 @@ func open_crafting() -> void:
 	bench.show()
 
 func open_market() -> void:
+	travel.hide()
 	professions.hide()
 	armor_bench.hide()
 	forge.hide()
@@ -880,6 +900,7 @@ func open_planner() -> void:
 	dressing.hide()
 	bag.hide()
 	chest.hide()
+	travel.hide()
 	professions.hide()
 	armor_bench.hide()
 	forge.hide()
@@ -912,6 +933,7 @@ func refresh_weapon_picker(p: Dictionary) -> void:
 	gear_record_button.disabled=worn=="none" and p.equipped_ids.get("body","").is_empty()
 
 func open_forge() -> void:
+	travel.hide()
 	professions.hide()
 	armor_bench.hide()
 	market.hide()
@@ -955,7 +977,7 @@ func refresh_body_picker(p: Dictionary) -> void:
 
 func open_professions(field: String="") -> void:
 	if world.is_empty() or not world.people.has(me): return
-	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench]: modal.hide()
+	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,travel]: modal.hide()
 	if field in Rules.Professions.Mentors: professions.field=field
 	professions.feedback.text=""
 	professions.refresh(world.people[me])
@@ -964,7 +986,14 @@ func open_professions(field: String="") -> void:
 func _input(event: InputEvent) -> void:
 	if mode not in ["single","client"] or not event is InputEventKey or not event.pressed or event.echo: return
 	if event.physical_keycode!=KEY_TAB: return
-	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions]:
+	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions,travel]:
 		if modal.visible: return
 	perform("cycle_target")
 	get_viewport().set_input_as_handled()
+
+func open_travel() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions]: modal.hide()
+	travel.feedback.text=""
+	travel.refresh(world,world.people[me])
+	travel.show()

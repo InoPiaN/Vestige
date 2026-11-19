@@ -17,6 +17,7 @@ static func prepare_person(p: Dictionary) -> void:
 	if not p.has("notebook"): p.notebook={}
 
 static func near(p: Dictionary, point: Vector2) -> bool:
+	if p.get("room","village") not in ["village","home"]: return false
 	if p.get("room","village")=="home":
 		return point==HOME and preload("res://house_interior.gd").near(p,"shelf")
 	return Vector2(p.x,p.y).distance_to(point)<2
@@ -40,6 +41,7 @@ static func record_death(w: Dictionary,p: Dictionary,grave: Dictionary,book: Dic
 	if w.estate.owner!=p.life: return
 	var id: String=p.life
 	w.cases[id]={"name":p.name,"truth":grave.cause,"x":p.x,"y":p.y,"resolved":false,"room":p.get("room","village")}
+	grave.room="village"
 	grave.case_id=id
 	grave.cause="사인 미확인"
 	grave.x=CEMETERY.x
@@ -100,6 +102,7 @@ static func investigate(w: Dictionary,p: Dictionary) -> String:
 				lines.append(notes.finding)
 			else:
 				var area: String="언덕집 안" if c.get("room","village")=="home" else ("동쪽 숲" if c.x>=18 else "마을 안")
+				if c.get("room","village") in ["road","harbor"]: area=preload("res://travel.gd").NAMES[c.room]
 				notes.lead=c.name+"의 묘비 · 수습 지역: "+area+". 집 책장과 수습 장소의 기록을 찾아보자."
 				lines.append(notes.lead)
 		if not notes.is_empty(): p.notebook[id]=notes
@@ -120,6 +123,8 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 	for id in snapshot.people.keys():
 		if id==viewer: continue
 		var other: Dictionary=snapshot.people[id]
+		other.erase("discovered")
+		other.erase("mail_quest")
 		other.erase("notebook")
 		other.erase("expeditions")
 		other.erase("target_enemy")

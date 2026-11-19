@@ -14,11 +14,12 @@ static func pages_valid(pages: Variant) -> bool:
 	return true
 
 static func valid(w: Dictionary) -> bool:
-	if (w.get("version")!=1 and w.get("version")!=2 and w.get("version")!=3 and w.get("version")!=4 and w.get("version")!=5 and w.get("version")!=6 and w.get("version")!=7 and w.get("version")!=8 and w.get("version")!=9 and w.get("version")!=10 and w.get("version")!=11 and w.get("version")!=12 and w.get("version")!=13 and w.get("version")!=14 and w.get("version")!=15 and w.get("version")!=16 and w.get("version")!=17 and w.get("version")!=18 and w.get("version")!=19 and w.get("version")!=20) or not numbers(w,["time","saved"]): return false
+	if (w.get("version")!=1 and w.get("version")!=2 and w.get("version")!=3 and w.get("version")!=4 and w.get("version")!=5 and w.get("version")!=6 and w.get("version")!=7 and w.get("version")!=8 and w.get("version")!=9 and w.get("version")!=10 and w.get("version")!=11 and w.get("version")!=12 and w.get("version")!=13 and w.get("version")!=14 and w.get("version")!=15 and w.get("version")!=16 and w.get("version")!=17 and w.get("version")!=18 and w.get("version")!=19 and w.get("version")!=20 and w.get("version")!=21) or not numbers(w,["time","saved"]): return false
 	if w.time<0 or w.saved<0: return false
 	if not w.get("people") is Dictionary or not w.get("wolf") is Dictionary: return false
 	if not numbers(w.wolf,["x","y","hp","cooldown","warning","respawn"]): return false
 	if w.version>=19 and (not numbers(w.wolf,["slow"]) or w.wolf.slow<0 or w.wolf.slow>3): return false
+	if w.version>=21 and not preload("res://travel.gd").valid(w): return false
 	if w.version>=20 and not preload("res://expedition.gd").valid(w): return false
 	if not w.get("books") is Array or not w.get("graves") is Array: return false
 	for book in w.books:
@@ -53,7 +54,7 @@ static func history_valid(w: Dictionary) -> bool:
 	for id in w.cases:
 		var c=w.cases[id]
 		if not c is Dictionary or not numbers(c,["x","y"]): return false
-		if c.get("room","village") not in ["home","village"]: return false
+		if c.get("room","village") not in ["home","village","road","harbor"]: return false
 		if not c.get("name") is String or not c.get("truth") is String or not c.get("resolved") is bool: return false
 		if c.truth=="칼에 의한 살해":
 			if not c.get("roster") is Array or c.roster.size()!=2 or not c.get("attacker") is String or not c.get("trace_mark") is String: return false
@@ -85,7 +86,7 @@ static func read(path: String) -> Dictionary:
 	return parser.data
 
 static func unsupported(w: Dictionary) -> bool:
-	return numbers(w,["version"]) and w.version>20
+	return numbers(w,["version"]) and w.version>21
 
 # Write beside the destination. Replace each file only after its staging step succeeds.
 static func replace(w: Dictionary, path: String, previous: Dictionary) -> bool:

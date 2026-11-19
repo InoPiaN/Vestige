@@ -41,7 +41,7 @@ static func prepare(w: Dictionary) -> void:
 		"drawer":{"cloth":rng.randi_range(1,3),"bent_nail":rng.randi_range(0,3)},
 		"cupboard":{"broken_cup":rng.randi_range(1,2),"herb":rng.randi_range(0,1)}}}
 static func enter(w: Dictionary,p: Dictionary) -> String:
-	if inside(p) or Vector2(p.x,p.y).distance_to(Vector2(7,13))>=2: return "집 문 가까이에서 들어가세요."
+	if p.get("room","village")!="village" or Vector2(p.x,p.y).distance_to(Vector2(7,13))>=2: return "집 문 가까이에서 들어가세요."
 	if w.estate.owner!=p.life and not w.cases.has(w.estate.owner): return "다른 주민이 사는 집입니다."
 	p.room="home"
 	p.x=15.0
@@ -102,7 +102,7 @@ static func valid(w: Dictionary) -> bool:
 	for value in state.searched.values():
 		if not value is bool: return false
 	for p in w.people.values():
-		if p.get("room","village") not in ["village","home"]: return false
+		if p.get("room","village") not in ["village","home","road","harbor"]: return false
 		if p.has("home_rest_at") and (not (p.home_rest_at is float or p.home_rest_at is int) or not is_finite(float(p.home_rest_at))): return false
 		if inside(p) and not walkable(Vector2(p.x,p.y)): return false
 	return true

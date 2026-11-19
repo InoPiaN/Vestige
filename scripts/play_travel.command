@@ -1,5 +1,5 @@
 #!/bin/sh
 set -eu
 folder=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-if [ ! -d "$folder/Vestige-0.5.16.app" ]; then folder="$folder/../builds"; fi
-exec "$folder/Vestige-0.5.16.app/Contents/MacOS/Vestige" -- --travel-demo
+if [ ! -d "$folder/Vestige-0.5.17.app" ]; then folder="$folder/../builds"; fi
+exec "$folder/Vestige-0.5.17.app/Contents/MacOS/Vestige" -- --travel-demo

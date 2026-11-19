@@ -1,4 +1,4 @@
-# Vestige · 설치형 도트 시제품 0.5.16
+# Vestige · 설치형 도트 시제품 0.5.17
 
 ## 빌드 보관 원칙
 
@@ -6,11 +6,24 @@
 
 ## 바로 실행
 
-- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.16.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.16/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.17.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.17/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
+
+### 주민의 하루와 하늘 그림 · 0.5.17
+
+[Mac 생활 체험 실행](/Users/junheejang/Documents/Vestige/builds/Play-Life.command). Windows는 최신 패키지의 **Play-Life.cmd**, 직접 실행은 `-- --life-demo`입니다. 기존 일반 저장과 분리된 `life-demo.json`을 사용합니다. 첫 실행은 안개나루 오후5시45분에 시작하므로 실제30초 뒤 소하의 영업 종료를 볼 수 있습니다. 재실행하면 저장된 시각에서 이어갑니다.
+
+- **상단 중앙 하늘 그림:** 해와 달이 하늘을 건너며 새벽·낮·노을·밤으로 바뀝니다. 작은 별·구름·산 능선이 시간 변화를 보여줍니다. 기존 하루48분을 유지하며 숫자 시계 없이 표현합니다.
+- **소하:** 아침7시 출근, 8시~저녁6시 영업, 저녁7시 여관 앞 휴식, 밤10시 수면. 출퇴근 중에도 실제 위치에서 대화할 수 있지만 구매는 영업 중에만 가능합니다.
+- **도윤:** 아침6시 출근, 7시 나루 업무, 정오 부두 이동, 오후1~4시 부두 순찰, 오후5시 나루 복귀, 밤8시 귀가, 9시 수면. 깨어 있을 때 현재 위치에서 서신을 전달하세요.
+- **M**에서 주민 활동과 영업시간을 확인합니다. 상점 자리가 비어 있으면 **E**로 부재 안내를 읽습니다. 여관 회복과 마차 이용은 계속 가능합니다.
+
+수면 중에는 야외 캐릭터를 숨기고 여관 쪽 상호작용으로 수면 상태를 안내합니다. 별도 NPC 침실은 아직 없습니다. 싱글 메뉴를 열면 기존 규칙대로 시간이 정지하며, 멀티에서는 창이 열린 중에도 서버 시간이 흐르고 영업 종료가 적용됩니다. 재접속 시 위치와 활동은 경과 시간에 맞춰 복원됩니다. NPC 주요 활동 기록은 향후 목격 시스템을 위한 내부 자료이며 현재 플레이어가 읽는 증언은 아닙니다.
+
+[전체 현황](docs/PROJECT_STATUS.md) · [생활 일정 인수인계](docs/handoffs/npc-daily-life.md)
 
 ### 안개나루 여행 · 0.5.16
 
@@ -262,7 +275,7 @@ Mac은 빌드 폴더의 **Play-Witness.command**, Windows는 **Play-Witness.cmd*
 프로젝트 루트에서 다음 명령으로 독립 싱글 저장 `investigation-demo.json`을 열 수 있습니다. 일반 월드에서는 마을 서남쪽 언덕집 문 앞에서 E로 은화 8개에 집을 매입합니다. 이후 E를 누를 때마다 그때까지의 일지를 책장에 보관합니다.
 
 ```sh
-/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.16.app/Contents/MacOS/Vestige -- --investigation-demo
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.17.app/Contents/MacOS/Vestige -- --investigation-demo
 ```
 
 Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 실행합니다. 체험 월드는 약초꾼 소율이 예배당으로 떠난 뒤 새 여행자가 도착한 상태에서 시작합니다.
@@ -314,7 +327,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.16.app/Contents/MacOS/Vestige --headless -- --server
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.17.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -350,7 +363,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.16.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.17.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

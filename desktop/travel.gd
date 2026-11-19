@@ -1,4 +1,5 @@
 extends RefCounted
+const Life=preload("res://npc_life.gd")
 const NAMES={"village":"잿불 마을","road":"안개 숲길","harbor":"안개나루"}
 const PLACES={"village":[{"kind":"mail","name":"전령 유나 · 안개나루 서신","x":3.0,"y":9.0},{"kind":"coach","name":"마차 정류장 · M으로 노선 보기","x":9.0,"y":16.0},{"kind":"gate","name":"안개 숲길로 출발","x":29.0,"y":9.0,"to":"road"}],"road":[{"kind":"gate","name":"잿불 마을로 돌아가기","x":1.0,"y":9.0,"to":"village"},{"kind":"gate","name":"안개나루로 들어가기","x":29.0,"y":9.0,"to":"harbor"}],"harbor":[{"kind":"gate","name":"안개 숲길로 돌아가기","x":1.0,"y":9.0,"to":"road"},{"kind":"mail","name":"나루지기 도윤 · 서신 전달","x":12.0,"y":9.0},{"kind":"harbor_shop","name":"나루 상인 소하 · 물자 구매","x":18.0,"y":10.0},{"kind":"harbor_rest","name":"물안개 여관 · 휴식","x":9.0,"y":5.0},{"kind":"coach","name":"마차 정류장 · M으로 노선 보기","x":5.0,"y":14.0}]}
 const GOODS={"wood":{"price":2,"stock":10},"cloth":{"price":3,"stock":8},"herb":{"price":3,"stock":8}}
@@ -16,11 +17,24 @@ static func prepare(w: Dictionary) -> void:
 		for id in GOODS: w.harbor_market.stock[id]=GOODS[id].stock
 static func near(p: Dictionary,t: Dictionary) -> bool:
 	return p.alive and not p.offline and p.get("room","village")!="home" and Vector2(p.x,p.y).distance_to(Vector2(t.x,t.y))<1.9
-static func nearby(p: Dictionary) -> Dictionary:
+static func places(region_id: String,time: float=0.0) -> Array:
+	var result: Array=PLACES.get(region_id,[]).duplicate(true)
+	if region_id!="harbor": return result
+	for t in result:
+		if t.kind not in ["mail","harbor_shop"]: continue
+		var npc:=Life.state("soha" if t.kind=="harbor_shop" else "doyun",time)
+		t.x=npc.x
+		t.y=npc.y
+		t.npc=npc.id
+		t.name=npc.name+" · "+npc.activity
+	# The empty stall still explains where its owner went.
+	if not Life.shop_open(time): result.append({"kind":"shop_notice","name":"소하의 상점 · 영업 아침8시~저녁6시","x":18.0,"y":10.0})
+	return result
+static func nearby(p: Dictionary,time: float=0.0) -> Dictionary:
 	if p.get("room","village")=="home": return {}
 	var best: Dictionary={}
 	var distance:=1.9
-	for t in PLACES.get(region(p),[]):
+	for t in places(region(p),time):
 		var d:=Vector2(p.x,p.y).distance_to(Vector2(t.x,t.y))
 		if d<distance:
 			distance=d
@@ -76,7 +90,10 @@ static func interact(w: Dictionary,p: Dictionary,t: Dictionary) -> String:
 			var x:=2.5 if (region(p)=="village" or to=="harbor") else 27.5
 			return arrive(p,to,x,9)
 		"coach": return "지역 지도"
-		"harbor_shop": return "나루 물자"
+		"shop_notice": return "소하의 영업시간은 아침8시~저녁6시입니다. 휴식은 여관 앞, 출퇴근은 상점과 여관 사이입니다."
+		"harbor_shop":
+			if not Life.shop_open(w.time): return "소하: 지금은 "+Life.state("soha",w.time).activity+" 시간입니다. 아침8시~저녁6시에 상점으로 오세요."
+			return "나루 물자"
 		"harbor_rest":
 			p.hp=100
 			p.stamina=100.0
@@ -94,6 +111,7 @@ static func interact(w: Dictionary,p: Dictionary,t: Dictionary) -> String:
 					p.events.append("안개나루의 답신을 유나에게 전달했다. 보상 은화 +12.")
 					return "답신 전달 완료 · 은화 +12"
 				return "서신 의뢰를 완료했습니다." if p.mail_quest=="done" else "안개나루의 나루지기 도윤을 찾아가세요."
+			if not Life.state("doyun",w.time).awake: return "도윤은 잠들어 있습니다. 아침에 다시 찾아오세요."
 			if p.mail_quest=="outbound":
 				p.mail_quest="reply"
 				p.events.append("안개나루의 도윤에게 서신을 전하고 답신을 받았다.")
@@ -101,7 +119,8 @@ static func interact(w: Dictionary,p: Dictionary,t: Dictionary) -> String:
 			return "도윤: 물안개 여관에서 쉬고, 소하에게 여행 물자를 구할 수 있습니다."
 	return ""
 static func buy(w: Dictionary,p: Dictionary,id: String) -> String:
-	var t:=nearby(p)
+	var t:=nearby(p,w.time)
+	if not Life.shop_open(w.time): return "소하의 상점은 아침8시~저녁6시에 엽니다."
 	if region(p)!="harbor" or t.get("kind")!="harbor_shop" or not near(p,t) or not GOODS.has(id): return "나루 상인 소하 가까이에서 물품을 선택하세요."
 	prepare(w)
 	var items=preload("res://items.gd")

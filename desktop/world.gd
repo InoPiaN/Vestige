@@ -126,8 +126,10 @@ static func npc_strike(w: Dictionary,id: String,attacker: Dictionary,observer: V
 	return true
 
 static func advance(w: Dictionary, seconds: float) -> void:
+	var previous_time: float=w.time
 	var old_day := int(w.time / DAY)
 	w.time += maxf(0, seconds)
+	Travel.Life.record(w,previous_time)
 	Expedition.advance(w,maxf(0,seconds))
 	w.wolf.slow=maxf(0,w.wolf.get("slow",0.0)-maxf(0,seconds))
 	Market.prepare(w)
@@ -310,8 +312,8 @@ static func tick(w: Dictionary, dt: float) -> void:
 		e.x=v.x
 		e.y=v.y
 
-static func nearby(p: Dictionary) -> Dictionary:
-	var travel:=Travel.nearby(p)
+static func nearby(p: Dictionary,time: float=0.0) -> Dictionary:
+	var travel:=Travel.nearby(p,time)
 	if not travel.is_empty(): return travel
 	if Travel.region(p)!="village": return {}
 	for t in PLACES:
@@ -374,7 +376,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if kind=="coach": return Travel.coach(p)
 	if kind=="harbor_buy": return Travel.buy(w,p,value)
 	if kind=="interact":
-		var place:=Travel.nearby(p)
+		var place:=Travel.nearby(p,w.time)
 		if not place.is_empty(): return Travel.interact(w,p,place)
 	if Travel.region(p)!="village" and kind in ["enter_home","identify","store_item","take_item","store_evidence"]: return "잿불 마을의 해당 시설에서 이용하세요."
 	if kind=="cycle_target": return Expedition.cycle(w,p)
@@ -431,7 +433,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 	if kind=="attack": return Professions.strike(w,p)
 	if kind!="interact": return ""
 	if Travel.region(p)!="village": return "시설이나 출구 가까이에서 E를 누르세요."
-	var t:=nearby(p)
+	var t:=nearby(p,w.time)
 	if t.is_empty(): return "시설이나 자원 가까이에서 E를 누르세요."
 	match t.kind:
 		"market":

@@ -277,3 +277,15 @@ static func travel() -> Dictionary:
 	p.gold=25
 	p.herb=3
 	return w
+
+static func life() -> Dictionary:
+	var w:=travel()
+	w.time=1170.0 # 17:45; closing in 30 real seconds.
+	var p: Dictionary=w.people.local
+	p.room="harbor"
+	p.x=17.0
+	p.y=11.0
+	p.discovered=["village","road","harbor"]
+	p.mail_quest="outbound"
+	p.name="나루의 방문자"
+	return w

@@ -26,6 +26,7 @@ var forge: Panel
 var bench: Panel
 var chest: Panel
 var bag: Panel
+var sky_clock: Control
 var date_label: Label
 var notice: Label
 var prompt: Label
@@ -60,7 +61,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"travel":"travel","expedition":"expedition","professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"life":"life","travel":"travel","expedition":"expedition","professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -68,6 +69,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"life": opening=demo.life()
 				"travel": opening=demo.travel()
 				"expedition": opening=demo.expedition()
 				"professions": opening=demo.professions()
@@ -93,7 +95,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="travel": message("E로 전령 유나에게 서신을 받고 동쪽 출구로 향하세요. M 지역 지도 · 출구 E 이동 · 안개나루 도윤에게 전달 후 귀환.")
+			if kind=="life": message("안개나루의 하루 · 소하는 저녁6시에 영업을 마칩니다. 상단 하늘의 해와 달을 보세요. M 주민 활동 · E 대화.")
+			elif kind=="travel": message("E로 전령 유나에게 서신을 받고 동쪽 출구로 향하세요. M 지역 지도 · 출구 E 이동 · 안개나루 도윤에게 전달 후 귀환.")
 			elif kind=="expedition": message("E로 스승에게 원정 의뢰를 받으세요. TAB 대상 전환 · R 전리품 회수 · K 기술 준비. 북동쪽 들멧돼지, 남동쪽 망령 궁수 처치 후 귀환 보고하세요.")
 			elif kind=="professions": message("E로 스승에게 입문 과제를 받으세요. K에서 성장 경로와 준비할 기술을 확인하고, 전투에서 1 / 2로 사용합니다.")
 			elif kind=="trade": message("E로 대장간에서 손상된 갑옷을 수리하세요. 장터에서는 착용을 해제한 장비를 판매하고 되사기에서 같은 장비를 회수할 수 있습니다.")
@@ -360,7 +363,7 @@ func interact() -> void:
 	if Rules.Interior.inside(world.people[me]):
 		perform("interact")
 		return
-	var t:=Rules.nearby(world.people[me])
+	var t:=Rules.nearby(world.people[me],world.time)
 	if t.get("kind","")=="home": perform("enter_home")
 	elif t.get("kind","") in Rules.Professions.Mentors: open_professions(t.kind)
 	elif t.get("kind","")=="forge": open_forge()
@@ -422,7 +425,7 @@ func build_ui() -> void:
 	label_at(menu,"V E S T I G E",Vector2(90,100),64,Color("e1d1a3"))
 	label_at(menu,"잿불의 기록",Vector2(95,183),24)
 	label_at(menu,"당신이 떠난 뒤에도,\n이곳의 삶은 계속된다.",Vector2(95,260),30)
-	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.16 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
+	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.17 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
 	input_name=LineEdit.new()
 	input_name.text="에단"
 	input_name.max_length=20
@@ -456,8 +459,10 @@ func build_ui() -> void:
 	ui.hide()
 	label_at(ui,"V E S T I G E",Vector2(24,17),27,Color("dccb9b"))
 	skills_hud=label_at(ui,"",Vector2(24,54),15)
-	target_hud=label_at(ui,"",Vector2(760,54),14)
-	date_label=label_at(ui,"",Vector2(600,24),16)
+	target_hud=label_at(ui,"",Vector2(880,54),14)
+	date_label=label_at(ui,"",Vector2(880,16),14)
+	sky_clock=preload("res://sky_clock.gd").new()
+	ui.add_child(sky_clock)
 	var container:=SubViewportContainer.new()
 	container.position=Vector2(16,80)
 	container.scale=Vector2.ONE
@@ -563,6 +568,7 @@ func build_ui() -> void:
 
 func refresh() -> void:
 	if world.is_empty() or not world.people.has(me): return
+	sky_clock.refresh(world.time)
 	var p: Dictionary=world.people[me]
 	if dressing.visible and dressing_mode=="gear":
 		portrait.person=p
@@ -597,11 +603,11 @@ func refresh() -> void:
 	health.value=p.hp
 	stamina.value=p.stamina
 	inventory.text="체력 %d / 100\n철광석     %d\n달빛 약초  %d\n철검       %d\n유물       %d\n은화       %d   ·   기초 숙련 %d" % [p.hp,p.ore,p.herb,p.sword,p.relic,p.gold,p.skill]
-	date_label.text=Rules.Travel.NAMES[Rules.Travel.region(p)]+"   /   제 %d일   /   %s" % [int(world.time/Rules.DAY)+1,"나만의 세계" if mode=="single" else "공유 세계"]
+	date_label.text=(Rules.Travel.NAMES[Rules.Travel.region(p)]+" · 제 %d일\n%s · "+Rules.Travel.Life.phase(world.time)) % [int(world.time/Rules.DAY)+1,"나만의 세계" if mode=="single" else "공유 세계"]
 	policy.select(["rest","work","gather","train","plan"].find(p.policy))
 	day_button.visible=mode=="single"
 	new_button.visible=not p.alive
-	var t:=Rules.nearby(p)
+	var t:=Rules.nearby(p,world.time)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
 	if not Rules.Expedition.nearby_loot(world,p).is_empty(): prompt.text="R · 현장 전리품 회수 (소지 한도 초과분은 현장 보존)"

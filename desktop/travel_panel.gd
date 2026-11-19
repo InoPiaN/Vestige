@@ -58,12 +58,13 @@ func refresh(w: Dictionary,p: Dictionary) -> void:
 	coach_button.disabled=not reason.is_empty()
 	coach_button.tooltip_text=reason
 	info.text="서신 의뢰 · "+{"new":"잿불 마을 전령 유나(서쪽 길가)에게 받기","outbound":"안개나루의 도윤에게 전달","reply":"잿불 마을 유나에게 답신 전달 · 보상 은화12","done":"답신 전달 완료"}[p.mail_quest]
+	info.text+="\n소하 · "+T.Life.state("soha",w.time).activity+" / 영업 아침8시~저녁6시 · 도윤 · "+T.Life.state("doyun",w.time).activity
 	info.text+="\n"+(reason if not reason.is_empty() else "마차로 발견한 반대편 마을에 이동합니다. 운임 은화5.")
-	var place:=T.nearby(p)
+	var place:=T.nearby(p,w.time)
 	for id in shops:
 		var price: int=T.GOODS[id].price
 		shops[id].text="%s · %d은화 · 재고%d" % [preload("res://items.gd").CATALOG[id].name,price,w.harbor_market.stock[id]]
-		shops[id].disabled=T.region(p)!="harbor" or place.get("kind")!="harbor_shop" or not T.near(p,place) or p.gold<price or w.harbor_market.stock[id]<=0
+		shops[id].disabled=not T.Life.shop_open(w.time) or T.region(p)!="harbor" or place.get("kind")!="harbor_shop" or not T.near(p,place) or p.gold<price or w.harbor_market.stock[id]<=0
 	queue_redraw()
 func _draw() -> void:
 	if person.is_empty(): return

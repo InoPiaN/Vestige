@@ -238,7 +238,7 @@ func _draw() -> void:
 		var p: Dictionary=world.people[id]
 		if p.get("room","village")=="village": hero(p.x*16,p.y*16,p,id!=player_id)
 	# Subtle night tint; never hides gameplay silhouettes.
-	var night: float=(sin(float(world.time)/Rules.DAY*TAU)+1)*0.5
+	var night: float=clampf(-sin((Rules.Travel.Life.hour(world.time)-6)/24*TAU),0,1)
 	draw_rect(Rect2(0,0,480,320),Color(0.025,0.05,0.12,night*0.12))
 
 func draw_interior() -> void:
@@ -369,9 +369,9 @@ func draw_travel() -> void:
 		for x in [40,200,340]:
 			tree(x,35)
 			lamp(x,177)
-		for place in Rules.Travel.PLACES.harbor:
-			if place.kind in ["mail","harbor_shop"]:
-				hero(place.x*16,place.y*16,{"look":{"hair":1 if place.kind=="harbor_shop" else 0,"cloth":2,"hair_color":3},"equipment":{"cloak":"traveler"}})
+		for place in Rules.Travel.places("harbor",world.time):
+			if place.kind in ["mail","harbor_shop"] and Rules.Travel.Life.state(place.npc,world.time).awake:
+				hero(place.x*16,place.y*16,{"look":{"hair":1 if place.kind=="harbor_shop" else 0,"cloth":2,"hair_color":3},"equipment":{"cloak":"traveler"},"direction":Rules.Travel.Life.state(place.npc,world.time).direction,"steps":world.time*3.0,"motion":1.0 if Rules.Travel.Life.state(place.npc,world.time).moving else 0.0})
 	for place in Rules.Travel.PLACES[region]:
 		if place.kind in ["gate","coach"]:
 			box(place.x*16-4,place.y*16-12,8,4,"d3bb80")
@@ -380,3 +380,6 @@ func draw_travel() -> void:
 	for id in world.people:
 		var other: Dictionary=world.people[id]
 		if other.get("room","village")==region: hero(other.x*16,other.y*16,other,id!=player_id)
+
+	var night: float=clampf(-sin((Rules.Travel.Life.hour(world.time)-6)/24*TAU),0,1)
+	draw_rect(Rect2(0,0,480,320),Color(0.025,0.05,0.12,night*0.12))

@@ -116,6 +116,7 @@ static func may_read(p: Dictionary,book: Dictionary) -> bool:
 	return p.life==id or (notes.has("home") and notes.has("scene"))
 
 static func redact(snapshot: Dictionary,viewer: String) -> void:
+	snapshot.erase("npc_activity")
 	var p: Dictionary=snapshot.people[viewer]
 	snapshot.remains=preload("res://death_belongings.gd").visible(snapshot,p)
 	snapshot.witness_available=has_witness(snapshot)

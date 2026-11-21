@@ -20,6 +20,9 @@ func _initialize() -> void:
 		check(Rules.walkable(Rules.pos(n)) and D.nearby(p)==id,"NPC reachable: "+id)
 		check(D.talk(w,"a",id).text==n.first,"first greeting: "+id)
 		check(D.talk(w,"a",id).text==n["return"],"return greeting: "+id)
+	# NPC iteration order is not a location contract. Reposition before testing Sera.
+	p.x=D.NPCS.sera.x
+	p.y=D.NPCS.sera.y
 	check(not p.story.iren_missing_rumor,"greeting does not grant rumor")
 	check(D.talk(w,"a","sera","rumor").is_empty(),"choice requires server session")
 	check(D.talk(w,"a","sera","forged","sera").is_empty(),"unknown choice denied")

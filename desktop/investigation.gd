@@ -93,9 +93,9 @@ static func notebook(p: Dictionary) -> String:
 	for e in records:
 		text+="#%d · %s [%s]\n출처: %s\n발견: 제 %d일 · 월드 경과 %.1f초\n\n확인된 사실\n%s\n\n추정 · 미확인\n%s\n\n" % [e.order,e.title,e.id,e.source,e.day,e.discovered_at,e.fact,e.inference]
 	if has_evidence(p,"device_log") and has_evidence(p,"chapel_traces"):
-		text+="연결 가능한 사실: 석판 손상과 장치 가동 기록이 함께 발견되었다. 원인·시점·조작자의 관계는 추가 검증이 필요하다.\\n\\n"
+		text+="연결 가능한 사실: 석판 손상과 장치 가동 기록이 함께 발견되었다. 원인·시점·조작자의 관계는 추가 검증이 필요하다.\n\n"
 	if has_evidence(p,"kael_statement") and has_evidence(p,"device_log"):
-		text+="진술 대조 가능: 카엘의 기억과 장치 기록을 다시 비교할 수 있다. 어느 쪽도 단독으로 조작자를 입증하지 않는다.\\n\\n"
+		text+="진술 대조 가능: 카엘의 기억과 장치 기록을 다시 비교할 수 있다. 어느 쪽도 단독으로 조작자를 입증하지 않는다.\n\n"
 	text+="기록한 증거를 브란, 세라, 카엘에게 물어볼 수 있습니다. 사건의 원인과 약속 상대는 아직 확인되지 않았습니다."
 	return text
 
@@ -107,7 +107,9 @@ static func testimony(p: Dictionary, npc_id: String) -> String:
 		if token: return "이 표식이… 왜 거기에 있었지? 예배당에 갔다는 사실까지는 부인하지 않겠어. 하지만 거기서 무슨 일이 있었는지는 말하지 않았어."
 		if has_evidence(p,"last_promise"): return "이렌이 누군가와 약속했다는 글인가. 내가 그 상대였는지는 아직 모르잖아."
 		if has_evidence(p,"chapel_traces"): return "석판이 파손됐다는 얘기는 들었어. 그 흔적만으로 누구의 행동인지 알 수는 없겠지."
+		if log_found: return "장치가 작동했다는 기록이 있어도 누가 그 기록을 남긴 건지는 모르는 일이야."
 		return ""
+	if log_found and npc_id=="bran": return "장치의 기록이 발견됐다고 해도 그날 누구에게 무슨 일이 있었는지 알 수는 없네."
 	if token: return "금속 표식의 주인을 직접 확인해야겠네. 소지품만으로 현장 행동을 단정할 수는 없어." if npc_id=="bran" else "표식의 표면을 확인했군요. 주인을 밝히더라도 작동자를 확인하려면 다른 증거가 필요해요."
 	var diary:=has_evidence(p,"last_promise")
 	var traces:=has_evidence(p,"chapel_traces")

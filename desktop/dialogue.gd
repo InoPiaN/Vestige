@@ -50,12 +50,13 @@ static func talk(w: Dictionary, id: String, npc_id: String, choice: String="", a
 	var n: Dictionary=NPCS[npc_id]
 	if not p.alive or p.offline: return {}
 	if Vector2(p.x,p.y).distance_to(Vector2(n.x,n.y))>=RADIUS: return {}
-	if choice!="" and (active_npc!=npc_id or not choice in ["rumor","evidence","kael_irene","kael_chapel","kael_token"]): return {}
+	if choice!="" and (active_npc!=npc_id or not choice in ["rumor","evidence","kael_irene","kael_chapel","kael_token","kael_compare"]): return {}
 	var testimony:=Investigation.testimony(p,npc_id)
 	if choice=="evidence" and testimony.is_empty(): return {}
 	if choice.begins_with("kael_") and npc_id!="kael": return {}
 	if choice=="kael_chapel" and not Investigation.has_evidence(p,"chapel_traces"): return {}
 	if choice=="kael_token" and not Investigation.has_evidence(p,"kael_token"): return {}
+	if choice=="kael_compare" and (not Investigation.has_evidence(p,"device_log") or not Investigation.has_evidence(p,"kael_statement")): return {}
 	ensure(p)
 	var s: Dictionary=p.story
 	var text: String
@@ -68,6 +69,10 @@ static func talk(w: Dictionary, id: String, npc_id: String, choice: String="", a
 	elif choice=="kael_token":
 		text="…그 표식은 내 물건이야. 예배당에 간 적도 있어. 하지만 그곳에서 장치가 작동했다거나 누가 다쳤다는 것은 몰라."
 		Investigation.Chapter1.dialogue_once(s.chapter1,"kael_token_owner_admitted")
+		Investigation.record_kael_statement(w,id)
+	elif choice=="kael_compare":
+		text="그 기록에 장치가 가동됐다고 적혀 있다고? 내가 장치가 작동하는 장면을 봤는지는 아직 말하지 않았어. 내가 예배당에 있었다는 사실과 누가 작동시켰는지는 별개의 문제야."
+		Investigation.Chapter1.dialogue_once(s.chapter1,"kael_device_record_compared")
 	elif choice=="rumor":
 		text=n.rumor
 		if not s.iren_missing_rumor:
@@ -90,4 +95,6 @@ static func talk(w: Dictionary, id: String, npc_id: String, choice: String="", a
 			choices.insert(1,{"id":"kael_chapel","text":"예배당의 흔적을 묻는다"})
 		if Investigation.has_evidence(p,"kael_token"):
 			choices.insert(1,{"id":"kael_token","text":"발견한 금속 표식을 보여준다"})
+		if Investigation.has_evidence(p,"device_log") and Investigation.has_evidence(p,"kael_statement"):
+			choices.insert(1,{"id":"kael_compare","text":"장치 기록과 앞선 진술을 대조한다"})
 	return {"npc_id":npc_id, "name":n.name, "text":text, "choices":choices}

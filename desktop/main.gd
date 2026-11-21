@@ -562,6 +562,7 @@ func build_evidence_board(root: Control) -> void:
 	board_button.pressed.connect(open_evidence_board)
 	# The notebook panel already contains a close button and scrollable text.
 	panel.get_child(0).add_child(board_button)
+	panel.get_child(0).move_child(board_button,1)
 
 func open_evidence_board() -> void:
 	if world.is_empty() or not world.people.has(me) or not panel.visible or pages_kind!="notebook": return

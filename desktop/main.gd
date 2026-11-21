@@ -201,6 +201,7 @@ func command(kind: String, value: String="", request_id: int=0) -> void:
 		return
 	last_commands[peer]=now
 	if kind=="reconstruct":
+		if dialogue_sessions.has(id): return
 		var parts:=value.split("|")
 		if parts.size()!=2 or value.length()>64: return
 		var result: Dictionary=BoardRules.evaluate(world.people[id],parts[0],parts[1])
@@ -230,7 +231,7 @@ func remote_message(text: String) -> void:
 	message(text)
 
 func perform(kind: String, value: String="") -> void:
-	if dialogue.visible: return
+	if dialogue.visible or (evidence_board!=null and evidence_board.visible): return
 	if mode=="client":
 		command.rpc_id(1,kind,value)
 	elif mode=="single":

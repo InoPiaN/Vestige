@@ -21,7 +21,11 @@ const EVIDENCE := {
 	"device_log": {
 		"title":"장치 작동 기록 조각", "source":"잊힌 예배당 · 동쪽 기록판", "x":28.0,"y":11.0,
 		"fact":"기록판에는 장치의 수동 가동과 직후의 비정상적인 진동이 표시되어 있다. 일부 기록은 훼손되어 조작자의 신원은 남아 있지 않다.",
-		"inference":"장치가 실제로 가동된 정황이다. 기록만으로 누가 조작했는지, 이렌에게 무슨 일이 일어났는지는 알 수 없다."}
+		"inference":"장치가 실제로 가동된 정황이다. 기록만으로 누가 조작했는지, 이렌에게 무슨 일이 일어났는지는 알 수 없다."},
+	"device_key": {
+		"title":"장치 조작 도구 파편", "source":"잊힌 예배당 · 파손된 연결부", "x":24.0,"y":13.0,
+		"fact":"장치 연결부에 부러진 도구 조각이 끼어 있다. 파손 단면과 맞물리는 홈이 남아 있다. 사용자의 신원 표식은 없다.",
+		"inference":"장치에 도구가 사용되었을 정황이다. 조각의 제작자·사용자는 확인되지 않는다."}
 }
 
 static func ensure(p: Dictionary) -> void:
@@ -53,7 +57,7 @@ static func inspect(w: Dictionary, player_id: String, evidence_id: String) -> St
 	if Vector2(p.x,p.y).distance_to(Vector2(e.x,e.y))>=RADIUS: return "조사 대상 가까이에서 E를 누르세요."
 	ensure(p)
 	if has_evidence(p,evidence_id): return "이미 기록한 증거입니다. N으로 조사 수첩을 확인하세요."
-	if evidence_id in ["chapel_traces","kael_token","device_log"] and w.wolf.hp>0: return "예배당을 지키는 늑대를 먼저 물리쳐야 현장을 조사할 수 있습니다."
+	if evidence_id in ["chapel_traces","kael_token","device_log","device_key"] and w.wolf.hp>0: return "예배당을 지키는 늑대를 먼저 물리쳐야 현장을 조사할 수 있습니다."
 	var order:=1
 	for record in p.story.evidence.values(): order=maxi(order,int(record.order)+1)
 	var record: Dictionary={"id":evidence_id,"title":e.title,"source":e.source,"order":order,
@@ -84,6 +88,16 @@ static func record_kael_statement(w: Dictionary, player_id: String) -> bool:
 	p.events.append("카엘의 최초 진술을 기록했다. 확인되지 않은 사건 책임은 단정하지 않았다.")
 	return true
 
+static func reconstruction_summary(p: Dictionary) -> String:
+	var state: Dictionary = p.get("story", {}).get("chapter1", {})
+	var text := "사건 재구성 · 임시 조사 기록\\n────────────────────\\n"
+	for inference_id in ["I03","I04","I07"]:
+		var label: String = {"I03":"봉인 손상과 장치 가동 기록","I04":"카엘의 방문과 직접 진술","I07":"장치 연결부와 도구 파편"}.get(inference_id,inference_id)
+		var status := "검증 완료" if state.get("inferences", {}).get(inference_id, "")=="verified" else ("검증 가능 · 세라에게 확인" if Chapter1.inference_supported(state,inference_id) else "증거 부족")
+		text += "%s · %s: %s\\n" % [inference_id,label,status]
+	text += "\\n주의: 이 판단은 카엘이 장치를 작동했다는 사실이나 이렌의 사망을 확정하지 않습니다.\\n"
+	return text
+
 static func notebook(p: Dictionary) -> String:
 	var text: String="조사 수첩 · 마지막 약속\n────────────────────\n발견 시각은 월드 경과 시간입니다. 추정은 확인된 사실이 아닙니다.\n\n"
 	var records: Array=p.get("story",{}).get("evidence",{}).values()
@@ -96,6 +110,7 @@ static func notebook(p: Dictionary) -> String:
 		text+="연결 가능한 사실: 석판 손상과 장치 가동 기록이 함께 발견되었다. 원인·시점·조작자의 관계는 추가 검증이 필요하다.\n\n"
 	if has_evidence(p,"kael_statement") and has_evidence(p,"device_log"):
 		text+="진술 대조 가능: 카엘의 기억과 장치 기록을 다시 비교할 수 있다. 어느 쪽도 단독으로 조작자를 입증하지 않는다.\n\n"
+	text+="\\n"+reconstruction_summary(p)+"\\n"
 	text+="기록한 증거를 브란, 세라, 카엘에게 물어볼 수 있습니다. 사건의 원인과 약속 상대는 아직 확인되지 않았습니다."
 	return text
 

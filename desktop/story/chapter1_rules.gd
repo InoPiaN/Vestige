@@ -2,8 +2,8 @@ extends RefCounted
 ## Chapter I: per-life story progression. The existing investigation records remain authoritative.
 ## The server calls ensure/sync from investigation.gd; never trust client-supplied facts.
 
-const LEGACY_TO_LOGICAL := {"last_promise": "E01", "chapel_traces": "E05", "kael_token": "E06", "device_log": "E07", "kael_statement": "E08"}
-const ALLOWED_INFERENCES := ["I01", "I02", "I03", "I04", "I05", "I06"]
+const LEGACY_TO_LOGICAL := {"last_promise": "E01", "chapel_traces": "E05", "kael_token": "E06", "device_log": "E07", "kael_statement": "E08", "device_key": "E13"}
+const ALLOWED_INFERENCES := ["I01", "I02", "I03", "I04", "I05", "I06", "I07"]
 const RESOLUTIONS := ["public", "archive", "testimony"]
 const NPCS := ["bran", "sera", "kael"]
 
@@ -84,7 +84,8 @@ static func inference_supported(state: Dictionary, inference_id: String) -> bool
 		"I03": ["E05", "E07"],
 		"I04": ["E06", "E08"],
 		"I05": ["E07", "E09", "E10"],
-		"I06": ["E06", "E07", "E08", "E13"]
+		"I06": ["E06", "E07", "E08", "E13", "E11"],
+		"I07": ["E07", "E13"]
 	}
 	for id in requirements[inference_id]:
 		if not has_evidence(state, id):

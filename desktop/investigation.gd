@@ -110,7 +110,7 @@ static func notebook(p: Dictionary) -> String:
 		text+="연결 가능한 사실: 석판 손상과 장치 가동 기록이 함께 발견되었다. 원인·시점·조작자의 관계는 추가 검증이 필요하다.\n\n"
 	if has_evidence(p,"kael_statement") and has_evidence(p,"device_log"):
 		text+="진술 대조 가능: 카엘의 기억과 장치 기록을 다시 비교할 수 있다. 어느 쪽도 단독으로 조작자를 입증하지 않는다.\n\n"
-	text+="\\n"+reconstruction_summary(p)+"\\n"
+	text+="\n"+reconstruction_summary(p)+"\n"
 	text+="기록한 증거를 브란, 세라, 카엘에게 물어볼 수 있습니다. 사건의 원인과 약속 상대는 아직 확인되지 않았습니다."
 	return text
 

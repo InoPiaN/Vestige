@@ -71,7 +71,7 @@ func open_for(p: Dictionary) -> void:
 
 func reload(p: Dictionary) -> void:
 	var records := BoardRules.available_records(p)
-	var ids: Array = []
+	var ids: PackedStringArray = PackedStringArray()
 	for record in records:
 		ids.append(str(record.id))
 	var current := "|".join(ids)

@@ -2,7 +2,7 @@ extends RefCounted
 ## Chapter I: per-life story progression. The existing investigation records remain authoritative.
 ## The server calls ensure/sync from investigation.gd; never trust client-supplied facts.
 
-const LEGACY_TO_LOGICAL := {"last_promise": "E01", "chapel_traces": "E05"}
+const LEGACY_TO_LOGICAL := {"last_promise": "E01", "chapel_traces": "E05", "kael_token": "E06"}
 const ALLOWED_INFERENCES := ["I01", "I02", "I03", "I04", "I05", "I06"]
 const RESOLUTIONS := ["public", "archive", "testimony"]
 const NPCS := ["bran", "sera", "kael"]

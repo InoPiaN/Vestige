@@ -1,5 +1,7 @@
 extends RefCounted
 
+const Chapter1 = preload("res://story/chapter1_rules.gd")
+
 const RADIUS := 1.125
 const DAY := 2880.0
 # Observation text is intentionally narrower than the unresolved story hypothesis.
@@ -23,6 +25,7 @@ static func ensure(p: Dictionary) -> void:
 		record.order=int(record.order)
 		record.day=int(record.day)
 		record.discovered_at=float(record.discovered_at)
+	Chapter1.ensure(p)
 
 static func has_evidence(p: Dictionary, id: String) -> bool:
 	return p.get("story",{}).get("evidence",{}).has(id)
@@ -48,6 +51,7 @@ static func inspect(w: Dictionary, player_id: String, evidence_id: String) -> St
 	var record: Dictionary={"id":evidence_id,"title":e.title,"source":e.source,"order":order,
 		"discovered_at":float(w.time),"day":int(w.time/DAY)+1,"fact":e.fact,"inference":e.inference}
 	p.story.evidence[evidence_id]=record
+	Chapter1.sync_legacy(p)
 	p.events.append("%s에서 증거를 기록했다: %s. [확인된 사실] %s [추정 · 미확인] %s" % [e.source,e.title,e.fact,e.inference])
 	return "증거 기록 · %s — N으로 조사 수첩을 확인하세요." % e.title
 

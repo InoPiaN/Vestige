@@ -1,6 +1,6 @@
 """Vestige local asset MCP bridge. Install: pip install -r tools/asset_mcp/requirements.txt
 
-The bridge accepts generated PNG bytes; it does not call a paid image API.
+The bridge accepts PNG bytes and offers optional, explicitly approved image generation.
 Only allowlisted item IDs are writable. No credentials are stored.
 """
 from __future__ import annotations
@@ -107,6 +107,30 @@ def import_item_png(item_id: str, png_base64: str) -> str:
         return json.dumps({"ok": True, "path": str(target.relative_to(ROOT)), **metadata})
     except (ValueError, binascii.Error, OSError, RuntimeError) as exc:
         return json.dumps({"ok": False, "error": str(exc)})
+
+
+@mcp.tool()
+def generate_item_candidate(item_id: str = "herb", approved: bool = False) -> str:
+    """Optional billable OpenAI generation. Requires approved=True for each call.
+
+    Writes a preview candidate only, never a Godot game asset.
+    """
+    from generator import generate_candidate
+    return json.dumps(generate_candidate(item_id, approved), ensure_ascii=False)
+
+
+@mcp.tool()
+def import_reviewed_candidate(item_id: str = "herb", approved: bool = False) -> str:
+    """Import a reviewed local candidate after explicit approval; no API charge."""
+    if item_id not in ALLOWED:
+        return json.dumps({"ok": False, "error": "unsupported item_id"})
+    if not approved:
+        return json.dumps({"ok": False, "error": "Explicit review approval required"})
+    from generator import CANDIDATES
+    candidate = CANDIDATES / (item_id + "-candidate.png")
+    if not candidate.is_file():
+        return json.dumps({"ok": False, "error": "candidate missing"})
+    return import_item_png(item_id, base64.b64encode(candidate.read_bytes()).decode("ascii"))
 
 
 @mcp.tool()

@@ -13,7 +13,11 @@ const EVIDENCE := {
 	"chapel_traces": {
 		"title":"예배당 현장 흔적", "source":"잊힌 예배당 · 남쪽 석판", "x":27.0,"y":12.0,
 		"fact":"석판의 문양 일부가 깨져 있고 가장자리에 길게 긁힌 자국이 남아 있다. 주변 흙에는 윤곽이 흐린 눌린 흔적이 겹쳐 있다.",
-		"inference":"여러 원인이 흔적을 남겼을 수 있다. 야수나 사람의 개입, 발생 시점과 이렌의 행방을 이 흔적만으로 판단할 수 없다."}
+		"inference":"여러 원인이 흔적을 남겼을 수 있다. 야수나 사람의 개입, 발생 시점과 이렌의 행방을 이 흔적만으로 판단할 수 없다."},
+	"kael_token": {
+		"title":"낡은 금속 표식", "source":"잊힌 예배당 · 바깥길", "x":26.0,"y":14.0,
+		"fact":"낡은 금속 표식에 마모된 글자와 균열이 남아 있다. 누구의 물건인지는 확인되지 않았다.",
+		"inference":"예배당을 방문한 사람이 떨어뜨렸을 가능성이 있다. 소유자와 사고 관련성은 아직 밝혀지지 않았다."}
 }
 
 static func ensure(p: Dictionary) -> void:
@@ -45,7 +49,7 @@ static func inspect(w: Dictionary, player_id: String, evidence_id: String) -> St
 	if Vector2(p.x,p.y).distance_to(Vector2(e.x,e.y))>=RADIUS: return "조사 대상 가까이에서 E를 누르세요."
 	ensure(p)
 	if has_evidence(p,evidence_id): return "이미 기록한 증거입니다. N으로 조사 수첩을 확인하세요."
-	if evidence_id=="chapel_traces" and w.wolf.hp>0: return "예배당을 지키는 늑대를 먼저 물리쳐야 현장을 조사할 수 있습니다."
+	if evidence_id in ["chapel_traces","kael_token"] and w.wolf.hp>0: return "예배당을 지키는 늑대를 먼저 물리쳐야 현장을 조사할 수 있습니다."
 	var order:=1
 	for record in p.story.evidence.values(): order=maxi(order,int(record.order)+1)
 	var record: Dictionary={"id":evidence_id,"title":e.title,"source":e.source,"order":order,
@@ -63,10 +67,17 @@ static func notebook(p: Dictionary) -> String:
 		return text+"아직 발견한 증거가 없습니다. 마을 북동쪽 이렌의 집 입구나 예배당 남쪽 석판 가까이에서 E로 조사하세요. 소문을 먼저 들을 필요는 없습니다."
 	for e in records:
 		text+="#%d · %s [%s]\n출처: %s\n발견: 제 %d일 · 월드 경과 %.1f초\n\n확인된 사실\n%s\n\n추정 · 미확인\n%s\n\n" % [e.order,e.title,e.id,e.source,e.day,e.discovered_at,e.fact,e.inference]
-	text+="기록한 증거를 브란과 세라에게 물어볼 수 있습니다. 사건의 원인과 약속 상대는 아직 확인되지 않았습니다."
+	text+="기록한 증거를 브란, 세라, 카엘에게 물어볼 수 있습니다. 사건의 원인과 약속 상대는 아직 확인되지 않았습니다."
 	return text
 
 static func testimony(p: Dictionary, npc_id: String) -> String:
+	var token:=has_evidence(p,"kael_token")
+	if npc_id=="kael":
+		if token: return "이 표식이… 왜 거기에 있었지? 예배당에 갔다는 사실까지는 부인하지 않겠어. 하지만 거기서 무슨 일이 있었는지는 말하지 않았어."
+		if has_evidence(p,"last_promise"): return "이렌이 누군가와 약속했다는 글인가. 내가 그 상대였는지는 아직 모르잖아."
+		if has_evidence(p,"chapel_traces"): return "석판이 파손됐다는 얘기는 들었어. 그 흔적만으로 누구의 행동인지 알 수는 없겠지."
+		return ""
+	if token: return "금속 표식의 주인을 직접 확인해야겠네. 소지품만으로 현장 행동을 단정할 수는 없어." if npc_id=="bran" else "표식의 표면을 확인했군요. 주인을 밝히더라도 작동자를 확인하려면 다른 증거가 필요해요."
 	var diary:=has_evidence(p,"last_promise")
 	var traces:=has_evidence(p,"chapel_traces")
 	if diary and traces:

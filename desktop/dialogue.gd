@@ -50,10 +50,12 @@ static func talk(w: Dictionary, id: String, npc_id: String, choice: String="", a
 	var n: Dictionary=NPCS[npc_id]
 	if not p.alive or p.offline: return {}
 	if Vector2(p.x,p.y).distance_to(Vector2(n.x,n.y))>=RADIUS: return {}
-	if choice!="" and (active_npc!=npc_id or not choice in ["rumor","evidence","kael_irene","kael_chapel","kael_token","kael_compare"]): return {}
+	if choice!="" and (active_npc!=npc_id or not choice in ["rumor","evidence","kael_irene","kael_chapel","kael_token","kael_compare","verify_I03","verify_I04","verify_I07"]): return {}
 	var testimony:=Investigation.testimony(p,npc_id)
 	if choice=="evidence" and testimony.is_empty(): return {}
 	if choice.begins_with("kael_") and npc_id!="kael": return {}
+	if choice.begins_with("verify_") and npc_id!="sera": return {}
+	if choice.begins_with("verify_") and not Investigation.Chapter1.inference_supported(p.story.chapter1,choice.trim_prefix("verify_")): return {}
 	if choice=="kael_chapel" and not Investigation.has_evidence(p,"chapel_traces"): return {}
 	if choice=="kael_token" and not Investigation.has_evidence(p,"kael_token"): return {}
 	if choice=="kael_compare" and (not Investigation.has_evidence(p,"device_log") or not Investigation.has_evidence(p,"kael_statement")): return {}
@@ -62,6 +64,10 @@ static func talk(w: Dictionary, id: String, npc_id: String, choice: String="", a
 	var text: String
 	if choice=="evidence":
 		text=testimony
+	elif choice.begins_with("verify_"):
+		var inference_id: String=choice.trim_prefix("verify_")
+		Investigation.Chapter1.verify_inference(s.chapter1,inference_id)
+		text="자료를 나란히 검토해 보죠. 확인된 기록끼리의 관계만 수첩에 표시하겠습니다. 이를 근거로 사람의 책임이나 이렌의 최후를 단정해서는 안 됩니다."
 	elif choice=="kael_irene":
 		text="이렌을 알고 있었어. 예전에 나를 도와준 사람이었지. 그렇지만 실종됐다는 소문만으로 내가 무엇을 알 거라고 단정하지는 마."
 	elif choice=="kael_chapel":
@@ -89,6 +95,11 @@ static func talk(w: Dictionary, id: String, npc_id: String, choice: String="", a
 			p.events.append("%s %s와 처음 인사를 나누었다." % [n.role,n.name])
 	var choices:=CHOICES.duplicate(true)
 	if not testimony.is_empty(): choices.insert(1,{"id":"evidence","text":"발견한 증거에 관해 묻는다"})
+	if npc_id=="sera":
+		for inference_id in ["I03","I04","I07"]:
+			if Investigation.Chapter1.inference_supported(s.chapter1,inference_id) and s.chapter1.inferences.get(inference_id,"")!="verified":
+				var label: String={"I03":"봉인과 작동 기록 검토","I04":"카엘의 방문 진술 검토","I07":"조작 도구와 기록판 검토"}[inference_id]
+				choices.insert(0,{"id":"verify_"+inference_id,"text":label})
 	if npc_id=="kael":
 		choices.insert(0,{"id":"kael_irene","text":"이렌과 어떤 관계였는지 묻는다"})
 		if Investigation.has_evidence(p,"chapel_traces"):

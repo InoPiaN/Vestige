@@ -39,6 +39,12 @@ var dress_name: LineEdit
 var dressing_mode: String="create"
 var dress_status: Label
 var gear_pickers: Dictionary={}
+var dialogue: Control
+var dialogue_text: RichTextLabel
+var dialogue_choices: VBoxContainer
+var dialogue_sessions: Dictionary={}
+var dialogue_request_id:=0
+var dialogue_pending:=false
 
 
 func _ready() -> void:
@@ -73,6 +79,7 @@ func start_server() -> void:
 
 func disconnected(peer: int) -> void:
 	if peers.has(peer):
+		dialogue_sessions.erase(peers[peer])
 		world.people[peers[peer]].offline=true
 		inputs.erase(peer)
 		peers.erase(peer)
@@ -109,6 +116,7 @@ func connect_world() -> void:
 	input_name.editable=false
 
 func connection_failed() -> void:
+	close_dialogue(false)
 	mode="menu"
 	multiplayer.multiplayer_peer=null
 	ui.hide()
@@ -144,6 +152,7 @@ func send_snapshot(peer: int) -> void:
 		if id!=peers[peer]:
 			snapshot.people[id].journal=[]
 			snapshot.people[id].events=[]
+			snapshot.people[id].erase("story")
 	# Network IDs are session-scoped; don't send other players' identity secrets.
 	var people: Dictionary={}
 	for id in snapshot.people:
@@ -167,13 +176,28 @@ func movement(direction: Vector2) -> void:
 		inputs[peer]=direction.limit_length()
 
 @rpc("any_peer","call_remote","reliable")
-func command(kind: String, value: String="") -> void:
+func command(kind: String, value: String="", request_id: int=0) -> void:
 	var peer:=multiplayer.get_remote_sender_id()
 	if mode!="server" or not peers.has(peer): return
-	var now:=Time.get_ticks_msec()
-	if now-int(last_commands.get(peer,0))<100: return
-	last_commands[peer]=now
 	var id: String=peers[peer]
+	if kind=="dialogue_close":
+		dialogue_sessions.erase(id)
+		return
+	var now:=Time.get_ticks_msec()
+	if now-int(last_commands.get(peer,0))<100:
+		if kind in ["talk","dialogue_choice"]:
+			dialogue_sessions.erase(id)
+			receive_dialogue.rpc_id(peer,{},request_id)
+		return
+	last_commands[peer]=now
+	if kind in ["talk","dialogue_choice"]:
+		var response:=run_dialogue(id,kind,value)
+		inputs[peer]=Vector2.ZERO
+		Rules.save_world(world,save_path)
+		send_snapshot(peer)
+		receive_dialogue.rpc_id(peer,response,request_id)
+		return
+	if dialogue_sessions.has(id): return
 	if kind=="new":
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
 	else:
@@ -185,6 +209,7 @@ func remote_message(text: String) -> void:
 	message(text)
 
 func perform(kind: String, value: String="") -> void:
+	if dialogue.visible: return
 	if mode=="client":
 		command.rpc_id(1,kind,value)
 	elif mode=="single":
@@ -195,14 +220,20 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or dialogue.visible): return
 	if mode=="server":
 		for peer in inputs:
+			if dialogue_sessions.has(peers[peer]):
+				var person: Dictionary=world.people[peers[peer]]
+				if not person.alive or person.offline:
+					dialogue_sessions.erase(peers[peer])
+					receive_dialogue.rpc_id(peer,{})
+				continue
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not dialogue.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -224,9 +255,19 @@ func _physics_process(dt: float) -> void:
 			save_clock=0
 			Rules.save_world(world,save_path)
 
+func _input(event: InputEvent) -> void:
+	# Consume keys before GUI focus navigation can reach covered sidebar controls.
+	if dialogue!=null and dialogue.visible and event is InputEventKey:
+		if event.pressed and not event.echo and event.keycode==KEY_ESCAPE: close_dialogue()
+		get_viewport().set_input_as_handled()
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
 	if not mode in ["single","client"]: return
+	if dialogue.visible:
+		if event.keycode==KEY_ESCAPE: close_dialogue()
+		get_viewport().set_input_as_handled()
+		return
 	if event.keycode==KEY_ESCAPE:
 		panel.hide()
 		dressing.hide()
@@ -245,6 +286,16 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_J: open_journal()
 
 func interact() -> void:
+	var p: Dictionary=world.people[me]
+	if not p.alive or p.offline: return
+	var npc_id:=Rules.Dialogue.nearby(p)
+	if not npc_id.is_empty():
+		get_viewport().gui_release_focus()
+		dialogue_request_id+=1
+		dialogue.show()
+		dialogue_text.text="대화를 기다리는 중…"
+		request_dialogue("talk",npc_id)
+		return
 	var t:=Rules.nearby(world.people[me])
 	if t.get("kind","")=="library": open_library()
 	elif t.get("kind","")=="grave": open_graves()
@@ -407,6 +458,7 @@ func build_ui() -> void:
 	bag=preload("res://inventory_panel.gd").new()
 	root.add_child(bag)
 	bag.action.connect(perform)
+	build_dialogue(root)
 
 func refresh() -> void:
 	if world.is_empty() or not world.people.has(me): return
@@ -429,6 +481,11 @@ func refresh() -> void:
 	new_button.visible=not p.alive
 	var t:=Rules.nearby(p)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
+
+	var npc_id:=Rules.Dialogue.nearby(p)
+	if not npc_id.is_empty() and p.alive and not p.offline:
+		prompt.text="E · %s와 대화" % Rules.Dialogue.NPCS[npc_id].name
+	if dialogue.visible and (not p.alive or p.offline): close_dialogue()
 
 func style_meter(bar: ProgressBar, color: Color) -> void:
 	var background:=StyleBoxFlat.new()
@@ -576,3 +633,86 @@ func open_inventory() -> void:
 	bag.feedback.text=""
 	bag.refresh(world.people[me])
 	bag.show()
+
+# Sessions are transient: persisted story flags never resume an open modal.
+func run_dialogue(id: String, kind: String, value: String) -> Dictionary:
+	var active: String=dialogue_sessions.get(id,"")
+	var npc_id: String=value if kind=="talk" else active
+	var result:=Rules.Dialogue.talk(world,id,npc_id,"" if kind=="talk" else value,active)
+	if result.is_empty(): dialogue_sessions.erase(id)
+	else: dialogue_sessions[id]=npc_id
+	return result
+
+func request_dialogue(kind: String, value: String) -> void:
+	if dialogue_pending: return
+	dialogue_pending=true
+	for child in dialogue_choices.get_children(): child.disabled=true
+	if mode=="client": command.rpc_id(1,kind,value,dialogue_request_id)
+	elif mode=="single":
+		var result:=run_dialogue(me,kind,value)
+		Rules.save_world(world,save_path)
+		receive_dialogue(result)
+		refresh()
+
+@rpc("authority","call_remote","reliable")
+func receive_dialogue(result: Dictionary, request_id: int=-1) -> void:
+	if request_id!=-1 and request_id!=dialogue_request_id: return
+	dialogue_pending=false
+	if not dialogue.visible: return
+	if result.is_empty():
+		close_dialogue(false)
+		message("지금은 대화할 수 없습니다. 주민 가까이에서 다시 시도하세요.")
+		return
+	dialogue_text.text=result.name+"\n────────────────────\n\n"+result.text
+	for child in dialogue_choices.get_children():
+		dialogue_choices.remove_child(child)
+		child.queue_free()
+	for choice in result.choices:
+		var button:=Button.new()
+		button.text=choice.text
+		button.focus_mode=Control.FOCUS_NONE
+		var choice_id: String=choice.id
+		button.pressed.connect(func():
+			if choice_id=="leave": close_dialogue()
+			else: request_dialogue("dialogue_choice",choice_id))
+		dialogue_choices.add_child(button)
+
+func close_dialogue(notify_server: bool=true) -> void:
+	if dialogue==null: return
+	dialogue.hide()
+	dialogue_pending=false
+	dialogue_request_id+=1
+	if notify_server and mode=="client": command.rpc_id(1,"dialogue_close")
+	else: dialogue_sessions.erase(me)
+
+func build_dialogue(root: Control) -> void:
+	# Full-screen input shield also blocks sidebar buttons while speaking.
+	dialogue=Control.new()
+	dialogue.size=Vector2(1280,800)
+	dialogue.mouse_filter=Control.MOUSE_FILTER_STOP
+	root.add_child(dialogue)
+	var shade:=ColorRect.new()
+	shade.color=Color(0,0,0,0.55)
+	shade.size=dialogue.size
+	shade.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	dialogue.add_child(shade)
+	var paper:=PanelContainer.new()
+	paper.position=Vector2(230,170)
+	paper.size=Vector2(820,460)
+	dialogue.add_child(paper)
+	var column:=VBoxContainer.new()
+	column.add_theme_constant_override("separation",16)
+	paper.add_child(column)
+	var close:=Button.new()
+	close.text="대화 닫기 · ESC"
+	close.focus_mode=Control.FOCUS_NONE
+	close.pressed.connect(close_dialogue)
+	column.add_child(close)
+	dialogue_text=RichTextLabel.new()
+	dialogue_text.bbcode_enabled=false
+	dialogue_text.add_theme_font_size_override("normal_font_size",22)
+	dialogue_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
+	column.add_child(dialogue_text)
+	dialogue_choices=VBoxContainer.new()
+	column.add_child(dialogue_choices)
+	dialogue.hide()

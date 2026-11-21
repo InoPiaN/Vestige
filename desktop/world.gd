@@ -1,5 +1,7 @@
 extends RefCounted
 
+const Dialogue=preload("res://dialogue.gd")
+
 const DAY := 2880.0
 const PLACES := [
 	{"kind":"forge","name":"잿불 대장간","x":5,"y":7},
@@ -22,6 +24,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 	return result
 
 static func outfit(p: Dictionary) -> void:
+	Dialogue.ensure(p)
 	p.look=clean_look(p.get("look",{}))
 	if not p.has("belongings"): p.belongings={"leather":1,"hood":1,"traveler":1}
 	if not p.has("equipment"):

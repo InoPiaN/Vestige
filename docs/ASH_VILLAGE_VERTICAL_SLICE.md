@@ -1,6 +1,6 @@
 # 잿불 마을 첫 플레이 가능 스토리 슬라이스 — 구현 계획
 
-상태: 구현 계획 (코드 미구현). 기준: `feature/ai-mcp-asset-pipeline`에서 분기. 스토리 초안은 별도 `docs/vestige-story-concept-v0-3` 브랜치의 `docs/STORY_CONCEPT.md` 참고. **사건의 진실은 아직 가설**이며 확정하지 않는다.
+상태: 첫 범위 구현 완료 (2026-11-21). 실제 화면 수동 검증은 미실시. 기준: `feature/ai-mcp-asset-pipeline`에서 분기. 스토리 초안은 별도 `docs/vestige-story-concept-v0-3` 브랜치의 `docs/STORY_CONCEPT.md` 참고. **사건의 진실은 아직 가설**이며 확정하지 않는다.
 
 ## 기존 코드에서 확인한 기반
 
@@ -38,3 +38,53 @@
 ## 구현 범위 밖
 
 AI 이미지 생성, API 과금, 최종 그래픽, 사건 범인 확정, 완성형 퀘스트 시스템, 모든 NPC·맵 제작.
+
+
+## 첫 범위 구현 결과 (2026-11-21)
+
+### 분석과 변경 영향
+
+- `desktop/main.gd`: 기존 E 입력은 서재/묘지를 직접 열고 나머지를 `Rules.act`로 전달했다. 이제 근처 NPC가 있으면 별도 대화 모달을 열고, 없으면 기존 시설 흐름을 사용한다. 대화 중 키 입력과 배경 UI 클릭을 막는다. 싱글은 기존 기록 패널과 동일하게 시간을 멈추며, 공유 서버 시간은 계속 흐른다.
+- `desktop/dialogue.gd`: 브란·세라 위치, 최초/재방문/소문 청취 후 대사, 선택지와 대화 규칙을 분리했다. 브란은 `(7, 7.5)`, 세라는 `(12, 4.5)`에 있고 대화 반경은 **1.125 타일 미만**이다. 대장간 `(5, 8)`과 서재 `(10, 5)` 입구에서는 기존 시설을 이용한다.
+- `desktop/world.gd`: `outfit`의 기존 저장 기본값 보충 경로에서 대화 상태도 보충한다. 저장 버전은 1을 유지한다. 채집·제작·전투 규칙은 변경하지 않았다.
+- `desktop/pixel_world.gd`: 장식용 주민 두 명 대신 임시 사각형과 NPC 이름을 표시한다. 이미지 생성이나 아트 파일 추가, 외부 API 호출은 없다.
+- 멀티플레이: 기존 `command` RPC로 대화 시작/선택/닫기를 전달한다. 서버가 거리, 생존, 직접 조종 상태와 활성 대화를 검사한다. 서버 세션 중 이동과 다른 행동을 차단하고, 응답은 본인에게만 전달한다. 다른 플레이어의 `story`는 스냅샷에서 제거한다. 대화 응답에 요청 번호를 붙여 이전 대화의 지연 응답을 무시한다.
+
+### 저장과 일지
+
+`people[id].story`에 `visits.bran`, `visits.sera`, `iren_missing_rumor`, `kael_encountered` 불리언을 저장한다. 기존 세이브에는 모두 false로 보충한다. 카엘은 이번 범위에 등장하지 않으며 해당 플래그는 false를 유지한다.
+
+첫 인사와 최초 소문 청취를 기존 `events`에 기록한다. J의 ‘오늘의 메모’에 즉시 표시되며, 하루가 지나면 `journal`에 들어간다. 반복 대화로 기록이 중복되지 않는다. 사망하면 기존 책 보존 흐름을 따르고 새 인물은 대화 지식을 계승하지 않는다. 인사만 하거나 NPC를 무시해도 채집·단조를 계속할 수 있다.
+
+대화 세션은 저장하지 않는다. 싱글과 서버는 대화 처리 직후 기존 저장 함수를 호출한다. 재접속 시 모달은 닫힌 상태로 시작하며 저장된 이력에 따라 재방문 대사가 나온다. 소문은 미확인 전언으로 표현하며 이렌 사건의 원인·범인은 확정하지 않는다.
+
+### 실행한 검증
+
+Godot **4.5.1**에서 아래를 실행했다.
+
+```sh
+.tools/godot/Godot.app/Contents/MacOS/Godot --headless --path desktop --editor --quit
+.tools/godot/Godot.app/Contents/MacOS/Godot --headless --path desktop --script res://tests/test_world.gd
+.tools/godot/Godot.app/Contents/MacOS/Godot --headless --path desktop --script res://tests/test_inventory.gd
+.tools/godot/Godot.app/Contents/MacOS/Godot --headless --path desktop --script res://tests/test_customization.gd
+.tools/godot/Godot.app/Contents/MacOS/Godot --headless --path desktop --script res://tests/test_dialogue.gd
+.tools/godot/Godot.app/Contents/MacOS/Godot --headless --path desktop --script res://tests/test_dialogue_ui.gd
+python3 scripts/test_desktop_network.py
+npm test
+```
+
+- Godot 프로젝트 파싱 통과. 첫 제한 환경 실행에서 편집기 설정 저장 권한/시스템 인증서 오류가 있었고, 승인된 권한으로 재실행해 오류 없이 종료했다.
+- 기존 규칙 9개, 인벤토리 9개, 외형/장비 12개 통과.
+- 신규 대화 규칙 25개 통과: 거리와 경계, 두 NPC 최초/재방문, 소문 선택과 중복 방지, 플레이어 분리, 부재/사망 거절, 일지 전환, 구버전 로드, 저장 복원, 새 생애 초기화, 시설 입구 접근.
+- 신규 헤드리스 UI 9개 통과: E 대화, 입력 차단, 오래된 응답 무시, 소문 선택, ESC 닫기, J 표시, 세라 분기, 싱글 재로드, 기존 서재 접근. 실제 OS 키보드/마우스 수동 플레이가 아닌 이벤트 핸들러와 버튼 시그널 자동 호출이다.
+- ENet 통합: 독립 임시 저장으로 서버와 두 클라이언트를 실행했다. 기존 이동·외형·장비 동기화, 원거리 대화 거절, 최초/재방문/소문, 서버의 대화 중 이동·공격 차단, 타인 비공개 기록 제외, 서버 재시작·두 계정 재접속을 검증했다. 제한 환경의 서버 시작 실패 후 승인된 권한으로 실행했다. 실제 사용자 세이브는 사용하지 않았다.
+- `npm test` 14개 통과. 웹 버전에는 NPC 대화를 추가하지 않았다.
+
+### 실제 실행하지 않은 검증과 남은 범위
+
+- GUI 수동 플레이, 한국어 이름/대화창의 실제 렌더링·가독성, 마우스 클릭 위치·창 크기별 배치 확인은 미실시다. 헤드리스 테스트는 시각 품질을 보증하지 않는다.
+- Windows 빌드/실행과 외부 네트워크의 지연·패킷 손실 테스트는 미실시다. 통합 검사 중 테스트 클라이언트의 즉시 종료와 서버 송신이 겹쳐 ENet 오류가 한 차례 발생했다. 테스트를 정상 연결 해제 대기 방식으로 바꾼 뒤 전체 통과했으며, 강제 종료/망 단절 복원력은 별도 검증이 필요하다.
+- 이렌의 집, 현장 증거, 카엘 대면, 결말 선택은 후속 범위다.
+- 저장 함수의 I/O 실패 통지·백업 복구 및 기존 계정 인증 방식의 개선은 이번 변경에 포함하지 않았다.
+
+수동 검증 순서: 새 싱글 → 대장간 오른쪽 브란에 접근 → E/소문 선택/ESC → 서재 오른쪽 세라와 대화 → J 확인 → 재시작/재방문 확인. 별도 새 인물로 NPC를 무시하고 광석 2개 채집 → 대장간 입구에서 제작 → 늑대 전투를 확인한다.

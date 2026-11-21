@@ -231,8 +231,11 @@ func _draw() -> void:
 		box(191+i*11,197,9,9,"705c3c")
 		box(192+i*11,198,7,1,"a28b5a")
 	for i in range(4): lamp(65+i*58,158)
-	hero(105+sin(clock*0.3)*8,135,{"steps":clock,"alive":true},true)
-	hero(208,210,{"steps":0,"alive":true},true)
+	for npc in Rules.Dialogue.NPCS.values():
+		var at:=Vector2(npc.x,npc.y)*16
+		# Temporary markers only; no generated art assets.
+		draw_rect(Rect2(at-Vector2(4,8),Vector2(8,12)),Color("c2aa72"))
+		draw_string(font,at+Vector2(-10,-13),npc.name,HORIZONTAL_ALIGNMENT_LEFT,-1,10,Color("f4dc99"))
 	if world.is_empty(): return
 	var e: Dictionary=world.wolf
 	if e.hp>0:

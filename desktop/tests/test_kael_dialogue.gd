@@ -33,7 +33,7 @@ func _initialize() -> void:
 	var question: Dictionary = D.talk(w,"a","kael","kael_irene","kael")
 	check(question.text.contains("이렌"), "Kael answers relationship question")
 	check(not question.choices.is_empty(), "Kael question keeps dialogue choices")
-	check(not D.talk(w,"a","kael","kael_chapel","kael").size() > 0, "chapel branch requires clue")
+	check(D.talk(w,"a","kael","kael_chapel","kael").is_empty(), "chapel branch requires clue")
 	p.x = I.EVIDENCE["kael_token"].x
 	p.y = I.EVIDENCE["kael_token"].y
 	check(R.walkable(R.pos(p)), "token site walkable")
@@ -51,7 +51,7 @@ func _initialize() -> void:
 	p.y=n.y
 	var response: Dictionary = D.talk(w,"a","kael")
 	check(response.choices.any(func(v): return v.id == "kael_token"), "token choice unlocked by server evidence")
-	check(not D.talk(w,"a","kael","kael_token","bran").size() > 0, "wrong active session rejected")
+	check(D.talk(w,"a","kael","kael_token","bran").is_empty(), "wrong active session rejected")
 	response=D.talk(w,"a","kael","kael_token","kael")
 	check(response.text.contains("내 물건"), "Kael recognizes ownership but not cause")
 	check("kael_token_owner_admitted" in p.story.chapter1.dialogue_events, "acknowledgement stored")

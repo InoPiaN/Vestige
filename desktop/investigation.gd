@@ -124,6 +124,7 @@ static func redact(snapshot: Dictionary,viewer: String) -> void:
 	for id in snapshot.people.keys():
 		if id==viewer: continue
 		var other: Dictionary=snapshot.people[id]
+		other.erase("requests")
 		other.erase("herbal_quest")
 		other.erase("forage_xp")
 		other.erase("discovered")

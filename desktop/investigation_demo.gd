@@ -303,3 +303,18 @@ static func foraging() -> Dictionary:
 	p.belongings.mug=1
 	p.herb=3
 	return w
+
+static func requests() -> Dictionary:
+	var w:=travel()
+	var p: Dictionary=w.people.local
+	p.room="harbor"
+	p.x=15.0
+	p.y=14.0
+	p.discovered=["village","road","harbor"]
+	p.name="마을의 심부름꾼"
+	p.belongings.forest_mushroom=2
+	p.belongings.harbor_reed=2
+	p.belongings.healing_salve=1
+	p.belongings.healing_salve_great=1
+	p.belongings.boar_tusk=1
+	return w

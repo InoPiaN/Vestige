@@ -17,6 +17,7 @@ const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
+const Requests=preload("res://village_requests.gd")
 const Forage=preload("res://foraging.gd")
 const Travel=preload("res://travel.gd")
 const Expedition=preload("res://expedition.gd")
@@ -47,6 +48,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 	return result
 
 static func outfit(p: Dictionary) -> void:
+	Requests.prepare(p)
 	Forage.person(p)
 	Travel.prepare_person(p)
 	Expedition.person(p)
@@ -70,7 +72,7 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":22,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
+	var w: Dictionary={"version":23,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
 
 	Travel.prepare(w)
 	Forage.prepare(w)
@@ -318,6 +320,7 @@ static func tick(w: Dictionary, dt: float) -> void:
 		e.y=v.y
 
 static func nearby(p: Dictionary,time: float=0.0) -> Dictionary:
+	if Requests.near_board(p): return {"kind":"board","name":"마을 의뢰 게시판 · L로 진행 확인"}
 	var node:=Forage.nearby(p)
 	if not node.is_empty(): return {"kind":"forage","name":preload("res://items.gd").CATALOG[Forage.NODES[node].item].name+" · 채집","id":node}
 	var travel:=Travel.nearby(p,time)
@@ -380,11 +383,14 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="request_accept": return Requests.accept(w,p,value)
+	if kind=="request_deliver": return Requests.deliver(w,p,value)
 	if kind=="harvest": return Forage.harvest(w,p,value)
 	if kind=="herbal_quest": return Forage.quest(w,p)
 	if kind=="coach": return Travel.coach(p)
 	if kind=="harbor_buy": return Travel.buy(w,p,value)
 	if kind=="interact":
+		if Requests.near_board(p): return "마을 의뢰"
 		var node:=Forage.nearby(p)
 		if not node.is_empty(): return Forage.harvest(w,p,node)
 		var place:=Travel.nearby(p,w.time)
@@ -520,7 +526,7 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=22
+	w.version=23
 	Travel.prepare(w)
 	Forage.prepare(w)
 	Expedition.prepare(w)

@@ -1,4 +1,4 @@
-# Vestige · 설치형 도트 시제품 0.5.18
+# Vestige · 설치형 도트 시제품 0.5.19
 
 ## 빌드 보관 원칙
 
@@ -6,11 +6,30 @@
 
 ## 바로 실행
 
-- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.18.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.18/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.19.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.19/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
+
+### 마을 게시판과 반복 납품 · 0.5.19
+
+[Mac 의뢰 체험 실행](/Users/junheejang/Documents/Vestige/builds/Play-Requests.command). Windows는 최신 패키지의 **Play-Requests.cmd**, 직접 실행은 `-- --requests-demo`입니다. 일반 저장과 분리된 `requests-demo.json`을 사용하며 첫 실행에는 납품용 물품이 준비되어 있습니다.
+
+1. 잿불 마을 또는 안개나루의 **게시판 앞에서 E**를 눌러 해당 마을 의뢰를 수락합니다.
+2. **L**로 어디서든 진행 상황과 소지/필요 수량, 실제 납품될 품질, 보상을 확인합니다.
+3. 물품을 소지한 채 깨어 있는 의뢰인의 **실제 위치**로 이동해 L 창에서 납품합니다.
+4. 수락 후 기한은 없으며, 완료한 다음 **월드 날**부터 게시판에서 재수락할 수 있습니다.
+
+| 의뢰인 | 납품 | 보상 |
+|---|---|---|
+| 안개나루 소하 | 숲 버섯1 + 나루 갈대1 | 은화8 |
+| 안개나루 도윤 | 회복 연고1 | 은화10 |
+| 잿불 마을 라온 | 멧돼지 엄니1 | 은화6 |
+
+일반 이상 품질을 받으며 일반→양품→대성공 순서로 소비합니다. 높은 품질의 추가 보상은 없습니다. 집 보관함은 자동으로 소비하지 않습니다. 의뢰는 생애별로 관리하고 멀티에서도 각자 수락·완료합니다. 기존 약초꾼 입문·서신·원정 의뢰는 유지됩니다.
+
+[전체 현황](docs/PROJECT_STATUS.md) · [의뢰 인수인계](docs/handoffs/village-requests.md)
 
 ### 지역 채집과 약초꾼 입문 · 0.5.18
 
@@ -296,7 +315,7 @@ Mac은 빌드 폴더의 **Play-Witness.command**, Windows는 **Play-Witness.cmd*
 프로젝트 루트에서 다음 명령으로 독립 싱글 저장 `investigation-demo.json`을 열 수 있습니다. 일반 월드에서는 마을 서남쪽 언덕집 문 앞에서 E로 은화 8개에 집을 매입합니다. 이후 E를 누를 때마다 그때까지의 일지를 책장에 보관합니다.
 
 ```sh
-/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.18.app/Contents/MacOS/Vestige -- --investigation-demo
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.19.app/Contents/MacOS/Vestige -- --investigation-demo
 ```
 
 Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 실행합니다. 체험 월드는 약초꾼 소율이 예배당으로 떠난 뒤 새 여행자가 도착한 상태에서 시작합니다.
@@ -348,7 +367,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.18.app/Contents/MacOS/Vestige --headless -- --server
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.19.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -384,7 +403,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.18.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.19.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

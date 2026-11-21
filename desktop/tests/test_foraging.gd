@@ -195,7 +195,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(legacy))
 	file.close()
 	var migrated:=R.load_world(legacy_path,false)
-	check(not migrated.is_empty() and migrated.version==22 and migrated.people.local.herbal_quest=="new" and F.valid(migrated),"Version21 migrates with fresh nodes and unlearned recipes")
+	check(not migrated.is_empty() and migrated.version==23 and migrated.people.local.herbal_quest=="new" and F.valid(migrated),"Version21 migrates with fresh nodes and unlearned recipes")
 	for base in [path,legacy_path]:
 		for ext in ["",".bak"]: DirAccess.remove_absolute(base+ext)
 	quit(1 if failures else 0)

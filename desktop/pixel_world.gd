@@ -195,6 +195,7 @@ func _draw() -> void:
 		if not world.is_empty() and world.people.has(player_id):
 			if Rules.pos(world.people[player_id]).distance_to(Rules.pos(t))<2:
 				draw_rect(Rect2(x-14,y+18,28,1),Color("e7c980"))
+	Rules.Requests.draw(self,"village")
 	for place in Rules.Travel.PLACES.village:
 		if place.kind=="mail": hero(place.x*16,place.y*16,{"look":{"hair":1,"hair_color":2,"cloth":3},"equipment":{"cloak":"traveler"}})
 		else:
@@ -376,6 +377,7 @@ func draw_travel() -> void:
 		if place.kind in ["gate","coach"]:
 			box(place.x*16-4,place.y*16-12,8,4,"d3bb80")
 			box(place.x*16,place.y*16-8,2,12,"806441")
+	Rules.Requests.draw(self,region)
 	preload("res://foraging_art.gd").draw(self,world,p)
 	for trace in Rules.Investigation.traces(world,p): box(trace.x*16-3,trace.y*16+4,7,3,"cfb985")
 	for id in world.people:

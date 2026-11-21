@@ -90,12 +90,12 @@ static func record_kael_statement(w: Dictionary, player_id: String) -> bool:
 
 static func reconstruction_summary(p: Dictionary) -> String:
 	var state: Dictionary = p.get("story", {}).get("chapter1", {})
-	var text := "사건 재구성 · 임시 조사 기록\\n────────────────────\\n"
+	var text := "사건 재구성 · 임시 조사 기록\n────────────────────\n"
 	for inference_id in ["I03","I04","I07"]:
 		var label: String = {"I03":"봉인 손상과 장치 가동 기록","I04":"카엘의 방문과 직접 진술","I07":"장치 연결부와 도구 파편"}.get(inference_id,inference_id)
 		var status := "검증 완료" if state.get("inferences", {}).get(inference_id, "")=="verified" else ("검증 가능 · 세라에게 확인" if Chapter1.inference_supported(state,inference_id) else "증거 부족")
-		text += "%s · %s: %s\\n" % [inference_id,label,status]
-	text += "\\n주의: 이 판단은 카엘이 장치를 작동했다는 사실이나 이렌의 사망을 확정하지 않습니다.\\n"
+		text += "%s · %s: %s\n" % [inference_id,label,status]
+	text += "\n주의: 이 판단은 카엘이 장치를 작동했다는 사실이나 이렌의 사망을 확정하지 않습니다.\n"
 	return text
 
 static func notebook(p: Dictionary) -> String:

@@ -1,5 +1,6 @@
 extends RefCounted
 
+const Investigation=preload("res://investigation.gd")
 const Dialogue=preload("res://dialogue.gd")
 
 const DAY := 2880.0
@@ -7,6 +8,7 @@ const PLACES := [
 	{"kind":"forge","name":"잿불 대장간","x":5,"y":7},
 	{"kind":"library","name":"기억의 서재","x":10,"y":4},
 	{"kind":"inn","name":"등불 여관","x":11,"y":11},
+	{"kind":"iren_house","name":"이렌의 집","x":16,"y":6},
 	{"kind":"grave","name":"이름의 묘지","x":4,"y":14},
 	{"kind":"ore","name":"철광맥","x":21,"y":5},
 	{"kind":"herb","name":"달빛 약초","x":22,"y":14},
@@ -25,6 +27,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 
 static func outfit(p: Dictionary) -> void:
 	Dialogue.ensure(p)
+	Investigation.ensure(p)
 	p.look=clean_look(p.get("look",{}))
 	if not p.has("belongings"): p.belongings={"leather":1,"hood":1,"traveler":1}
 	if not p.has("equipment"):
@@ -104,7 +107,7 @@ static func walkable(v: Vector2) -> bool:
 	if v.x<1 or v.y<1 or v.x>29 or v.y>18:
 		return false
 	for t in PLACES:
-		if t.kind in ["forge","library","inn"]:
+		if t.kind in ["forge","library","inn","iren_house"]:
 			if Rect2(t.x-1,t.y-1.5,2,1.9).has_point(v):
 				return false
 	return true
@@ -203,6 +206,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="inspect": return Investigation.inspect(w,id,value)
 	if kind=="dodge":
 		if p.stamina>=30 and p.dodge<=0:
 			p.stamina-=30
@@ -254,6 +258,7 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 			p.skill+=1
 			p.events.append("잿불 대장간에서 첫 여정을 위한 철검을 만들었다.")
 			return "철검을 만들었습니다. 공격력 9 → 22"
+		"iren_house": return Investigation.inspect(w,id,"last_promise")
 		"inn":
 			p.hp=100
 			p.events.append("등불 여관에서 따뜻한 식사를 하고 쉬었다.")

@@ -1,6 +1,8 @@
 extends RefCounted
 
 # Fixed prototype residents. The short radius leaves facility entrances usable.
+const Investigation=preload("res://investigation.gd")
+
 const RADIUS := 1.125
 const NPCS := {
 	"bran": {"name":"브란", "role":"대장장이", "x":7.0, "y":7.5,
@@ -43,11 +45,15 @@ static func talk(w: Dictionary, id: String, npc_id: String, choice: String="", a
 	var n: Dictionary=NPCS[npc_id]
 	if not p.alive or p.offline: return {}
 	if Vector2(p.x,p.y).distance_to(Vector2(n.x,n.y))>=RADIUS: return {}
-	if choice!="" and (active_npc!=npc_id or choice!="rumor"): return {}
+	if choice!="" and (active_npc!=npc_id or not choice in ["rumor","evidence"]): return {}
+	var testimony:=Investigation.testimony(p,npc_id)
+	if choice=="evidence" and testimony.is_empty(): return {}
 	ensure(p)
 	var s: Dictionary=p.story
 	var text: String
-	if choice=="rumor":
+	if choice=="evidence":
+		text=testimony
+	elif choice=="rumor":
 		text=n.rumor
 		if not s.iren_missing_rumor:
 			s.iren_missing_rumor=true
@@ -58,4 +64,6 @@ static func talk(w: Dictionary, id: String, npc_id: String, choice: String="", a
 		if not s.visits[npc_id]:
 			s.visits[npc_id]=true
 			p.events.append("%s %s와 처음 인사를 나누었다." % [n.role,n.name])
-	return {"npc_id":npc_id, "name":n.name, "text":text, "choices":CHOICES.duplicate(true)}
+	var choices:=CHOICES.duplicate(true)
+	if not testimony.is_empty(): choices.insert(1,{"id":"evidence","text":"발견한 증거에 관해 묻는다"})
+	return {"npc_id":npc_id, "name":n.name, "text":text, "choices":choices}

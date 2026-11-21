@@ -22,6 +22,7 @@ var health: ProgressBar
 var stamina: ProgressBar
 var policy: OptionButton
 var panel: PanelContainer
+var pages_kind: String=""
 var panel_text: RichTextLabel
 var input_name: LineEdit
 var input_host: LineEdit
@@ -147,6 +148,12 @@ func register_player(token: String, display_name: String, look_json: String="{}"
 	send_snapshot(peer)
 
 func send_snapshot(peer: int) -> void:
+	# ENet can enter disconnecting before peer_disconnected removes our mapping.
+	if not peers.has(peer) or not peer in multiplayer.get_peers(): return
+	var transport:=multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	if transport==null: return
+	var connection:=transport.get_peer(peer)
+	if connection==null or connection.get_state()!=ENetPacketPeer.STATE_CONNECTED: return
 	var snapshot: Dictionary=world.duplicate(true)
 	for id in snapshot.people:
 		if id!=peers[peer]:
@@ -202,6 +209,7 @@ func command(kind: String, value: String="", request_id: int=0) -> void:
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
 	else:
 		remote_message.rpc_id(peer,Rules.act(world,id,kind,value))
+		if kind in ["inspect","interact"]: Rules.save_world(world,save_path)
 	send_snapshot(peer)
 
 @rpc("authority","call_remote","reliable")
@@ -284,6 +292,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_SHIFT: perform("dodge")
 		KEY_Q: perform("heal")
 		KEY_J: open_journal()
+		KEY_N: open_notebook()
 
 func interact() -> void:
 	var p: Dictionary=world.people[me]
@@ -295,6 +304,10 @@ func interact() -> void:
 		dialogue.show()
 		dialogue_text.text="대화를 기다리는 중…"
 		request_dialogue("talk",npc_id)
+		return
+	var evidence_id:=Rules.Investigation.nearby(p)
+	if not evidence_id.is_empty():
+		perform("inspect",evidence_id)
 		return
 	var t:=Rules.nearby(world.people[me])
 	if t.get("kind","")=="library": open_library()
@@ -422,7 +435,8 @@ func build_ui() -> void:
 	ui.add_child(policy)
 	button_at(ui,"생활 맡기기",Vector2(1000,460),120,func(): perform("leave"))
 	button_at(ui,"직접 조종",Vector2(1130,460),120,func(): perform("resume"))
-	button_at(ui,"J · 나의 일기",Vector2(1000,510),250,open_journal)
+	button_at(ui,"J · 일기",Vector2(1000,510),120,open_journal)
+	button_at(ui,"N · 조사 수첩",Vector2(1130,510),120,open_notebook)
 	day_button=button_at(ui,"실험 · 하루 진행",Vector2(1000,558),250,func():
 		if mode=="single":
 			Rules.advance(world,Rules.DAY)
@@ -430,7 +444,7 @@ func build_ui() -> void:
 			message("하루가 흘렀습니다. J로 일기를 확인하세요.")
 			refresh())
 	new_button=button_at(ui,"새로운 삶 시작",Vector2(1000,606),250,func(): open_dressing("new"))
-	label_at(ui,"WASD  이동   E  상호작용\nSPACE  공격   SHIFT  회피\nQ  약초 사용   J  일기",Vector2(1000,670),14,Color("8fa394"))
+	label_at(ui,"WASD  이동   E  상호작용\nSPACE  공격   SHIFT  회피\nQ  약초 사용   J  일기   N  조사 수첩",Vector2(1000,670),14,Color("8fa394"))
 	prompt=label_at(ui,"",Vector2(30,730),16,Color("dfcd97"))
 	notice=label_at(ui,"",Vector2(30,762),14)
 	panel=PanelContainer.new()
@@ -468,6 +482,7 @@ func refresh() -> void:
 		dress_status.text="철검 착용 중 · 공격력 22" if p.equipment.weapon=="iron_sword" else "맨손 · 공격력 9"
 		for slot in gear_pickers: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
 	if bag.visible: bag.refresh(p)
+	if panel.visible and pages_kind=="notebook": panel_text.text=Rules.Investigation.notebook(p)
 	view.world=world
 	view.player_id=me
 	status.text="%s\n%s · %d세" % [p.name,"주민으로 생활 중" if p.offline else "직접 조종 중",int(p.age/360)]
@@ -482,6 +497,9 @@ func refresh() -> void:
 	var t:=Rules.nearby(p)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
+	var evidence_id:=Rules.Investigation.nearby(p)
+	if not evidence_id.is_empty():
+		prompt.text="E · 조사: "+Rules.Investigation.EVIDENCE[evidence_id].title
 	var npc_id:=Rules.Dialogue.nearby(p)
 	if not npc_id.is_empty() and p.alive and not p.offline:
 		prompt.text="E · %s와 대화" % Rules.Dialogue.NPCS[npc_id].name
@@ -504,10 +522,16 @@ func message(text: String) -> void:
 		if bag.visible: bag.feedback.text=text
 
 func show_pages(text: String) -> void:
+	pages_kind=""
 	bag.hide()
 	dressing.hide()
 	panel_text.text=text
 	panel.show()
+
+func open_notebook() -> void:
+	if world.is_empty() or not world.people.has(me) or dialogue.visible: return
+	show_pages(Rules.Investigation.notebook(world.people[me]))
+	pages_kind="notebook"
 
 func open_journal() -> void:
 	if world.is_empty(): return

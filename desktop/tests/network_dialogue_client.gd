@@ -26,6 +26,13 @@ func start() -> void:
 	while game.mode!="client": await process_frame
 	if "--verify" in OS.get_cmdline_user_args():
 		check(game.world.people[game.me].story.iren_missing_rumor,"rumor survives server restart and reconnect")
+		# Other clients' tests let this offline resident walk to the inn.
+		for destination in [Vector2(9,9),Vector2(7,7.5)]:
+			while Main.Rules.pos(game.world.people[game.me]).distance_to(destination)>0.2:
+				game.movement.rpc_id(1,(destination-Main.Rules.pos(game.world.people[game.me])).normalized())
+				await create_timer(0.05).timeout
+		game.movement.rpc_id(1,Vector2.ZERO)
+		await create_timer(0.2).timeout
 		game.interact()
 		await create_timer(0.3).timeout
 		check(game.dialogue_text.text.contains("다시 왔군"),"reconnected dialogue uses return branch")

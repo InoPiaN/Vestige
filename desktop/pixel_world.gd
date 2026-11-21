@@ -202,7 +202,7 @@ func _draw() -> void:
 		var x: float=t.x*16
 		var y: float=t.y*16
 		match t.kind:
-			"forge","inn","library": house(x,y,t.kind)
+			"forge","inn","library","iren_house": house(x,y,t.kind)
 			"grave":
 				for i in range(4):
 					box(x-18+i*12,y-7+(i%2)*9,8,13,"89917d")
@@ -220,6 +220,11 @@ func _draw() -> void:
 		if not world.is_empty() and world.people.has(player_id):
 			if Rules.pos(world.people[player_id]).distance_to(Rules.pos(t))<2:
 				draw_rect(Rect2(x-14,y+18,28,1),Color("e7c980"))
+	for id in Rules.Investigation.EVIDENCE:
+		var site: Dictionary=Rules.Investigation.EVIDENCE[id]
+		var at:=Vector2(site.x,site.y)*16
+		box(at.x-5,at.y-3,10,6,"b4ad8b")
+		draw_string(font,at+Vector2(-25,16),"이렌의 집 · 일기" if id=="last_promise" else "현장 흔적",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("f4dc99"))
 	# A well, market crates and two residents make the village readable.
 	box(111,170,20,12,"737967")
 	box(114,168,14,7,"252f2a")

@@ -224,7 +224,7 @@ func _draw() -> void:
 		var site: Dictionary=Rules.Investigation.EVIDENCE[id]
 		var at:=Vector2(site.x,site.y)*16
 		box(at.x-5,at.y-3,10,6,"b4ad8b")
-		var evidence_label: String = {"last_promise":"이렌의 집 · 일기","chapel_traces":"현장 흔적","kael_token":"낡은 표식"}.get(id,"조사 흔적")
+		var evidence_label: String = {"last_promise":"이렌의 집 · 일기","chapel_traces":"현장 흔적","kael_token":"낡은 표식","device_log":"작동 기록"}.get(id,"조사 흔적")
 		draw_string(font,at+Vector2(-25,16),evidence_label,HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("f4dc99"))
 	# A well, market crates and two residents make the village readable.
 	box(111,170,20,12,"737967")

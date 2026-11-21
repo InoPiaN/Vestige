@@ -99,7 +99,7 @@ func run() -> void:
 	R.advance(w,R.DAY)
 	check(p.journal.back().text.contains("답신") and p.journal.back().text.contains("마차"),"Travel and letter events reach daily diary")
 	var path: String=OS.get_temp_dir()+"/vestige-travel-"+str(OS.get_process_id())+".json"
-	check(R.save_world(w,path),"Travel state saves with schema twenty one")
+	check(R.save_world(w,path),"Travel state saves with schema twenty two")
 	var loaded:=R.load_world(path,false)
 	check(not loaded.is_empty() and loaded.people.local.discovered.size()==3 and loaded.people.local.mail_quest=="done","Reload preserves discovery and letter completion")
 	for key in ["room","mail_quest"]:
@@ -155,7 +155,7 @@ func run() -> void:
 	file.store_string(JSON.stringify(legacy))
 	file.close()
 	loaded=R.load_world(path+".old",false)
-	check(not loaded.is_empty() and loaded.version==21 and loaded.people.local.discovered==["village"],"Version twenty migrates without invented discoveries")
+	check(not loaded.is_empty() and loaded.version==22 and loaded.people.local.discovered==["village"],"Version twenty migrates without invented discoveries")
 	for name in [path,path+".old"]:
 		for suffix in ["",".bak"]: DirAccess.remove_absolute(name+suffix)
 	quit(1 if failed else 0)

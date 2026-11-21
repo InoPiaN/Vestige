@@ -1,3 +1,5 @@
+> 최신 작업 (2026-11-21): **0.5.18 지역 채집·약초꾼 입문** 완료. 브랜치 `codex/herbalist-foraging`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [채집 인수인계](handoffs/herbalist-foraging.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
+
 > 최신 작업 (2026-11-19): **0.5.17 NPC 생활 일정·상단 하늘 그림** 완료. 브랜치 `codex/npc-daily-life`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [생활 인수인계](handoffs/npc-daily-life.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
 
 > 최신 작업 (2026-11-19): **0.5.16 안개나루 여행** 완료. 브랜치 `codex/mist-harbor-travel`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [여행 인수인계](handoffs/mist-harbor-travel.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.

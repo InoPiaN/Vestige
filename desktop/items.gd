@@ -1,6 +1,11 @@
 extends RefCounted
 # Existing resource counters remain the single source of truth for old saves.
 const BASE_CATALOG := {
+	"forest_mushroom":{"name":"그늘 숲 버섯","category":"재료","limit":20,"color":"bb8264","description":"안개 숲길에서 채집. 회복 연고의 재료입니다."},
+	"harbor_reed":{"name":"나루 갈대","category":"재료","limit":20,"color":"b7b77b","description":"안개나루 물가와 부두에서 채집. 회복 연고의 재료입니다."},
+	"night_blossom":{"name":"밤안개꽃","category":"재료","limit":20,"color":"b6c6e4","description":"안개 숲길에서 밤8시~새벽5시에만 채집. 기력 차의 재료입니다."},
+	"healing_salve":{"name":"회복 연고","category":"소모품","limit":10,"color":"9aaf82","description":"체력60 회복. 소하의 입문 의뢰 후 집 작업대에서 숲 버섯1+나루 갈대1로 조제합니다."},
+	"vigor_tea":{"name":"기력 차","category":"소모품","limit":10,"color":"b5b6db","description":"기력60 회복. 입문 의뢰 후 밤안개꽃1+달빛 약초1로 조제. 찻잔과 켜진 벽난로가 필요합니다."},
 	"boar_tusk":{"name":"잿빛 멧돼지 엄니","category":"재료","limit":20,"color":"d4c39b","description":"북쪽 숲 들멧돼지의 전리품. 장터 판매가 3은화."},
 	"spectral_ash":{"name":"망령의 잿가루","category":"재료","limit":20,"color":"8bb7bd","description":"망령 궁수의 전리품. 장터 판매가 2은화."},
 	"wood":{"name":"활 제작용 목재","category":"재료","limit":20,"color":"ac8957","description":"단궁 제작 재료. 장터에서 구입합니다."},
@@ -25,7 +30,7 @@ const BASE_CATALOG := {
 static var CATALOG: Dictionary=make_catalog()
 static func make_catalog() -> Dictionary:
 	var catalog:=BASE_CATALOG.duplicate(true)
-	for base in ["bandage","repair_kit","mug","herbal_tea"]:
+	for base in ["bandage","repair_kit","mug","herbal_tea","healing_salve","vigor_tea"]:
 		for tier in ["fine","great"]:
 			var item: Dictionary=BASE_CATALOG[base].duplicate()
 			item.base=base
@@ -35,6 +40,8 @@ static func make_catalog() -> Dictionary:
 			if base=="bandage": item.description="체력 %d 회복." % (48 if tier=="fine" else 54)
 			if base=="repair_kit": item.description="작업대에서 무기·갑옷 내구도 %d 복원." % (44 if tier=="fine" else 50)
 			if base=="herbal_tea": item.description="체력 %d · 기력 %d 회복." % [22 if tier=="fine" else 25,44 if tier=="fine" else 50]
+			if base=="healing_salve": item.description="체력 %d 회복." % (66 if tier=="fine" else 75)
+			if base=="vigor_tea": item.description="기력 %d 회복." % (70 if tier=="fine" else 85)
 			if base=="mug": item.description="재사용 찻잔. 약초차 대성공 확률 +%d%%p." % (2 if tier=="fine" else 5)
 			catalog[base+"_"+tier]=item
 	return catalog

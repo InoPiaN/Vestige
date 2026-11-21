@@ -4,7 +4,7 @@ const Supply=preload("res://craft_supply.gd")
 const Items=preload("res://items.gd")
 const Armor=preload("res://armor_crafting.gd")
 const FORGE=["iron_sword","leather","iron_armor"]
-const RECIPES=["leather","iron_armor","iron_sword","repair_kit","mug","bandage","herbal_tea"]
+const RECIPES=["healing_salve","vigor_tea","leather","iron_armor","iron_sword","repair_kit","mug","bandage","herbal_tea"]
 # Keep the first plan in its legacy field; following plans retain independent progress.
 static func plans(p: Dictionary) -> Array:
 	var result: Array=[]
@@ -66,6 +66,7 @@ static func configure(p: Dictionary,value: String,start: bool) -> String:
 	var rows:=plans(p)
 	if index<0 or index>rows.size() or index>=3: return "제작 계획은 최대 3개입니다."
 	if parts.size() not in [3,5] or parts[0] not in RECIPES or parts[1] not in ["count","target"] or not parts[2].is_valid_int(): return "제작 계획 설정이 올바르지 않습니다."
+	if parts[0] in ["healing_salve","vigor_tea"] and p.get("herbal_quest","new")!="done": return "먼저 소하의 약초꾼 입문으로 조제법을 배우세요."
 	var source: String=parts[3] if parts.size()==5 else "bag"
 	var destination: String=parts[4] if parts.size()==5 else "bag"
 	if not Supply.valid_settings({"source":source,"destination":destination}): return "재료와 보관 장소가 올바르지 않습니다."

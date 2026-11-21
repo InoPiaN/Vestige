@@ -5,6 +5,7 @@ var person: Dictionary={}
 var heading: Label
 var info: Label
 var feedback: Label
+var quest_button: Button
 var coach_button: Button
 var labels: Array[Label]=[]
 var shops: Dictionary={}
@@ -36,7 +37,8 @@ func _ready() -> void:
 	button("닫기 · M / ESC",Vector2(755,20),175,hide)
 	label("직접 도착하면 지역이 지도에 기록됩니다. 출구 가까이에서 E로 이동하세요.",Vector2(28,80),17)
 	for at in POINTS: labels.append(label("",at-Vector2(88,10),20))
-	info=label("",Vector2(28,335),17)
+	quest_button=button("약초꾼 입문",Vector2(28,295),900,func(): action.emit("herbal_quest",""))
+	info=label("",Vector2(28,345),17)
 	info.size=Vector2(900,80)
 	info.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	coach_button=button("마차 탑승 · 은화5",Vector2(630,425),300,func(): action.emit("coach",""))
@@ -51,6 +53,10 @@ func _ready() -> void:
 	hide()
 func refresh(w: Dictionary,p: Dictionary) -> void:
 	person=p
+	var forage=preload("res://foraging.gd")
+	quest_button.text=forage.summary(p)
+	quest_button.tooltip_text=forage.mentor_reason(w,p)
+	quest_button.disabled=not quest_button.tooltip_text.is_empty() or p.get("herbal_quest","new")=="done"
 	heading.text="지역 지도 · 현재 "+T.NAMES[T.region(p)]
 	var ids: Array=T.NAMES.keys()
 	for i in range(3): labels[i].text=(T.NAMES[ids[i]] if ids[i] in p.discovered else "미발견 지역")+("\n● 현재 위치" if T.region(p)==ids[i] else "")

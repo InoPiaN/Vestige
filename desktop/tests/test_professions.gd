@@ -180,7 +180,7 @@ func run() -> void:
 	f.store_string(JSON.stringify(legacy))
 	f.close()
 	loaded=R.load_world(path+".old",false)
-	check(not loaded.is_empty() and loaded.version==21 and loaded.people.local.professions.warrior.state=="new" and loaded.market.stock.wood==10,"Version eighteen migrates without invented training")
+	check(not loaded.is_empty() and loaded.version==22 and loaded.people.local.professions.warrior.state=="new" and loaded.market.stock.wood==10,"Version eighteen migrates without invented training")
 	var motion:=D.professions()
 	var mover: Dictionary=motion.people.local
 	place(mover,22,10)

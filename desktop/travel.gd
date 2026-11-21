@@ -92,7 +92,7 @@ static func interact(w: Dictionary,p: Dictionary,t: Dictionary) -> String:
 		"coach": return "지역 지도"
 		"shop_notice": return "소하의 영업시간은 아침8시~저녁6시입니다. 휴식은 여관 앞, 출퇴근은 상점과 여관 사이입니다."
 		"harbor_shop":
-			if not Life.shop_open(w.time): return "소하: 지금은 "+Life.state("soha",w.time).activity+" 시간입니다. 아침8시~저녁6시에 상점으로 오세요."
+			if not Life.shop_open(w.time): return "소하: 지금은 "+Life.state("soha",w.time).activity+" 시간입니다. M에서 약초꾼 입문 의뢰를 확인하세요. 상점은 아침8시~저녁6시입니다."
 			return "나루 물자"
 		"harbor_rest":
 			p.hp=100

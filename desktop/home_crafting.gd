@@ -6,6 +6,8 @@ const Items=preload("res://items.gd")
 const Storage=preload("res://house_storage.gd")
 const Interior=preload("res://house_interior.gd")
 const RECIPES={
+	"healing_salve":{"name":"회복 연고 조제","cost":{"forest_mushroom":1,"harbor_reed":1},"result":"healing_salve","learned":true,"description":"체력60 회복. 양품66 / 대성공75. 소하의 약초꾼 입문으로 배웁니다."},
+	"vigor_tea":{"name":"기력 차 달이기","cost":{"night_blossom":1,"herb":1},"result":"vigor_tea","learned":true,"tool":"mug","fire":true,"description":"기력60 회복. 양품70 / 대성공85. 찻잔은 소비하지 않습니다."},
 	"bandage":{"name":"약초 붕대","cost":{"cloth":1,"herb":1},"result":"bandage","description":"체력 45 회복. 소지품에서 사용합니다."},
 	"repair_kit":{"name":"간이 수선 도구","cost":{"cloth":1,"bent_nail":2},"result":"repair_kit","description":"작업대에서 무기·갑옷 내구도를 40 복원합니다."},
 	"mug":{"name":"찻잔 고치기","cost":{"broken_cup":1,"cloth":1},"result":"mug","description":"약초차를 만들 때 계속 사용하는 도구입니다."},
@@ -16,6 +18,7 @@ static func reason(w: Dictionary,p: Dictionary,id: String,automated: bool=false,
 	if not automated and not allowed(p): return "직접 조종 중인 인물로 집 작업대 가까이에 오세요."
 	if not RECIPES.has(id): return "없는 제작법입니다."
 	var recipe: Dictionary=RECIPES[id]
+	if recipe.get("learned",false) and p.get("herbal_quest","new")!="done": return "소하의 약초꾼 입문 의뢰를 완료해 조제법을 배우세요."
 	var supply:=Supply.options(p,settings)
 	var capacity:=Supply.capacity_reason(w,p,recipe,supply)
 	if not capacity.is_empty(): return capacity
@@ -58,12 +61,20 @@ static func repair(p: Dictionary,id: String,day: int=1) -> String:
 	return text
 static func use(p: Dictionary,id: String) -> String:
 	var base:=Items.base_id(id)
-	if base not in ["bandage","herbal_tea"] or Items.quantity(p,id)<1: return "사용할 물품이 없습니다."
+	if base not in ["bandage","herbal_tea","healing_salve","vigor_tea"] or Items.quantity(p,id)<1: return "사용할 물품이 없습니다."
 	var grade: int=2 if id.ends_with("_great") else (1 if id.ends_with("_fine") else 0)
 	var heal: int=[45,48,54][grade] if base=="bandage" else [20,22,25][grade]
 	var energy: int=0 if base=="bandage" else [40,44,50][grade]
-	if p.hp>=100 and (energy==0 or p.stamina>=100): return "이미 충분히 회복했습니다."
+	if base=="healing_salve":
+		heal=[60,66,75][grade]
+		energy=0
+	if base=="vigor_tea":
+		heal=0
+		energy=[60,70,85][grade]
+	if (heal==0 or p.hp>=100) and (energy==0 or p.stamina>=100): return "이미 충분히 회복했습니다."
 	Storage.change(p,id,-1)
 	p.hp=mini(100,p.hp+heal)
 	p.stamina=minf(100,p.stamina+energy)
-	return Items.CATALOG[id].name+"을 사용했습니다."
+	var text: String=Items.CATALOG[id].name+"을 사용했습니다."
+	if base in ["healing_salve","vigor_tea"]: p.events.append(text)
+	return text

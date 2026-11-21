@@ -376,6 +376,7 @@ func draw_travel() -> void:
 		if place.kind in ["gate","coach"]:
 			box(place.x*16-4,place.y*16-12,8,4,"d3bb80")
 			box(place.x*16,place.y*16-8,2,12,"806441")
+	preload("res://foraging_art.gd").draw(self,world,p)
 	for trace in Rules.Investigation.traces(world,p): box(trace.x*16-3,trace.y*16+4,7,3,"cfb985")
 	for id in world.people:
 		var other: Dictionary=world.people[id]

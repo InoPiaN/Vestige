@@ -17,6 +17,7 @@ const Crafting=preload("res://home_crafting.gd")
 const Interior=preload("res://house_interior.gd")
 const Storage=preload("res://house_storage.gd")
 const Investigation=preload("res://investigation.gd")
+const Forage=preload("res://foraging.gd")
 const Travel=preload("res://travel.gd")
 const Expedition=preload("res://expedition.gd")
 const Professions=preload("res://professions.gd")
@@ -46,6 +47,7 @@ static func clean_look(value: Dictionary) -> Dictionary:
 	return result
 
 static func outfit(p: Dictionary) -> void:
+	Forage.person(p)
 	Travel.prepare_person(p)
 	Expedition.person(p)
 	Professions.prepare(p)
@@ -68,9 +70,10 @@ static func outfit(p: Dictionary) -> void:
 	Storage.reconcile(p)
 
 static func fresh() -> Dictionary:
-	var w: Dictionary={"version":21,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
+	var w: Dictionary={"version":22,"time":0.0,"saved":Time.get_unix_time_from_system(),"people":{},"graves":[],"books":[],"wolf":{"x":25.0,"y":10.0,"hp":50,"cooldown":0.0,"warning":0.0,"respawn":0.0,"slow":0.0}}
 
 	Travel.prepare(w)
+	Forage.prepare(w)
 	Expedition.prepare(w)
 	Investigation.prepare(w)
 	Storage.prepare(w)
@@ -79,6 +82,7 @@ static func fresh() -> Dictionary:
 	Quality.prepare(w)
 	Market.prepare(w)
 	Travel.prepare(w)
+	Forage.prepare(w)
 	return w
 
 static func born(w: Dictionary, id: String, title: String, look: Dictionary={}) -> void:
@@ -134,6 +138,7 @@ static func advance(w: Dictionary, seconds: float) -> void:
 	w.wolf.slow=maxf(0,w.wolf.get("slow",0.0)-maxf(0,seconds))
 	Market.prepare(w)
 	Travel.prepare(w)
+	Forage.prepare(w)
 	var days := int(w.time / DAY) - old_day
 	for id in w.people:
 		var p: Dictionary = w.people[id]
@@ -313,6 +318,8 @@ static func tick(w: Dictionary, dt: float) -> void:
 		e.y=v.y
 
 static func nearby(p: Dictionary,time: float=0.0) -> Dictionary:
+	var node:=Forage.nearby(p)
+	if not node.is_empty(): return {"kind":"forage","name":preload("res://items.gd").CATALOG[Forage.NODES[node].item].name+" · 채집","id":node}
 	var travel:=Travel.nearby(p,time)
 	if not travel.is_empty(): return travel
 	if Travel.region(p)!="village": return {}
@@ -373,9 +380,13 @@ static func act(w: Dictionary, id: String, kind: String, value: String="") -> St
 		p.offline=false
 		return "직접 조종을 시작합니다."
 	if p.offline: return "직접 조종을 먼저 선택하세요."
+	if kind=="harvest": return Forage.harvest(w,p,value)
+	if kind=="herbal_quest": return Forage.quest(w,p)
 	if kind=="coach": return Travel.coach(p)
 	if kind=="harbor_buy": return Travel.buy(w,p,value)
 	if kind=="interact":
+		var node:=Forage.nearby(p)
+		if not node.is_empty(): return Forage.harvest(w,p,node)
 		var place:=Travel.nearby(p,w.time)
 		if not place.is_empty(): return Travel.interact(w,p,place)
 	if Travel.region(p)!="village" and kind in ["enter_home","identify","store_item","take_item","store_evidence"]: return "잿불 마을의 해당 시설에서 이용하세요."
@@ -490,6 +501,7 @@ static func checkpoint(w: Dictionary, path: String, now: float, previous: Dictio
 	Quality.prepare(w)
 	Market.prepare(w)
 	Travel.prepare(w)
+	Forage.prepare(w)
 	var snapshot:=w.duplicate(false)
 	snapshot.saved=maxf(w.saved,now)
 	if not Store.replace(snapshot,path,previous):
@@ -508,13 +520,15 @@ static func load_world(path: String, simulate_absence: bool=true, now: float=-1.
 		if not Store.valid(w): return {}
 	if now<0: now=Time.get_unix_time_from_system()
 	Investigation.prepare(w)
-	w.version=21
+	w.version=22
 	Travel.prepare(w)
+	Forage.prepare(w)
 	Expedition.prepare(w)
 	if not w.wolf.has("slow"): w.wolf.slow=0.0
 	Quality.prepare(w)
 	Market.prepare(w)
 	Travel.prepare(w)
+	Forage.prepare(w)
 	Interior.prepare(w)
 	Remains.prepare(w)
 	for p in w.people.values():

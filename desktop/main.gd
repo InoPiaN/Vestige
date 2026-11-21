@@ -61,7 +61,7 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
-	var demos: Dictionary={"life":"life","travel":"travel","expedition":"expedition","professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	var demos: Dictionary={"foraging":"foraging","life":"life","travel":"travel","expedition":"expedition","professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
 	for kind in demos:
 		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
 		save_path="user://"+kind+"-demo.json"
@@ -69,6 +69,7 @@ func _ready() -> void:
 			var demo=preload("res://investigation_demo.gd")
 			var opening: Dictionary={}
 			match kind:
+				"foraging": opening=demo.foraging()
 				"life": opening=demo.life()
 				"travel": opening=demo.travel()
 				"expedition": opening=demo.expedition()
@@ -95,7 +96,8 @@ func _ready() -> void:
 				return
 		start_single()
 		if mode=="single":
-			if kind=="life": message("안개나루의 하루 · 소하는 저녁6시에 영업을 마칩니다. 상단 하늘의 해와 달을 보세요. M 주민 활동 · E 대화.")
+			if kind=="foraging": message("M에서 소하의 약초꾼 입문을 받으세요. E 채집 · 밤안개꽃은 밤8시부터 · 납품 후 집 작업대에서 조제합니다.")
+			elif kind=="life": message("안개나루의 하루 · 소하는 저녁6시에 영업을 마칩니다. 상단 하늘의 해와 달을 보세요. M 주민 활동 · E 대화.")
 			elif kind=="travel": message("E로 전령 유나에게 서신을 받고 동쪽 출구로 향하세요. M 지역 지도 · 출구 E 이동 · 안개나루 도윤에게 전달 후 귀환.")
 			elif kind=="expedition": message("E로 스승에게 원정 의뢰를 받으세요. TAB 대상 전환 · R 전리품 회수 · K 기술 준비. 북동쪽 들멧돼지, 남동쪽 망령 궁수 처치 후 귀환 보고하세요.")
 			elif kind=="professions": message("E로 스승에게 입문 과제를 받으세요. K에서 성장 경로와 준비할 기술을 확인하고, 전투에서 1 / 2로 사용합니다.")
@@ -425,7 +427,7 @@ func build_ui() -> void:
 	label_at(menu,"V E S T I G E",Vector2(90,100),64,Color("e1d1a3"))
 	label_at(menu,"잿불의 기록",Vector2(95,183),24)
 	label_at(menu,"당신이 떠난 뒤에도,\n이곳의 삶은 계속된다.",Vector2(95,260),30)
-	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.17 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
+	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.18 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
 	input_name=LineEdit.new()
 	input_name.text="에단"
 	input_name.max_length=20
@@ -610,6 +612,9 @@ func refresh() -> void:
 	var t:=Rules.nearby(p,world.time)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
 
+	if t.get("kind")=="forage":
+		var why:=Rules.Forage.reason(world,p,t.id)
+		if not why.is_empty(): prompt.text="E · "+t.name+" · "+why
 	if not Rules.Expedition.nearby_loot(world,p).is_empty(): prompt.text="R · 현장 전리품 회수 (소지 한도 초과분은 현장 보존)"
 	if t.get("kind")=="forge": prompt.text="E · 대장간 제작 / 강화 · "+Rules.Mastery.progress(p,"smithing")+"  |  "+Rules.Mastery.rate_text(p,"smithing")+" · 완성 경험치 +%d" % Rules.Mastery.gain(p,"iron_sword")
 	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 들어가기   B · 보관함"

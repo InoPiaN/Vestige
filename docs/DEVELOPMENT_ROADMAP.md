@@ -1,3 +1,5 @@
+> **최신 2026-11-21 · 0.5.18**: 지역 채집3종·밤꽃·공유 재생, 약초꾼 입문과 조제법2종 완료. [전체 현황](PROJECT_STATUS.md) · [인수인계](handoffs/herbalist-foraging.md).
+
 > **최신 2026-11-19 · 0.5.17**: 안개나루 NPC2명 생활 일정, 실제 위치 대화/영업시간, 상단 해·달·하늘색 시간 표시 완료. [전체 현황](PROJECT_STATUS.md) · [인수인계](handoffs/npc-daily-life.md).
 
 > **최신 2026-11-19 · 0.5.16**: 안개나루·연결 숲길·발견 지도·마차·서신 왕복 완료. 전체 남은 작업은 [점검표](PROJECT_STATUS.md), 구현/제한은 [여행 인수인계](handoffs/mist-harbor-travel.md) 참조.

@@ -5,6 +5,7 @@ var person: Dictionary={}
 var category: String="전체"
 var selected: String=""
 var slots: Array[Button]=[]
+var grid: GridContainer
 var heading: Label
 var details: RichTextLabel
 var use_button: Button
@@ -32,27 +33,13 @@ func _ready() -> void:
 	scroll.position=Vector2(28,135)
 	scroll.size=Vector2(590,380)
 	add_child(scroll)
-	var grid:=GridContainer.new()
+	grid=GridContainer.new()
 	grid.columns=6
 	grid.position=Vector2.ZERO
 	grid.add_theme_constant_override("h_separation",8)
 	grid.add_theme_constant_override("v_separation",8)
 	scroll.add_child(grid)
-	for i in range(42):
-		var cell:=Button.new()
-		cell.custom_minimum_size=Vector2(88,88)
-		cell.add_theme_font_size_override("font_size",12)
-		cell.focus_mode=Control.FOCUS_NONE
-		cell.pressed.connect(func(): choose(String(cell.get_meta("item",""))))
-		var icon:=TextureRect.new()
-		icon.name="Icon"
-		icon.position=Vector2(32,5)
-		icon.size=Vector2(24,24)
-		icon.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
-		icon.mouse_filter=Control.MOUSE_FILTER_IGNORE
-		cell.add_child(icon)
-		grid.add_child(cell)
-		slots.append(cell)
+	for i in range(42): add_slot()
 	details=RichTextLabel.new()
 	details.position=Vector2(630,140)
 	details.add_theme_font_size_override("normal_font_size",18)
@@ -88,6 +75,7 @@ func choose(id: String) -> void:
 func refresh(p: Dictionary) -> void:
 	person=p
 	var rows:=Items.entries(p,category)
+	while slots.size()<rows.size(): add_slot()
 	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("gear_condition",{}),p.get("gear_quality",{}),p.get("gear_records",{}),p.get("equipped_ids",{}),p.get("stamina",0),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
 	if signature==stamp: return
 	signature=stamp
@@ -127,9 +115,9 @@ func refresh(p: Dictionary) -> void:
 	if item.has("slot"):
 		var worn: bool=(p.get("equipped_ids",{}).get(item.slot)==selected if selected.begins_with("gear-") else p.equipment.get(item.slot)==selected)
 		use_button.text="착용 해제" if worn else "착용"
-	elif Items.base_id(selected) in ["bandage","herbal_tea"]:
+	elif Items.base_id(selected) in ["bandage","herbal_tea","healing_salve","vigor_tea"]:
 		use_button.text="사용"
-		use_button.disabled=use_button.disabled or p.offline or (p.hp>=100 and (Items.base_id(selected)=="bandage" or p.stamina>=100))
+		use_button.disabled=use_button.disabled or p.offline or ((Items.base_id(selected)=="vigor_tea" or p.hp>=100) and (Items.base_id(selected) in ["bandage","healing_salve"] or p.stamina>=100))
 	elif selected.begins_with("evidence:"):
 		use_button.text="집 보관함에 남기기"
 		use_button.disabled=use_button.disabled or p.offline
@@ -148,7 +136,7 @@ func activate() -> void:
 		var value: String="none" if person.equipment.get(item.slot)==selected else selected
 		action.emit("equip",item.slot+":"+value)
 	elif selected.begins_with("evidence:"): action.emit("store_evidence",selected)
-	elif Items.base_id(selected) in ["bandage","herbal_tea"]: action.emit("use_crafted",selected)
+	elif Items.base_id(selected) in ["bandage","herbal_tea","healing_salve","vigor_tea"]: action.emit("use_crafted",selected)
 	elif selected=="herb": action.emit("heal","")
 
 var icons: Dictionary={}
@@ -157,11 +145,23 @@ func icon_for(id: String) -> ImageTexture:
 	var image:=Image.create(16,16,false,Image.FORMAT_RGBA8)
 	var color:=Color(Items.definition(person,id).color)
 	id=Items.base_id(person.get("gear_instances",{}).get(id,id))
-	if id in ["mug","herbal_tea","broken_cup"]:
+	if id in ["mug","herbal_tea","vigor_tea","broken_cup"]:
 		image.fill_rect(Rect2i(3,5,8,8),color)
 		image.fill_rect(Rect2i(10,6,4,5),color)
 		image.fill_rect(Rect2i(11,7,2,3),Color("172520"))
 		image.fill_rect(Rect2i(4,5,6,2),Color("66543a"))
+	elif id=="forest_mushroom":
+		image.fill_rect(Rect2i(7,7,3,7),Color("c7b693"))
+		image.fill_rect(Rect2i(3,4,11,5),color)
+		image.fill_rect(Rect2i(5,2,7,3),color.lightened(0.15))
+	elif id in ["harbor_reed","night_blossom"]:
+		image.fill_rect(Rect2i(7,5,2,9),Color("789472"))
+		image.fill_rect(Rect2i(4,2,8,5),color)
+		image.fill_rect(Rect2i(3,9,5,2),Color("789472"))
+	elif id=="healing_salve":
+		image.fill_rect(Rect2i(4,5,9,9),color)
+		image.fill_rect(Rect2i(3,3,11,3),Color("b7a47d"))
+		image.fill_rect(Rect2i(7,8,3,3),Color("d8d7ac"))
 	elif id=="bandage":
 		image.fill_rect(Rect2i(3,4,10,8),color)
 		image.fill_rect(Rect2i(6,4,1,8),color.darkened(0.25))
@@ -200,3 +200,19 @@ func icon_for(id: String) -> ImageTexture:
 			image.fill_rect(Rect2i(7,4,2,9),Color("d0b080"))
 	icons[id]=ImageTexture.create_from_image(image)
 	return icons[id]
+
+func add_slot() -> void:
+	var cell:=Button.new()
+	cell.custom_minimum_size=Vector2(88,88)
+	cell.add_theme_font_size_override("font_size",12)
+	cell.focus_mode=Control.FOCUS_NONE
+	cell.pressed.connect(func(): choose(String(cell.get_meta("item",""))))
+	var icon:=TextureRect.new()
+	icon.name="Icon"
+	icon.position=Vector2(32,5)
+	icon.size=Vector2(24,24)
+	icon.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	cell.add_child(icon)
+	grid.add_child(cell)
+	slots.append(cell)

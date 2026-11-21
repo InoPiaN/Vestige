@@ -289,3 +289,17 @@ static func life() -> Dictionary:
 	p.mail_quest="outbound"
 	p.name="나루의 방문자"
 	return w
+
+static func foraging() -> Dictionary:
+	var w:=travel()
+	w.time=1400.0 # 19:40; night flowers open after 40 real seconds.
+	var p: Dictionary=w.people.local
+	p.room="harbor"
+	p.x=9.0
+	p.y=6.0
+	p.discovered=["village","road","harbor"]
+	p.name="약초길 여행자"
+	p.gold=25
+	p.belongings.mug=1
+	p.herb=3
+	return w

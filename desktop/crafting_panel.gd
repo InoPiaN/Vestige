@@ -34,7 +34,8 @@ func _ready() -> void:
 	for id in C.RECIPES:
 		var index:=recipes.add_item(C.RECIPES[id].name)
 		recipes.set_item_metadata(index,id)
-	recipes.select(0)
+	for i in range(recipes.item_count):
+		if recipes.get_item_metadata(i)==current: recipes.select(i)
 	recipes.item_selected.connect(func(i): current=recipes.get_item_metadata(i); refresh(world,person))
 	add_child(recipes)
 	source_picker=OptionButton.new()

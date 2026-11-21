@@ -1,4 +1,4 @@
-# Vestige · 설치형 도트 시제품 0.5.17
+# Vestige · 설치형 도트 시제품 0.5.18
 
 ## 빌드 보관 원칙
 
@@ -6,11 +6,32 @@
 
 ## 바로 실행
 
-- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.17.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
-- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.17/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
+- Mac 최신: `/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.18.app`을 엽니다. Node.js나 Godot를 별도로 실행할 필요가 없습니다.
+- Windows 최신: `/Users/junheejang/Documents/Vestige/builds/windows-0.5.18/Vestige.exe`를 실행합니다. Windows 빌드는 생성했지만 현재 Mac 개발 환경에서는 Windows 실행을 검증하지 않았습니다.
 - 설치형 소스: `desktop/project.godot` (Godot 4.5.1로 빌드·검증).
 
 현재 Mac 앱은 로컬 시험용 ad-hoc 서명 빌드이며 공증된 배포본이 아닙니다. Steam 연동은 아직 없습니다.
+
+### 지역 채집과 약초꾼 입문 · 0.5.18
+
+[Mac 채집 체험 실행](/Users/junheejang/Documents/Vestige/builds/Play-Foraging.command). Windows는 **Play-Foraging.cmd**, 직접 실행은 `-- --foraging-demo`입니다. 일반 저장과 분리된 `foraging-demo.json`을 사용합니다. 첫 시작은 안개나루 저녁7시40분, 여관 앞 소하 근처입니다.40초 뒤 밤꽃이 열립니다. 찻잔·약초3·은화25가 준비되며 의뢰와 집은 직접 진행합니다.
+
+1. 소하 가까이에서 **M → 약초꾼 입문**으로 의뢰를 받습니다. 소하가 깨어 있으면 영업 외 시간에도 의뢰를 진행합니다.
+2. **E**로 그늘 숲 버섯·나루 갈대·밤안개꽃을 각각1개 모읍니다. 버섯은 숲길(9,7)/(20,11), 갈대는 나루(22,12)/(25,15), 밤꽃은 숲길(15,7)/(25,7)에 있습니다.
+3. 밤꽃은 **밤8시~새벽5시**에만 핍니다. 낮에는 닫힌 꽃봉오리, 밤에는 밝은 꽃으로 표시됩니다. 상단 하늘과 개화 모습을 함께 확인하세요.
+4. 소하에게 재료를 납품하면 **은화8과 조제법2종**을 얻습니다. 의뢰는 생애별1회입니다. 재료마다 두 지점이 있어 남은 지점에서 첫 조제 재료를 더 모을 수 있습니다.
+5. 잿불 마을 집을 매입하고 **집 작업대**에서 조제합니다. 기력 차에는 재사용 찻잔과 켜진 벽난로가 필요합니다. 완성품은 **I**에서 사용합니다.
+
+| 조제법 | 소비 재료 | 일반 / 양품 / 대성공 효과 |
+|---|---|---|
+| 회복 연고 | 숲 버섯1 + 나루 갈대1 | 체력60 / 66 / 75 |
+| 기력 차 | 밤안개꽃1 + 달빛 약초1 | 기력60 / 70 / 85 |
+
+채집은 기력6을 쓰고 경험치5를 얻습니다.50 XP에 견습,150 XP에 숙련이 되며 숙련부터2개씩 얻습니다(소지 한도 내). 각 지점은 **채집 시점부터 월드 하루48분 후** 재생합니다. 멀티에서는 지점 고갈을 공유하고 먼저 채집한 인물이 획득합니다. 소지 한도나 기력이 부족하면 지점을 소모하지 않습니다.
+
+새 조제법은 기존 약초 조제 숙련·대성공·집 보관함·부재 제작 계획에 연결됩니다. 채집/학습/제작은 일기에 남고, 재료와 조제품은 사망 유품으로 보존됩니다. 새 인물은 입문 의뢰와 채집 숙련을 새로 시작합니다. 저장22로 기존1~21을 이관합니다. 소지품 표시 칸도 항목 수에 따라 늘어나42개를 넘어도 선택할 수 있습니다.
+
+[전체 현황](docs/PROJECT_STATUS.md) · [채집 인수인계](docs/handoffs/herbalist-foraging.md)
 
 ### 주민의 하루와 하늘 그림 · 0.5.17
 
@@ -275,7 +296,7 @@ Mac은 빌드 폴더의 **Play-Witness.command**, Windows는 **Play-Witness.cmd*
 프로젝트 루트에서 다음 명령으로 독립 싱글 저장 `investigation-demo.json`을 열 수 있습니다. 일반 월드에서는 마을 서남쪽 언덕집 문 앞에서 E로 은화 8개에 집을 매입합니다. 이후 E를 누를 때마다 그때까지의 일지를 책장에 보관합니다.
 
 ```sh
-/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.17.app/Contents/MacOS/Vestige -- --investigation-demo
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.18.app/Contents/MacOS/Vestige -- --investigation-demo
 ```
 
 Windows에서는 빌드 폴더에서 `Vestige.exe -- --investigation-demo`를 실행합니다. 체험 월드는 약초꾼 소율이 예배당으로 떠난 뒤 새 여행자가 도착한 상태에서 시작합니다.
@@ -327,7 +348,7 @@ WASD/방향키 이동, E 상호작용, Space 공격, Shift 회피, Q 약초 사�
 Mac에서 프로젝트 루트 기준:
 
 ```sh
-/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.17.app/Contents/MacOS/Vestige --headless -- --server
+/Users/junheejang/Documents/Vestige/builds/Vestige-0.5.18.app/Contents/MacOS/Vestige --headless -- --server
 ```
 
 Windows에서 실행 파일 폴더 기준:
@@ -363,7 +384,7 @@ UDP 27180, 최대 8명 설정의 개발용 서버입니다. 게임의 공유 서
 
 내보내기는 `desktop/export_presets.cfg`를 사용합니다. Mac 템플릿 경로는 이 작업 폴더의 절대 경로이므로 프로젝트를 옮길 경우 경로를 수정해야 합니다. 엔진·템플릿은 `.tools/`, 빌드 결과는 `builds/`에 두며 버전 관리 대상에서 제외합니다.
 
-Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.17.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
+Mac 내보내기 뒤 `python3 scripts/finalize_macos.py /Users/junheejang/Documents/Vestige/builds/Vestige-0.5.18.app`을 실행합니다. 실행 파일과 PCK의 이름만 ASCII로 정규화하고 ad-hoc 서명 및 검증을 수행합니다. 화면의 한국어 제목은 유지됩니다. 최신 빌드는 이 처리를 마쳐 서명 검증을 통과했습니다.
 
 ## 최종 목표
 

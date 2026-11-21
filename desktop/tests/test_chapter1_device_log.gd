@@ -54,7 +54,7 @@ func _initialize() -> void:
 	check(p.story.evidence["kael_statement"].fact.contains("진술했다"),"E08 is clearly attributed testimony")
 	check(Chapter.inference_supported(p.story.chapter1,"I04"),"E06 and E08 allow testimony comparison")
 	check(not Chapter.inference_supported(p.story.chapter1,"I06"),"E07 and testimony do not establish guilt without E13")
-	var record:=p.story.evidence["kael_statement"].duplicate(true)
+	var record: Dictionary = p.story.evidence["kael_statement"].duplicate(true)
 	Dialogue.talk(w,"a","kael","kael_token","kael")
 	check(record==p.story.evidence["kael_statement"],"repeat conversation does not duplicate E08")
 	var options: Dictionary=Dialogue.talk(w,"a","kael")

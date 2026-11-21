@@ -116,7 +116,15 @@ static func notebook(p: Dictionary) -> String:
 
 static func testimony(p: Dictionary, npc_id: String) -> String:
 	var token:=has_evidence(p,"kael_token")
+	if has_evidence(p,"device_key") and not has_evidence(p,"device_log"):
+		if npc_id=="bran": return "이런 모양의 도구는 본 적 있지만, 누가 사용했는지는 모르겠네."
+		if npc_id=="sera": return "도구의 출처와 사용자를 연결할 기록이 있는지 확인해 봐야겠어요."
+		return "그 조각에 대해서는 아는 게 없어. 그걸로 누가 장치를 만졌는지 어떻게 알아?"
 	var log_found:=has_evidence(p,"device_log")
+	if has_evidence(p,"device_key") and log_found:
+		if npc_id=="sera": return "장치 기록과 연결부의 파편을 함께 살펴볼 수 있겠네요. 다만 그 도구를 실제로 누가 쥐었는지는 알 수 없어요."
+		if npc_id=="bran": return "기계에 사용된 도구라고 해도 소유자가 조작자였다고 볼 수는 없네."
+		return "연결부에 도구가 있었다고? 내가 손댔다고 단정하는 건 아니겠지."
 	if log_found and npc_id=="sera": return "예배당에서 장치가 실제로 가동된 기록을 발견하셨군요. 다만 기록이 훼손됐으니 누가 조작했는지는 아직 판단할 수 없어요."
 	if npc_id=="kael":
 		if token: return "이 표식이… 왜 거기에 있었지? 예배당에 갔다는 사실까지는 부인하지 않겠어. 하지만 거기서 무슨 일이 있었는지는 말하지 않았어."

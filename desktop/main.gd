@@ -2,6 +2,8 @@ extends Node
 
 const Rules=preload("res://world.gd")
 const PixelWorld=preload("res://pixel_world.gd")
+const BoardRules=preload("res://story/evidence_board_rules.gd")
+const EvidenceBoard=preload("res://story/evidence_board_panel.gd")
 var world: Dictionary={}
 var me: String="local"
 var mode: String="menu"
@@ -46,6 +48,7 @@ var dialogue_choices: VBoxContainer
 var dialogue_sessions: Dictionary={}
 var dialogue_request_id:=0
 var dialogue_pending:=false
+var evidence_board: PanelContainer
 
 
 func _ready() -> void:
@@ -197,6 +200,16 @@ func command(kind: String, value: String="", request_id: int=0) -> void:
 			receive_dialogue.rpc_id(peer,{},request_id)
 		return
 	last_commands[peer]=now
+	if kind=="reconstruct":
+		var parts:=value.split("|")
+		if parts.size()!=2 or value.length()>64: return
+		var result: Dictionary=BoardRules.evaluate(world.people[id],parts[0],parts[1])
+		if result.get("accepted",false):
+			world.people[id].events.append("조사 수첩에서 %s 연결을 확인했다." % result.inference_id)
+			Rules.save_world(world,save_path)
+		remote_message.rpc_id(peer,result.text)
+		send_snapshot(peer)
+		return
 	if kind in ["talk","dialogue_choice"]:
 		var response:=run_dialogue(id,kind,value)
 		inputs[peer]=Vector2.ZERO
@@ -228,7 +241,7 @@ func perform(kind: String, value: String="") -> void:
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or dialogue.visible): return
+	if mode=="single" and (panel.visible or dressing.visible or bag.visible or dialogue.visible or evidence_board.visible): return
 	if mode=="server":
 		for peer in inputs:
 			if dialogue_sessions.has(peers[peer]):
@@ -241,7 +254,7 @@ func _physics_process(dt: float) -> void:
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not dialogue.visible:
+		if not panel.visible and not dressing.visible and not bag.visible and not dialogue.visible and not evidence_board.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -277,6 +290,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if event.keycode==KEY_ESCAPE:
+		if evidence_board.visible:
+			close_evidence_board()
+			return
 		panel.hide()
 		dressing.hide()
 		bag.hide()
@@ -285,7 +301,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		if bag.visible: bag.hide()
 		else: open_inventory()
 		return
-	if panel.visible or dressing.visible or bag.visible: return
+	if panel.visible or dressing.visible or bag.visible or evidence_board.visible: return
 	match event.physical_keycode:
 		KEY_E: interact()
 		KEY_SPACE: perform("attack")
@@ -473,6 +489,7 @@ func build_ui() -> void:
 	root.add_child(bag)
 	bag.action.connect(perform)
 	build_dialogue(root)
+	build_evidence_board(root)
 
 func refresh() -> void:
 	if world.is_empty() or not world.people.has(me): return
@@ -483,6 +500,7 @@ func refresh() -> void:
 		for slot in gear_pickers: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
 	if bag.visible: bag.refresh(p)
 	if panel.visible and pages_kind=="notebook": panel_text.text=Rules.Investigation.notebook(p)
+	if evidence_board.visible: evidence_board.reload(p)
 	view.world=world
 	view.player_id=me
 	status.text="%s\n%s · %d세" % [p.name,"주민으로 생활 중" if p.offline else "직접 조종 중",int(p.age/360)]
@@ -520,6 +538,7 @@ func message(text: String) -> void:
 	else:
 		notice.text=text
 		if bag.visible: bag.feedback.text=text
+		if evidence_board!=null and evidence_board.visible: evidence_board.set_feedback(text)
 
 func show_pages(text: String) -> void:
 	pages_kind=""
@@ -532,6 +551,37 @@ func open_notebook() -> void:
 	if world.is_empty() or not world.people.has(me) or dialogue.visible: return
 	show_pages(Rules.Investigation.notebook(world.people[me]))
 	pages_kind="notebook"
+
+func build_evidence_board(root: Control) -> void:
+	evidence_board=EvidenceBoard.new()
+	root.add_child(evidence_board)
+	evidence_board.combination_requested.connect(submit_evidence_combination)
+	evidence_board.close_requested.connect(close_evidence_board)
+	var board_button:=Button.new()
+	board_button.text="사건 재구성 · 증거 조합"
+	board_button.pressed.connect(open_evidence_board)
+	# The notebook panel already contains a close button and scrollable text.
+	panel.get_child(0).add_child(board_button)
+
+func open_evidence_board() -> void:
+	if world.is_empty() or not world.people.has(me) or not panel.visible or pages_kind!="notebook": return
+	panel.hide()
+	evidence_board.open_for(world.people[me])
+
+func close_evidence_board() -> void:
+	evidence_board.hide()
+	open_notebook()
+
+func submit_evidence_combination(first: String, second: String) -> void:
+	if mode=="client":
+		command.rpc_id(1,"reconstruct",first+"|"+second)
+	elif mode=="single":
+		var result: Dictionary=BoardRules.evaluate(world.people[me],first,second)
+		if result.get("accepted",false):
+			world.people[me].events.append("조사 수첩에서 %s 연결을 확인했다." % result.inference_id)
+			Rules.save_world(world,save_path)
+		evidence_board.set_feedback(result.text)
+		refresh()
 
 func open_journal() -> void:
 	if world.is_empty(): return

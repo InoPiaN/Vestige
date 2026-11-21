@@ -40,3 +40,27 @@ In Codex, check that `vestige_assets` exposes:
 - MCP server is **local**. No image-generation API keys are requested or stored.
 - No changes to item IDs, inventory behavior, save data or gameplay.
 - Future phase: optional provider-specific generation adapter, palette/style QA, additional asset IDs, batch processing, audit metadata and regression tests.
+
+## Phase 2 — Optional OpenAI image generation
+
+Install the optional provider dependency:
+
+```bash
+.venv-asset/bin/python -m pip install -r tools/asset_mcp/requirements-openai.txt
+```
+
+Set `OPENAI_API_KEY` in the **environment of the Codex MCP server process**. A variable exported in a separate shell may not reach an already-running Codex app. Restart Codex after configuration. Do not paste keys into chat, commit them, or put them in the repository. OpenAI API usage is separately billed; ChatGPT subscription does not cover it.
+
+New MCP tools:
+- `generate_item_candidate(item_id="herb", approved=False)`: default refuses generation. Only `approved=True` after user approves the billable call invokes OpenAI image generation and writes a local candidate to `.asset-candidates/herb-candidate.png`.
+- `import_reviewed_candidate(item_id="herb", approved=False)`: default refuses import. After **visual review**, `approved=True` validates and imports the candidate into `desktop/assets/items/herb.png` without a new generation request.
+
+**Important:** The automatic 16×16 conversion uses a small fixed palette and is only a prototype. It may lose fine details or produce a poor silhouette; manual pixel-art cleanup is recommended. The server does not automatically import or commit candidate art.
+
+No API calls occur during tests. Run:
+
+```bash
+.venv-asset/bin/python -m unittest discover -s tools/asset_mcp -p 'test_*.py'
+```
+
+Generation uses `gpt-image-1` with transparent PNG output. Model availability, request parameters, pricing, and organization verification may change; validate them in your OpenAI API account before approving a paid call.

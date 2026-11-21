@@ -36,7 +36,7 @@ static func ensure(p: Dictionary) -> void:
 	var state: Dictionary = p["story"]["chapter1"]
 	var defaults := initial_state()
 	for key in defaults:
-		if not state.has(key) or not (state[key] is typeof(defaults[key])):
+		if not state.has(key) or typeof(state[key]) != typeof(defaults[key]):
 			state[key] = defaults[key].duplicate(true) if defaults[key] is Dictionary or defaults[key] is Array else defaults[key]
 	for npc in NPCS:
 		if not state["relationships"].get(npc, null) is Dictionary:

@@ -247,7 +247,11 @@ func register_player(token: String, display_name: String, look_json: String="{}"
 	inputs[peer]=Vector2.ZERO
 	send_snapshot(peer)
 
+func can_send_to_peer(peer: int) -> bool:
+	return mode=="server" and peers.has(peer) and multiplayer.multiplayer_peer!=null and peer in multiplayer.get_peers()
+
 func send_snapshot(peer: int) -> void:
+	if not can_send_to_peer(peer): return
 	var snapshot: Dictionary=world.duplicate(true)
 	Rules.Investigation.redact(snapshot,peers[peer])
 	for id in snapshot.people:
@@ -295,10 +299,12 @@ func command(kind: String, value: String="") -> void:
 		dialogue_sessions.erase(peer)
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
 	elif kind=="chapter1_inspect":
-		remote_message.rpc_id(peer,Chapter1.inspect(world,id,value))
+		var report: String=Chapter1.inspect(world,id,value)
+		if can_send_to_peer(peer): remote_message.rpc_id(peer,report)
 		Rules.save_world(world,save_path)
 	else:
-		remote_message.rpc_id(peer,Rules.act(world,id,kind,value))
+		var report: String=Rules.act(world,id,kind,value)
+		if can_send_to_peer(peer): remote_message.rpc_id(peer,report)
 	send_snapshot(peer)
 
 @rpc("authority","call_remote","reliable")
@@ -334,7 +340,7 @@ func chapter1_dialogue_open() -> void:
 	for item in reply.choices: choices.append(String(item.id))
 	dialogue_sessions[peer]={"token":token,"npc_id":npc_id,"life_id":String(world.people[player_id].get("life","")),"expires_at":Time.get_ticks_msec()+60000,"choices":choices}
 	inputs[peer]=Vector2.ZERO
-	chapter1_dialogue_reply.rpc_id(peer,reply,token)
+	if can_send_to_peer(peer): chapter1_dialogue_reply.rpc_id(peer,reply,token)
 	Rules.save_world(world,save_path)
 
 @rpc("any_peer","call_remote","reliable")
@@ -359,7 +365,7 @@ func chapter1_dialogue_choose(token: String, choice: String) -> void:
 	session.choices=choices
 	session.expires_at=Time.get_ticks_msec()+60000
 	dialogue_sessions[peer]=session
-	chapter1_dialogue_reply.rpc_id(peer,reply,token)
+	if can_send_to_peer(peer): chapter1_dialogue_reply.rpc_id(peer,reply,token)
 	Rules.save_world(world,save_path)
 
 @rpc("any_peer","call_remote","reliable")
@@ -448,7 +454,7 @@ func chapter1_reconstruct(first: String, second: String, request_id: int) -> voi
 	var peer: int=multiplayer.get_remote_sender_id()
 	if not peers.has(peer) or request_id<=0: return
 	var result: Dictionary=evaluate_chapter1_reconstruct_request(peer,first,second,request_id,Time.get_ticks_msec())
-	chapter1_reconstruct_reply.rpc_id(peer,request_id,result)
+	if can_send_to_peer(peer): chapter1_reconstruct_reply.rpc_id(peer,request_id,result)
 	if result.get("accepted",false):
 		Rules.save_world(world,save_path)
 		send_snapshot(peer)

@@ -205,7 +205,14 @@ rubbing_author_presentation:
   requester_knows_rubbing_before_commission: unresolved
   commission_purpose: inventory_remaining_materials_in_maintained_empty_house  # DEC-02O 승인
   rubbing_preknown_to_sera: false  # 예상치 못한 조사 발견, 작가의 공개 구성
-  report_contents: unresolved  # DEC-02P
+  report_contents: required_object_inventory_and_optional_bran_recollection  # DEC-02P
+  inventory_report_required: true
+  inventory_report_enough_for_completion: true
+  bran_memory_player_disclosure_choice: true
+  bran_memory_statement_separate_from_observation: true
+  bran_consent_to_share: unresolved  # DEC-02Q
+  sera_persists_private_statement: unresolved
+  npc_relationship_or_reward_delta: unresolved
   discovered_record_provenance: observed_in_rebuilt_house_not_authored_by_sera
   bran_personal_recollection_auto_shared_with_sera: false  # 보고 범위 후속 결정
   physical_item_transfer: unresolved
@@ -223,7 +230,7 @@ rubbing_author_presentation:
 
 제작 주민을 만날 수 없다는 사실은 주민이 사망/실종했다는 증거가 아니다. 브란이 알고 있는 내용도 실제 발화가 승인되기 전까지 확정하지 않는다. 탁본 자체의 관찰과 브란의 기억은 provenance를 분리하고, 별도 자료를 통해 알게 되지 않은 저자·상실 동기를 플레이어 수첩에 자동 공개하지 않는다.
 
-**DEC-02K 승인:** 탁본은 폭풍 때 무너졌다가 복구된 집 내부에서 처음 발견한다. 집 주인·현재 거주자·탁본 보관자·세부 조사 지점은 미정이다. **DEC-02L 승인:** 복구된 집은 현재 비어 있지만 지속적으로 관리된다. 이전 거주자의 신원·생사나 빈집이 된 이유·관리자·출입 권한은 미정. **DEC-02M 승인:** 정식 조사 의뢰를 수락한 뒤 정당한 권한으로 빈집 내부를 조사한다. 의뢰자·목적·권한 전달·탁본 반출 허용 여부는 미정이다. **DEC-02N 승인:** 기록 담당자 세라가 정식 조사 의뢰자다. 그녀가 집 소유자·관리자·허가권자이거나 탁본을 미리 알고 있다는 뜻은 아니다. **DEC-02O 승인:** 세라는 관리되는 빈집에 남겨진 자료 목록 정리를 의뢰하며 탁본은 조사 과정에서 예상치 못하게 발견된다. 결과 보고의 범위는 아직 정하지 않았다. **다음 DEC-02P:** 세라에게 어느 수준까지 보고할지. 제1장 생성 NPC·대사·증거 ID는 사용자 구현 승인 이전까지 바꾸지 않는다.
+**DEC-02K 승인:** 탁본은 폭풍 때 무너졌다가 복구된 집 내부에서 처음 발견한다. 집 주인·현재 거주자·탁본 보관자·세부 조사 지점은 미정이다. **DEC-02L 승인:** 복구된 집은 현재 비어 있지만 지속적으로 관리된다. 이전 거주자의 신원·생사나 빈집이 된 이유·관리자·출입 권한은 미정. **DEC-02M 승인:** 정식 조사 의뢰를 수락한 뒤 정당한 권한으로 빈집 내부를 조사한다. 의뢰자·목적·권한 전달·탁본 반출 허용 여부는 미정이다. **DEC-02N 승인:** 기록 담당자 세라가 정식 조사 의뢰자다. 그녀가 집 소유자·관리자·허가권자이거나 탁본을 미리 알고 있다는 뜻은 아니다. **DEC-02O 승인:** 세라는 관리되는 빈집에 남겨진 자료 목록 정리를 의뢰하며 탁본은 조사 과정에서 예상치 못하게 발견된다. 결과 보고의 범위는 아직 정하지 않았다. **DEC-02P 승인:** 물품 목록·탁본 출처는 세라에게 정식 보고하며 이것만으로 의뢰가 완료될 수 있다. 브란의 사적인 회상은 플레이어가 공유 여부를 선택하며 진술과 관찰 사실을 별도 출처로 유지한다. **다음 DEC-02Q:** 브란의 사전 동의 및 공개 범위. 제1장 생성 NPC·대사·증거 ID는 사용자 구현 승인 이전까지 바꾸지 않는다.
 
 ## 3. 인물별 Know / Believe / Want / Withhold 설계
 

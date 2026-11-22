@@ -43,6 +43,8 @@ var chapter1_board_button: Button
 var chapter1_board_request_serial: int=0
 var chapter1_board_pending_request: int=0
 var chapter1_board_last_response: int=0
+var chapter1_reconstruct_recent: Dictionary={}
+var chapter1_reconstruct_seen: Dictionary={}
 var dialogue_buttons: VBoxContainer
 var dialogue_npc: String=""
 var dialogue_session_token: String=""
@@ -164,6 +166,8 @@ func start_server() -> void:
 
 func disconnected(peer: int) -> void:
 	dialogue_sessions.erase(peer)
+	chapter1_reconstruct_recent.erase(peer)
+	chapter1_reconstruct_seen.erase(peer)
 	if peers.has(peer):
 		world.people[peers[peer]].offline=true
 		inputs.erase(peer)
@@ -236,6 +240,8 @@ func register_player(token: String, display_name: String, look_json: String="{}"
 	var peer:=multiplayer.get_remote_sender_id()
 	if peers.has(peer) or peers.values().has(token): return
 	peers[peer]=token
+	chapter1_reconstruct_recent.erase(peer)
+	chapter1_reconstruct_seen.erase(peer)
 	if not world.people.has(token): Rules.born(world,token,display_name,parse_look(look_json))
 	world.people[token].offline=false
 	inputs[peer]=Vector2.ZERO
@@ -420,18 +426,28 @@ func finish_chapter1_dialogue() -> void:
 		dialogue_buttons.hide()
 	panel.hide()
 
-## The client sends only two logical evidence IDs. Server verifies ownership/room/life.
+## Pure peer/request gate is separated from the network wrapper so rejections can be tested.
+## Only the authoritative server calls this; caller passes a server-owned peer ID.
+func evaluate_chapter1_reconstruct_request(peer: int, first: String, second: String, request_id: int, now: int) -> Dictionary:
+	if mode!="server" or not peers.has(peer):
+		return {"accepted":false,"text":"등록되지 않은 조사자입니다."}
+	if request_id<=0 or request_id<=int(chapter1_reconstruct_seen.get(peer,0)):
+		return {"accepted":false,"text":"중복되거나 오래된 요청입니다."}
+	chapter1_reconstruct_seen[peer]=request_id
+	if now-int(chapter1_reconstruct_recent.get(peer,-100000))<100:
+		return {"accepted":false,"text":"조금 뒤에 다시 조합해 주세요."}
+	chapter1_reconstruct_recent[peer]=now
+	if first.length()>8 or second.length()>8:
+		return {"accepted":false,"text":"잘못된 증거 식별자입니다."}
+	return Chapter1.reconstruct(world,String(peers[peer]),first,second)
+
+## The client sends only logical evidence IDs; server resolves peer ownership and replies to every valid request.
 @rpc("any_peer","call_remote","reliable")
 func chapter1_reconstruct(first: String, second: String, request_id: int) -> void:
 	if mode!="server": return
 	var peer: int=multiplayer.get_remote_sender_id()
 	if not peers.has(peer) or request_id<=0: return
-	var player_id: String=peers[peer]
-	var now: int=Time.get_ticks_msec()
-	if now-int(last_commands.get(peer,0))<100: return
-	last_commands[peer]=now
-	if first.length()>8 or second.length()>8: return
-	var result: Dictionary=Chapter1.reconstruct(world,player_id,first,second)
+	var result: Dictionary=evaluate_chapter1_reconstruct_request(peer,first,second,request_id,Time.get_ticks_msec())
 	chapter1_reconstruct_reply.rpc_id(peer,request_id,result)
 	if result.get("accepted",false):
 		Rules.save_world(world,save_path)

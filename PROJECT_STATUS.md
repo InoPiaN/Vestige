@@ -1,6 +1,6 @@
 # VESTIGE — 현재 작업 상태 (AI 협업용 진입점)
 
-> **P1-F 실제 ENet 검증 완료 (2026-11-22):** `ci/chapter1-p1f-enet-two-client@e779967e`에서 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45009079062> **전체 PASS**. P1-E 기존 Godot QA 8/8 (규칙 PASS 894, 실패 없음) + 실제 서버/2클라이언트 ENet 증거 권한·세라 대화 토큰·타인 story 차단·연결 후 동일 캐릭터 재접속(증거/추론/소문 보존). 서버/클라이언트 검사 로그에서 `SCRIPT ERROR`·`Unable to send packet` 없음. **Mac GUI/실제 동선·게임 종료 race·운영 인증/인터넷 멀티 미검증**. 코드 브랜치에 보고서 `docs/handoffs/chapter1-p1f-enet-report.md` 보관. `main` 미병합.
+> **P1-F 실제 ENet 검증 완료 (2026-11-22):** `ci/chapter1-p1f-enet-two-client@ab4fc38b`에서 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45009250417> **전체 PASS**. P1-E 기존 Godot QA 8/8 (규칙 PASS 894, 실패 없음) + 실제 서버/2클라이언트 ENet 증거 권한·세라 대화 토큰·타인 story 차단·연결 후 동일 캐릭터 재접속(증거/추론/소문 보존). 서버/클라이언트 검사 로그에서 `SCRIPT ERROR`·`Unable to send packet` 없음. **Mac GUI/실제 동선·게임 종료 race·운영 인증/인터넷 멀티 미검증**. 코드 브랜치에 보고서 `docs/handoffs/chapter1-p1f-enet-report.md` 보관. `main` 미병합.
 
 > **실제 Godot CI 결과 갱신 (2026-11-22):** `ci/chapter1-p1e-godot-verification@9383bd43`의 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45000435950>에서 **8/8 실행 묶음 PASS**. 기존 `verify_rules.py`: 37개 Godot 테스트, PASS 라벨 894개, 실패 없음. 별도 Chapter I 7개 스크립트도 모두 PASS (총 133개 PASS 라벨; 894와 중복되는 범위이므로 합산 금지). 실행 검증 근거는 코드 브랜치 `docs/handoffs/chapter1-p1e-ci-run-report.md`. **2인 ENet 실실행·Mac 수동 이동/충돌·S의 송신 오류 회귀는 미검증.** 따라서 P1-E 전체 완료/메인 병합 승인으로 간주하지 않는다.
 

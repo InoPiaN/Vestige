@@ -126,7 +126,7 @@ dialogue_unlock_design:
   document_type: gravestone_rubbing
   document_author_category: another_ash_village_resident  # DEC-02F 작가 정본
   document_author_identity: unresolved  # 이름·직업·생사 미정
-  author_relationship_to_iren: unresolved  # DEC-02G
+  author_relationship_to_iren: independent_rubbing_action  # DEC-02G; 개인적 친분은 미정
   author_known_to_player: unresolved  # 플레이어가 제작자를 안다는 뜻 아님
   inscription_person: unresolved
   found_at: unresolved
@@ -142,11 +142,39 @@ dialogue_unlock_design:
 ```
 
 - 이 구조는 **제안된 지식 접근 계약**이고 실제 새 퀘스트/DB 필드/잠금 조건을 구현했다는 뜻이 아니다.
-- DEC-02D가 확정한 것은 **기록 발견 이후**라는 공개 조건뿐이다. 기록 유형은 DEC-02E에서 **묘비의 낡은 탁본**으로 승인됐다. **DEC-02F 승인:** 제작자는 이렌이 아닌 다른 잿불 마을 주민이다. 그 주민의 구체적 신원, 이렌과의 관계, 원본 비문, 발견 위치와 게임 조사 방법은 **DEC-02G 및 후속 결정**으로 보류한다. 브란이 그 제작자를 아는지도 아직 정본이 아니다.
+- DEC-02D가 확정한 것은 **기록 발견 이후**라는 공개 조건뿐이다. 기록 유형은 DEC-02E에서 **묘비의 낡은 탁본**으로 승인됐다. **DEC-02F 승인:** 제작자는 이렌이 아닌 다른 잿불 마을 주민이다. **DEC-02G 승인:** 제작은 이렌의 영향 없이 주민 본인의 판단이었다. 그 주민의 구체적 신원과 개인적인 친분 여부, 원본 비문, 발견 위치와 조사 방법은 이후 결정으로 보류한다. 다음은 DEC-02H(제작 동기)다. 브란이 그 제작자를 아는지도 아직 정본이 아니다.
 - 플레이어의 기존 E01 일기 획득만으로 새 폭풍 기록을 얻은 것으로 간주하지 않는다.
 - 누군가의 기록을 읽은 결과와 브란이 이야기한 결과를 각각 별도 provenance로 저장하도록 향후 Codex 설계를 검토한다. 서버 권한·생애 분리·다른 플레이어 개인 기록의 무단 열람 방지는 종전 원칙 그대로다.
 
 ---
+
+## DEC-02G 승인 — 탁본 제작자의 독립된 판단
+
+```yaml
+record:
+  id: record.storm_gravestone_rubbing
+  status: approved_writer_canon
+  author_category: ash_village_resident_other_than_iren
+  author_identity: unresolved
+  authorship_reason:
+    independent_of_iren_influence: true   # DEC-02G 승인
+    decided_by_author_themself: true      # DEC-02G 승인
+    specific_motivation: unresolved       # DEC-02H 예정
+  relation_to_iren:
+    initiated_by_iren: false
+    collaborated_with_iren_on_rubbing: false
+    ever_met_iren: unresolved
+    personally_known_to_iren: unresolved
+  author_known_to_bran: unresolved
+  author_known_to_player: unresolved
+  memorial_name: unresolved
+  storage_location: unresolved
+  implemented_as_game_evidence: false
+```
+
+`independent_of_iren_influence`는 탁본 제작의 동기와 결정에 관한 정본일 뿐, 두 사람이 서로 낯선 사이였다는 뜻이 아니다. 출처가 없는 제작자 이름이나 이렌의 소유권을 새 사실로 추정하지 않는다.
+
+**다음 DEC-02H:** 제작 주민의 독립적인 동기를 사용자와 결정한다. 현행 E01/E05/E06/E07/E08/E13 또는 플레이어 생애별 저장 구조는 변경하지 않는다.
 
 ## 3. 인물별 Know / Believe / Want / Withhold 설계
 

@@ -30,6 +30,7 @@ func run() -> void:
 	other.room = "village"
 	game.mode = "server"
 	game.peers = {11:"local",22:"b"}
+	check(not game.can_send_to_peer(11), "disconnected or offline transport cannot receive snapshots")
 	check(not game.evaluate_chapter1_reconstruct_request(99,"E05","E07",1,1000).accepted, "unknown peer rejected")
 	check(not game.evaluate_chapter1_reconstruct_request(11,"E05","E07",0,1000).accepted, "invalid serial rejected")
 	check(not game.evaluate_chapter1_reconstruct_request(11,"E05","E07",1,1000).accepted, "unowned clues rejected with result")

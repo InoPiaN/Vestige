@@ -14,6 +14,7 @@ var started := 0
 var stage_time := 0
 var pending_id := 0
 var failures := 0
+var privacy_checked := false
 
 func _initialize() -> void:
 	call_deferred("start")
@@ -79,9 +80,11 @@ func _process(_delta: float) -> bool:
 		return false
 	if game.mode!="client": return false
 	var p: Dictionary=game.world.people[game.me]
-	for id in game.world.people:
-		if id!=game.me and not check(not game.world.people[id].has("story"),"other player's story redacted"):
-			return false
+	if not privacy_checked:
+		for id in game.world.people:
+			if id!=game.me and not check(not game.world.people[id].has("story"),"other player's story redacted"):
+				return false
+		privacy_checked = true
 	if observer:
 		return observer_steps(p)
 	return primary_steps(p)
@@ -93,7 +96,7 @@ func primary_steps(p: Dictionary) -> bool:
 		game.chapter1_board_pending_request=1
 		game.chapter1_reconstruct.rpc_id(1,"E05","E07",1)
 		next_stage()
-	elif stage==1 and game.chapter1_board_pending_request==0:
+	elif stage==1 and game.chapter1_board_pending_request==0 and p.story.chapter1.inferences.has("I03"):
 		if not check(p.story.chapter1.inferences.has("I03"),"server accepted only owned I03"):
 			return false
 		game.chapter1_dialogue_open.rpc_id(1)

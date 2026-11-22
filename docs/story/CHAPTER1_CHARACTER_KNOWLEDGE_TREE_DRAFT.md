@@ -163,7 +163,7 @@ record:
     lost_person_relationship: deliberately_unspecified  # DEC-02I 정본: 끝까지 관계 확정 금지
     relationship_reveal_policy: never_reveal_or_infer_as_canon
     writer_secret_relationship: none_defined
-    author_encounter_policy: unresolved  # DEC-02J 예정
+    author_encounter_policy: indirect_traces_only  # DEC-02J 승인, NPC 직접 대면 없음
     lost_person_fate: unresolved          # 사망/실종 단정 금지
     same_as_gravestone_person: unresolved # 묘비 주인 동일성 미정
     accessible_from_rubbing_alone: false # 제작 동기를 관찰 사실로 유출 금지
@@ -181,7 +181,30 @@ record:
 
 `independent_of_iren_influence`는 탁본 제작의 동기와 결정에 관한 정본일 뿐, 두 사람이 서로 낯선 사이였다는 뜻이 아니다. 출처가 없는 제작자 이름이나 이렌의 소유권을 새 사실로 추정하지 않는다.
 
-**DEC-02H 승인:** 제작 주민은 과거 누군가를 잃었던 기억이 떠올라 스스로 탁본을 만들었다. 잃은 대상·관계·사망 또는 실종 여부는 미확정. **DEC-02I 승인:** 잃은 이와의 관계는 작품 끝까지 명확히 밝히지 않으며 작가 내부 정답도 임의로 만들지 않는다. **다음 DEC-02J:** 제작 주민의 제1장 등장 방식을 정한다. 현행 E01/E05/E06/E07/E08/E13 또는 플레이어 생애별 저장 구조는 변경하지 않는다.
+**DEC-02H 승인:** 제작 주민은 과거 누군가를 잃었던 기억이 떠올라 스스로 탁본을 만들었다. 잃은 대상·관계·사망 또는 실종 여부는 미확정. **DEC-02I 승인:** 잃은 이와의 관계는 작품 끝까지 명확히 밝히지 않으며 작가 내부 정답도 임의로 만들지 않는다. **DEC-02J 승인:** 제작 주민은 제1장에 직접 등장하지 않고 탁본·타인의 회상 등 간접 흔적으로만 존재한다. **다음 DEC-02K:** 탁본 최초 발견 장소. 현행 E01/E05/E06/E07/E08/E13 또는 플레이어 생애별 저장 구조는 변경하지 않는다.
+
+## DEC-02J 승인 — 제작 주민 직접 출연 금지, 간접 증거만
+
+```yaml
+rubbing_author_presentation:
+  chapter: 1
+  encounter_policy: indirect_traces_only
+  author_npc_visible: false
+  author_dialogue_available: false
+  author_direct_flashback_voice: false
+  authored_rubbing_exists: true
+  initial_discovery_location: unresolved  # DEC-02K
+  first_person_account_available: false  # 제1장 직접 발화 없음
+  loss_motivation_in_writer_canon: true
+  loss_motivation_known_to_player: unresolved
+  lost_person_relationship: deliberately_unspecified
+  author_current_fate: unresolved
+  bran_knows_author_identity: unresolved
+```
+
+제작 주민을 만날 수 없다는 사실은 주민이 사망/실종했다는 증거가 아니다. 브란이 알고 있는 내용도 실제 발화가 승인되기 전까지 확정하지 않는다. 탁본 자체의 관찰과 브란의 기억은 provenance를 분리하고, 별도 자료를 통해 알게 되지 않은 저자·상실 동기를 플레이어 수첩에 자동 공개하지 않는다.
+
+**다음 DEC-02K:** 탁본의 최초 발견 장소(서재 / 묘역 / 복구된 집). 제1장 생성 NPC·대사·증거 ID는 사용자 구현 승인 이전까지 바꾸지 않는다.
 
 ## 3. 인물별 Know / Believe / Want / Withhold 설계
 

@@ -5,8 +5,8 @@ const World = preload("res://world.gd")
 const Bridge = preload("res://story/chapter1_bridge.gd")
 const Clues = preload("res://story/chapter1_investigation.gd")
 const NPC = preload("res://story/chapter1_dialogue.gd")
-const A := "a".repeat(48)
-const B := "b".repeat(48)
+const A := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+const B := "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 var game: Node
 var observer := false
 var stage := 0

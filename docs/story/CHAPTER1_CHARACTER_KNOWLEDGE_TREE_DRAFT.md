@@ -142,7 +142,7 @@ dialogue_unlock_design:
 ```
 
 - 이 구조는 **제안된 지식 접근 계약**이고 실제 새 퀘스트/DB 필드/잠금 조건을 구현했다는 뜻이 아니다.
-- DEC-02D가 확정한 것은 **기록 발견 이후**라는 공개 조건뿐이다. 기록 유형은 DEC-02E에서 **묘비의 낡은 탁본**으로 승인됐다. **DEC-02F 승인:** 제작자는 이렌이 아닌 다른 잿불 마을 주민이다. **DEC-02G 승인:** 제작은 이렌의 영향 없이 주민 본인의 판단이었다. 그 주민의 구체적 신원과 개인적인 친분 여부, 원본 비문, 발견 위치와 조사 방법은 이후 결정으로 보류한다. 다음은 DEC-02H(제작 동기)다. 브란이 그 제작자를 아는지도 아직 정본이 아니다.
+- DEC-02D가 확정한 것은 **기록 발견 이후**라는 공개 조건뿐이다. 기록 유형은 DEC-02E에서 **묘비의 낡은 탁본**으로 승인됐다. **DEC-02F 승인:** 제작자는 이렌이 아닌 다른 잿불 마을 주민이다. **DEC-02G 승인:** 제작은 이렌의 영향 없이 주민 본인의 판단이었다. 그 주민의 구체적 신원과 개인적인 친분 여부, 원본 비문, 발견 위치와 조사 방법은 이후 결정으로 보류한다. DEC-02H에서는 상실의 기억을 제작 동기로 승인했다. 다음은 DEC-02I(잃은 이의 관계)다. 브란이 그 제작자를 아는지도 아직 정본이 아니다.
 - 플레이어의 기존 E01 일기 획득만으로 새 폭풍 기록을 얻은 것으로 간주하지 않는다.
 - 누군가의 기록을 읽은 결과와 브란이 이야기한 결과를 각각 별도 provenance로 저장하도록 향후 Codex 설계를 검토한다. 서버 권한·생애 분리·다른 플레이어 개인 기록의 무단 열람 방지는 종전 원칙 그대로다.
 
@@ -159,7 +159,11 @@ record:
   authorship_reason:
     independent_of_iren_influence: true   # DEC-02G 승인
     decided_by_author_themself: true      # DEC-02G 승인
-    specific_motivation: unresolved       # DEC-02H 예정
+    specific_motivation: recalled_personal_loss  # DEC-02H 정본
+    lost_person_relationship: unresolved  # DEC-02I 예정
+    lost_person_fate: unresolved          # 사망/실종 단정 금지
+    same_as_gravestone_person: unresolved # 묘비 주인 동일성 미정
+    accessible_from_rubbing_alone: false # 제작 동기를 관찰 사실로 유출 금지
   relation_to_iren:
     initiated_by_iren: false
     collaborated_with_iren_on_rubbing: false
@@ -174,7 +178,7 @@ record:
 
 `independent_of_iren_influence`는 탁본 제작의 동기와 결정에 관한 정본일 뿐, 두 사람이 서로 낯선 사이였다는 뜻이 아니다. 출처가 없는 제작자 이름이나 이렌의 소유권을 새 사실로 추정하지 않는다.
 
-**다음 DEC-02H:** 제작 주민의 독립적인 동기를 사용자와 결정한다. 현행 E01/E05/E06/E07/E08/E13 또는 플레이어 생애별 저장 구조는 변경하지 않는다.
+**DEC-02H 승인:** 제작 주민은 과거 누군가를 잃었던 기억이 떠올라 스스로 탁본을 만들었다. 잃은 대상·관계·사망 또는 실종 여부는 미확정. **다음 DEC-02I:** 잃은 이와의 관계를 선택한다. 현행 E01/E05/E06/E07/E08/E13 또는 플레이어 생애별 저장 구조는 변경하지 않는다.
 
 ## 3. 인물별 Know / Believe / Want / Withhold 설계
 

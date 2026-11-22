@@ -29,6 +29,17 @@ func _initialize() -> void:
 	check(not old_loaded.is_empty() and old_loaded.version==23, "existing story-free v23 fixture still loads")
 	check(not old_loaded.people["a"].has("story"), "load does not invent Chapter I evidence")
 	check(file_bytes(path)!="", "load checkpoint did not delete save")
+	var previous_version: Dictionary=World.fresh()
+	previous_version.version=22
+	World.born(previous_version,"old","이전 저장 주민")
+	var old_path: String="/tmp/vestige-story-v22-%d.json" % OS.get_process_id()
+	check(World.save_world(previous_version,old_path), "v22 fixture saves without Chapter I story")
+	var migrated: Dictionary=World.load_world(old_path,false)
+	check(not migrated.is_empty() and migrated.version==23, "v22 gameplay fixture continues loading as v23")
+	check(not migrated.people["old"].has("story"), "v22 migration does not invent Chapter I events")
+	DirAccess.remove_absolute(old_path)
+	DirAccess.remove_absolute(old_path+".bak")
+	DirAccess.remove_absolute(old_path+".tmp")
 	w=old_loaded
 	var p: Dictionary=w.people["a"]
 	p.offline=false

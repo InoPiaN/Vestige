@@ -1,0 +1,65 @@
+name: VESTIGE Chapter I native macOS QA
+on:
+  push:
+    branches:
+      - qa/chapter1-p1i-macos-input
+    paths:
+      - 'desktop/**'
+      - 'scripts/**'
+      - '.github/workflows/chapter1-p1i-macos.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos-godot:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - name: Checkout QA branch
+        uses: actions/checkout@v4
+
+      - name: Install official universal Godot 4.5.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/vestige-godot"
+          curl -fsSL --retry 3 \
+            'https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_macos.universal.zip' \
+            -o "$RUNNER_TEMP/vestige-godot/Godot.zip"
+          ditto -x -k "$RUNNER_TEMP/vestige-godot/Godot.zip" "$RUNNER_TEMP/vestige-godot"
+          test -x "$RUNNER_TEMP/vestige-godot/Godot.app/Contents/MacOS/Godot"
+          "$RUNNER_TEMP/vestige-godot/Godot.app/Contents/MacOS/Godot" --headless --version
+          python3 --version
+
+      - name: Run Chapter I and existing gameplay regressions natively on Mac
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python3 scripts/run_p1e_qa.py \
+            --godot "$RUNNER_TEMP/vestige-godot/Godot.app/Contents/MacOS/Godot" \
+            --logs "$RUNNER_TEMP/vestige-p1i-mac-godot"
+
+      - name: Run real ENet server, two clients and reconnect natively on Mac
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python3 scripts/run_p1f_enet.py \
+            --godot "$RUNNER_TEMP/vestige-godot/Godot.app/Contents/MacOS/Godot" \
+            --logs "$RUNNER_TEMP/vestige-p1i-mac-enet"
+
+      - name: Upload all macOS test logs and structured results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1i-macos-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/vestige-p1i-mac-godot/
+            ${{ runner.temp }}/vestige-p1i-mac-enet/
+          retention-days: 14
+          if-no-files-found: warn

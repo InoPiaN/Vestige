@@ -64,7 +64,7 @@ func _ready() -> void:
 func open_for(p: Dictionary) -> void:
 	first_id = ""
 	second_id = ""
-	fingerprint = ""
+	fingerprint = "__needs_reload__"
 	feedback.text = ""
 	reload(p)
 	show()

@@ -1,5 +1,7 @@
 # VESTIGE — 현재 작업 상태 (AI 협업용 진입점)
 
+> **P1-H 렌더·충돌 시각 QA (2026-11-22):** `qa/chapter1-p1h-visual-collision@1d5a440b`의 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45013001030>에서 기존 G 회귀 937 PASS 기록, QA 9/9 묶음, 실제 ENet A/B/재접속 **전부 PASS**. Xvfb Godot 4.5.1 화면 1280x800 캡처 6장 생성; Korean Noto CJK 설치로 Linux 화면 네모 글자 해결. 화면에서 집 그래픽/충돌 박스 크기 차이 확인(의도된 처마일 수도 있으므로 collider 미수정). `main.gd` 오른쪽 HUD의 N/F 단축키 표기 개선. **Mac 실기·미반영 로컬 집/스태시 충돌은 미검증**. 증거: `docs/handoffs/chapter1-p1h-visual-collision-report.md`(QA 브랜치). `main` 미병합.
+
 > **P1-G 실제 이동·충돌 자동 QA (2026-11-22):** `qa/chapter1-p1g-navigation-interactions`의 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45010353735> **PASS**. Godot 4.5.1 기존 전체 38개 테스트, 937 PASS 라벨(제1장 테스트 포함), 새 기본 스폰→5 증거/3 NPC 경로·실제 World.move·건물 충돌·E/T 역할 검증 43 PASS; 전체 QA 9/9 묶음 PASS. ENet A/B/재접속도 동일 커밋에서 PASS. **실제 Mac 화면의 새 집 스프라이트와 충돌 영역 일치·이전 로컬 스태시 이동 버그는 미검증.** 상세 `docs/handoffs/chapter1-p1g-navigation-qa.md` (QA 브랜치). 게임 코드/원본 저장 미변경, `main` 미병합.
 
 > **P1-F 실제 ENet 검증 완료 (2026-11-22):** `ci/chapter1-p1f-enet-two-client@ab4fc38b`에서 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45009250417> **전체 PASS**. P1-E 기존 Godot QA 8/8 (규칙 PASS 894, 실패 없음) + 실제 서버/2클라이언트 ENet 증거 권한·세라 대화 토큰·타인 story 차단·연결 후 동일 캐릭터 재접속(증거/추론/소문 보존). 서버/클라이언트 검사 로그에서 `SCRIPT ERROR`·`Unable to send packet` 없음. **Mac GUI/실제 동선·게임 종료 race·운영 인증/인터넷 멀티 미검증**. 코드 브랜치에 보고서 `docs/handoffs/chapter1-p1f-enet-report.md` 보관. `main` 미병합.

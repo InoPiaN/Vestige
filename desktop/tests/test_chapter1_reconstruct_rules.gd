@@ -47,7 +47,7 @@ func _initialize() -> void:
 	collect(w, "a", "kael_token")
 	a.x = Bridge.Dialogue.NPCS.kael.x
 	a.y = Bridge.Dialogue.NPCS.kael.y
-	check(not Bridge.talk(w,"a","kael","kael_token","").size()>0, "Kael evidence choice requires an active session")
+	check(Bridge.talk(w,"a","kael","kael_token","").is_empty(), "Kael evidence choice requires an active session")
 	check(not Bridge.talk(w,"a","kael","kael_token","kael").is_empty(), "Kael confirms only his own statement")
 	check(a.story.evidence.has("kael_statement"), "E08 recorded as testimony after authorized dialogue")
 	check(Bridge.reconstruct(w,"a","E08","E06").get("accepted",false), "I04 limited testimony comparison")

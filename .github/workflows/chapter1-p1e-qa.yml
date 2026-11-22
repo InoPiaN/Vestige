@@ -6,6 +6,7 @@ on:
       - ci/chapter1-p1f-enet-two-client
       - qa/chapter1-p1g-navigation-interactions
       - qa/chapter1-p1h-visual-collision
+      - qa/chapter1-p1i-macos-input
     paths:
       - 'desktop/**'
       - 'scripts/**'

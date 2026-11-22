@@ -197,7 +197,12 @@ rubbing_author_presentation:
   rebuilt_house_occupancy: unoccupied_but_maintained  # DEC-02L 승인
   reason_vacant: unresolved
   maintenance_person: unresolved
-  legal_entry_method: unresolved  # DEC-02M
+  legal_entry_method: formal_investigation_commission  # DEC-02M 승인
+  commission_requester: unresolved  # DEC-02N 예정
+  commission_purpose: unresolved
+  entry_authorization_chain: unresolved
+  item_removal_permission: unresolved
+  discovery_gate: commission_accepted_and_authorized_access  # 구현 계약 설계, 미구현
   former_resident_fate: unresolved
   first_person_account_available: false  # 제1장 직접 발화 없음
   loss_motivation_in_writer_canon: true
@@ -209,7 +214,7 @@ rubbing_author_presentation:
 
 제작 주민을 만날 수 없다는 사실은 주민이 사망/실종했다는 증거가 아니다. 브란이 알고 있는 내용도 실제 발화가 승인되기 전까지 확정하지 않는다. 탁본 자체의 관찰과 브란의 기억은 provenance를 분리하고, 별도 자료를 통해 알게 되지 않은 저자·상실 동기를 플레이어 수첩에 자동 공개하지 않는다.
 
-**DEC-02K 승인:** 탁본은 폭풍 때 무너졌다가 복구된 집 내부에서 처음 발견한다. 집 주인·현재 거주자·탁본 보관자·세부 조사 지점은 미정이다. **DEC-02L 승인:** 복구된 집은 현재 비어 있지만 지속적으로 관리된다. 이전 거주자의 신원·생사나 빈집이 된 이유·관리자·출입 권한은 미정. **다음 DEC-02M:** 정당한 출입 방식. 제1장 생성 NPC·대사·증거 ID는 사용자 구현 승인 이전까지 바꾸지 않는다.
+**DEC-02K 승인:** 탁본은 폭풍 때 무너졌다가 복구된 집 내부에서 처음 발견한다. 집 주인·현재 거주자·탁본 보관자·세부 조사 지점은 미정이다. **DEC-02L 승인:** 복구된 집은 현재 비어 있지만 지속적으로 관리된다. 이전 거주자의 신원·생사나 빈집이 된 이유·관리자·출입 권한은 미정. **DEC-02M 승인:** 정식 조사 의뢰를 수락한 뒤 정당한 권한으로 빈집 내부를 조사한다. 의뢰자·목적·권한 전달·탁본 반출 허용 여부는 미정이다. **다음 DEC-02N:** 의뢰자 역할. 제1장 생성 NPC·대사·증거 ID는 사용자 구현 승인 이전까지 바꾸지 않는다.
 
 ## 3. 인물별 Know / Believe / Want / Withhold 설계
 

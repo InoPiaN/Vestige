@@ -1,5 +1,7 @@
 # VESTIGE — 현재 작업 상태 (AI 협업용 진입점)
 
+> **후속 구현 갱신 — P1-B3 (2026-11-22)**: `feature/chapter1-evidence-board-integration`에서 N 수첩→증거 조합 UI와 `chapter1_reconstruct` 서버 RPC가 추가되었다. I03/I04/I07은 서버의 개인 증거 소유권·지역·생존·중복 검사로 제한한다. 새 테스트 두 파일은 **작성되었지만 Godot/ENet 실행 미검증**이다. 인계 문서는 `docs/handoffs/chapter1-evidence-board-integration.md` (해당 코드 브랜치). 문서 브랜치는 기능 변경을 병합하지 않았다.
+
 > **후속 구현 갱신 (2026-11-22, 별도 코드 브랜치)**: `feature/chapter1-dialogue-session`에서 P1-B2 브란·세라·카엘 대화 선택지 UI와 서버 소유 세션(거리·지역·생애·토큰·허용 선택지·만료) 코드가 추가되었다. Godot·ENet 실제 실행 미검증이며, `docs/handoffs/chapter1-dialogue-session.md`에서 변경 내용·테스트 명령을 확인해야 한다. 이 문서 브랜치에는 해당 코드 변경이 병합되지 않았다. 기존 P1-B1 진행표의 ‘NPC 대화 미연결’은 P1-B2 브랜치에서 코드 연결 완료·검증 대기라는 후속 사실로 해석한다.
 
 

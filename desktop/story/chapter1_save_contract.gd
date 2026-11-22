@@ -49,8 +49,9 @@ static func valid_chapter(chapter: Variant, evidence: Dictionary) -> bool:
 	for npc in Chapter.NPCS:
 		var relation: Variant=chapter.relationships.get(npc)
 		if not relation is Dictionary: return false
-		if not finite_nonnegative(absf(float(relation.get("trust", -999)))): return false
-		if not whole_nonnegative(absf(float(relation.get("trust", -999)))) or absf(float(relation.trust))>2: return false
+		var trust: Variant=relation.get("trust")
+		if not (trust is int or trust is float) or not is_finite(float(trust)): return false
+		if floor(float(trust))!=float(trust) or absf(float(trust))>2: return false
 		if not string_list(relation.get("events")): return false
 	for event_id in chapter.dialogue_events:
 		if event_id.is_empty(): return false

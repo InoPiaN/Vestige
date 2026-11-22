@@ -95,14 +95,15 @@ relationship:
   shared_values: "돌봄과 상대의 존엄을 중요하게 여김"
   value_conflict: "현재 살아 있는 이의 삶을 먼저 지킴 vs 떠난 이의 기억과 의미를 보존"
   had_disagreements: true
-  conflict_event: null       # DEC-02A 미선택
+  conflict_event: story_event.storm_aftermath_iren_bran  # DEC-02A 승인 사건 유형; 세부 내용 미정
+  conflict_aftermath: unresolved  # DEC-02B 예정
   last_meeting: unknown
   caused_disappearance: unknown
   player_knows_by_default: false
   npc_disclosure_condition: unapproved
 ```
 
-서사 설계 근거: `CHAPTER1_CHARACTER_BIBLE_DRAFT.md`의 DEC-02, 갈등 장면 후보는 `CHAPTER1_BRAN_IRENE_SCENES_DRAFT.md`. 기존 `npc.bran.claim.glove_repair`는 말한 사실만 보존한다. 친밀 관계가 승인되었다고 해서 대장간 대화 또는 플레이어 수첩에 해당 정보를 자동 공개하지 않는다.
+`story_event.storm_aftermath_iren_bran`의 승인 범위: 마을 과거 폭풍, 집과 묘비의 피해, 그 복구에서 현재의 안전 vs 사후 기억 보존을 두고 이견. 사건의 정확한 진행/후속 관계는 `unresolved`이며 실제 플레이어 지식·증거에 자동 투입하지 않는다. 다음 사용자 결정은 DEC-02B(관계의 후속 변화).\n\n서사 설계 근거: `CHAPTER1_CHARACTER_BIBLE_DRAFT.md`의 DEC-02, 갈등 장면 후보는 `CHAPTER1_BRAN_IRENE_SCENES_DRAFT.md`. 기존 `npc.bran.claim.glove_repair`는 말한 사실만 보존한다. 친밀 관계가 승인되었다고 해서 대장간 대화 또는 플레이어 수첩에 해당 정보를 자동 공개하지 않는다.
 
 ---
 

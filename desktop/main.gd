@@ -333,9 +333,9 @@ func chapter1_dialogue_open() -> void:
 	if not peers.has(peer): return
 	var player_id: String=peers[peer]
 	var now: int=Time.get_ticks_msec()
-	var npc_id: String=Chapter1.nearby_npc(world,player_id)
 	if now-int(last_commands.get(peer,0))<250: return
 	last_commands[peer]=now
+	var npc_id: String=Chapter1.nearby_npc(world,player_id)
 	if npc_id.is_empty(): return
 	var reply: Dictionary=Chapter1.talk(world,player_id,npc_id)
 	if reply.is_empty(): return

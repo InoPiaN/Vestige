@@ -175,7 +175,7 @@ record:
   author_known_to_bran: unresolved
   author_known_to_player: unresolved
   memorial_name: unresolved
-  storage_location: unresolved
+  storage_location: interior_of_storm_rebuilt_house  # DEC-02K 승인; 구체적 보관 지점 미정
   implemented_as_game_evidence: false
 ```
 
@@ -193,7 +193,7 @@ rubbing_author_presentation:
   author_dialogue_available: false
   author_direct_flashback_voice: false
   authored_rubbing_exists: true
-  initial_discovery_location: unresolved  # DEC-02K
+  initial_discovery_location: interior_of_storm_rebuilt_house  # DEC-02K 승인
   first_person_account_available: false  # 제1장 직접 발화 없음
   loss_motivation_in_writer_canon: true
   loss_motivation_known_to_player: unresolved
@@ -204,7 +204,7 @@ rubbing_author_presentation:
 
 제작 주민을 만날 수 없다는 사실은 주민이 사망/실종했다는 증거가 아니다. 브란이 알고 있는 내용도 실제 발화가 승인되기 전까지 확정하지 않는다. 탁본 자체의 관찰과 브란의 기억은 provenance를 분리하고, 별도 자료를 통해 알게 되지 않은 저자·상실 동기를 플레이어 수첩에 자동 공개하지 않는다.
 
-**다음 DEC-02K:** 탁본의 최초 발견 장소(서재 / 묘역 / 복구된 집). 제1장 생성 NPC·대사·증거 ID는 사용자 구현 승인 이전까지 바꾸지 않는다.
+**DEC-02K 승인:** 탁본은 폭풍 때 무너졌다가 복구된 집 내부에서 처음 발견한다. 집 주인·현재 거주자·탁본 보관자·세부 조사 지점은 미정이다. **다음 DEC-02L:** 현재 집 사용 상태. 제1장 생성 NPC·대사·증거 ID는 사용자 구현 승인 이전까지 바꾸지 않는다.
 
 ## 3. 인물별 Know / Believe / Want / Withhold 설계
 

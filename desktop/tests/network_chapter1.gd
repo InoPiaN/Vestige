@@ -99,20 +99,32 @@ func primary_steps(p: Dictionary) -> bool:
 	elif stage==1 and game.chapter1_board_pending_request==0 and p.story.chapter1.inferences.has("I03"):
 		if not check(p.story.chapter1.inferences.has("I03"),"server accepted only owned I03"):
 			return false
-		print("TRACE: client near Sera=", game.Chapter1.nearby_npc(game.world,game.me), " position=", p.x, ",", p.y, " room=", p.get("room"), " offline=",p.offline)
+		next_stage()
+	elif stage==2:
+		var target: Vector2=Vector2(NPC.NPCS.sera.x,NPC.NPCS.sera.y)
+		var delta: Vector2=target-Vector2(p.x,p.y)
+		if delta.length()>0.65:
+			game.movement.rpc_id(1,delta.normalized())
+		else:
+			game.movement.rpc_id(1,Vector2.ZERO)
+			if not check(game.Chapter1.nearby_npc(game.world,game.me)=="sera","client walked into Sera dialogue range"):
+				return false
+			next_stage()
+	elif stage==3 and Time.get_ticks_msec()-stage_time>300:
+		print("TRACE: arrived near Sera x=",p.x," y=",p.y)
 		game.chapter1_dialogue_open.rpc_id(1)
 		next_stage()
-	elif stage==2 and not game.dialogue_session_token.is_empty():
+	elif stage==4 and not game.dialogue_session_token.is_empty():
 		if not check(game.dialogue_npc=="sera","server chose nearby Sera"):
 			return false
 		game.chapter1_dialogue_choose.rpc_id(1,"wrong-token","rumor")
 		next_stage()
-	elif stage==3 and Time.get_ticks_msec()-stage_time>350:
+	elif stage==5 and Time.get_ticks_msec()-stage_time>350:
 		if not check(not p.story.iren_missing_rumor,"forged dialogue token did not mutate state"):
 			return false
 		game.chapter1_dialogue_choose.rpc_id(1,game.dialogue_session_token,"rumor")
 		next_stage()
-	elif stage==4 and p.story.iren_missing_rumor:
+	elif stage==6 and p.story.iren_missing_rumor:
 		if not check(p.story.visits.sera and p.story.chapter1.inferences.has("I03"),"Sera source-scoped rumor and inference persisted"):
 			return false
 		game.chapter1_dialogue_end.rpc_id(1,game.dialogue_session_token)

@@ -769,7 +769,7 @@ func build_ui() -> void:
 			message("하루가 흘렀습니다. J로 일기를 확인하세요.")
 			refresh())
 	new_button=button_at(ui,"새로운 삶 시작",Vector2(1000,606),250,func(): open_dressing("new"))
-	label_at(ui,"WASD  이동   E  상호작용\nSPACE  공격   SHIFT  회피\nQ  약초 사용   J  일기   M  지도\nL  마을 의뢰 / 납품   T  주민 대화",Vector2(1000,670),14,Color("8fa394"))
+	label_at(ui,"WASD 이동   E 상호작용\nT 주민 대화   N 조사 수첩\nSPACE 공격   SHIFT 회피\nF 사망 조사   J 나의 일기\nL 의뢰   M 지도   Q 약초",Vector2(1000,652),13,Color("8fa394"))
 	prompt=label_at(ui,"",Vector2(30,730),16,Color("dfcd97"))
 	notice=label_at(ui,"",Vector2(30,762),14)
 	panel=PanelContainer.new()

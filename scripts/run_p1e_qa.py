@@ -71,9 +71,16 @@ def run_suite(root: Path, godot: Path, logs: Path, timeout: int,
     with tempfile.TemporaryDirectory(prefix="vestige-p1e-home-") as temp:
         # Godot's user:// files are scoped away from the developer's real game.
         environment = os.environ.copy()
+        # Both Unix/Linux XDG and macOS HOME-based Godot app_userdata paths.
+        # This protects the actual player's user:// worlds even when a test instantiates Main.
+        sandbox_home = Path(temp) / "home"
+        sandbox_home.mkdir(parents=True, exist_ok=True)
+        environment["HOME"] = str(sandbox_home)
         environment["XDG_DATA_HOME"] = str(Path(temp) / "data")
         environment["XDG_CONFIG_HOME"] = str(Path(temp) / "config")
         environment["XDG_CACHE_HOME"] = str(Path(temp) / "cache")
+        environment["APPDATA"] = str(Path(temp) / "appdata")
+        environment["LOCALAPPDATA"] = str(Path(temp) / "localappdata")
         if include_rules:
             results["existing_game_rules"] = run_command(
                 [sys.executable, "scripts/verify_rules.py"], root, environment,

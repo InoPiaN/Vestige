@@ -1,8 +1,9 @@
-name: VESTIGE Chapter I P1-E Godot QA
+name: VESTIGE Chapter I P1-E and P1-F Godot ENet QA
 on:
   push:
     branches:
       - ci/chapter1-p1e-godot-verification
+      - ci/chapter1-p1f-enet-two-client
     paths:
       - 'desktop/**'
       - 'scripts/**'
@@ -43,11 +44,23 @@ jobs:
             --godot "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" \
             --logs "$RUNNER_TEMP/vestige-p1e-logs"
 
+      - name: Run Chapter I real ENet server and two clients
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python3 scripts/run_p1f_enet.py \
+            --godot "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" \
+            --logs "$RUNNER_TEMP/vestige-p1f-logs"
+
       - name: Publish all QA logs and JSON even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: p1e-godot-qa-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/vestige-p1e-logs/
+          path: |
+            ${{ runner.temp }}/vestige-p1e-logs/
+            ${{ runner.temp }}/vestige-p1f-logs/
           if-no-files-found: warn
           retention-days: 14

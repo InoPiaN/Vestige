@@ -133,6 +133,37 @@ func ruin(x: float,y: float) -> void:
 	box(x-5,y+6,10,2,"c0ac74")
 	for i in range(5): box(x-29+i*12,y+19+(i%2)*3,6,4,"7a7b64")
 
+## Pure village depth ordering. Houses are sorted by their wall/door baseline,
+## characters by their feet; no collision geometry or saved world fields change.
+static func village_depth_entries(w: Dictionary) -> Array[Dictionary]:
+	var entries: Array[Dictionary]=[]
+	for place in Rules.PLACES:
+		if place.kind in ["forge","inn","library","home"]:
+			entries.append({"kind":"building","depth":float(place.y)*16.0+11.0,"place":place})
+	for id in w.get("people",{}):
+		var person: Dictionary=w.people[id]
+		if person.get("room","village")=="village":
+			entries.append({"kind":"person","depth":float(person.y)*16.0,"person_id":String(id)})
+	entries.sort_custom(func(a: Dictionary,b: Dictionary) -> bool:
+		if is_equal_approx(float(a.depth),float(b.depth)):
+			if a.kind!=b.kind: return a.kind=="building"
+			var a_key: String=String(a.person_id) if a.kind=="person" else String(a.place.kind)
+			var b_key: String=String(b.person_id) if b.kind=="person" else String(b.place.kind)
+			return a_key<b_key
+		return float(a.depth)<float(b.depth)
+	)
+	return entries
+
+func draw_village_depth_entries() -> void:
+	for item in village_depth_entries(world):
+		if item.kind=="building":
+			var place: Dictionary=item.place
+			house(float(place.x)*16.0,float(place.y)*16.0,String(place.kind))
+		else:
+			var id: String=item.person_id
+			var p: Dictionary=world.people[id]
+			hero(float(p.x)*16.0,float(p.y)*16.0,p,id!=player_id)
+
 func _draw() -> void:
 	if terrain==null: return
 	if world.get("people",{}).has(player_id) and Rules.Interior.inside(world.people[player_id]):
@@ -177,7 +208,7 @@ func _draw() -> void:
 				box(x-16,y-5,32,8,"705c3c")
 				box(x-12,y-9,6,4,"a29a80")
 				box(x+5,y-10,5,5,"8ab88e")
-			"forge","inn","library","home": house(x,y,t.kind)
+			"forge","inn","library","home": pass # Render houses with character feet depth below
 			"grave":
 				for i in range(4):
 					box(x-18+i*12,y-7+(i%2)*9,8,13,"89917d")
@@ -214,7 +245,10 @@ func _draw() -> void:
 	for i in range(4): lamp(65+i*58,158)
 	hero(105+sin(clock*0.3)*8,135,{"steps":clock,"motion":1.0,"direction":"right" if cos(clock*0.3)>0 else "left","alive":true},true)
 	hero(208,210,{"steps":0,"alive":true},true)
-	if world.is_empty(): return
+	if world.is_empty():
+		# Preserve the decorative village preview before any world exists.
+		draw_village_depth_entries()
+		return
 	if world.people.has(player_id):
 		for trace in Rules.Investigation.traces(world,world.people[player_id]):
 			box(trace.x*16-3,trace.y*16+5,7,3,"877557")
@@ -235,9 +269,9 @@ func _draw() -> void:
 		box(x-12,y-19,25,2,"382b28")
 		box(x-12,y-19,maxf(0,e.hp/2.0),2,"bf735a")
 	preload("res://expedition_art.gd").draw(self,world,world.people.get(player_id,{}))
-	for id in world.people:
-		var p: Dictionary=world.people[id]
-		if p.get("room","village")=="village": hero(p.x*16,p.y*16,p,id!=player_id)
+	# A character north of a building's wall baseline is drawn behind its roof.
+	# A character south of that baseline is drawn in front. Shared across players.
+	draw_village_depth_entries()
 	# Subtle night tint; never hides gameplay silhouettes.
 	var night: float=clampf(-sin((Rules.Travel.Life.hour(world.time)-6)/24*TAU),0,1)
 	draw_rect(Rect2(0,0,480,320),Color(0.025,0.05,0.12,night*0.12))

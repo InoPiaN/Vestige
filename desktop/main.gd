@@ -310,6 +310,9 @@ func chapter1_dialogue_open() -> void:
 	var peer: int=multiplayer.get_remote_sender_id()
 	if not peers.has(peer): return
 	var player_id: String=peers[peer]
+	var now: int=Time.get_ticks_msec()
+	if now-int(last_commands.get(peer,0))<250: return
+	last_commands[peer]=now
 	var npc_id: String=Chapter1.nearby_npc(world,player_id)
 	if npc_id.is_empty(): return
 	var reply: Dictionary=Chapter1.talk(world,player_id,npc_id)
@@ -460,10 +463,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		bench.hide()
 		return
 	if event.physical_keycode==KEY_N:
-		if panel.visible: panel.hide()
+		if panel.visible: finish_chapter1_dialogue()
 		elif not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible and not travel.visible and not requests.visible:
 			open_chapter1_notebook()
 		return
+	if panel.visible and not dialogue_npc.is_empty(): return
 	if event.physical_keycode==KEY_L:
 		if requests.visible: requests.hide()
 		else: open_requests()

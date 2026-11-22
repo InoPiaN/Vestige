@@ -29,7 +29,7 @@ func run() -> void:
 	game.interact()
 	check(player.get("story", {}).get("evidence", {}).has("last_promise"), "E route collects Chapter I diary")
 	check(player.story.chapter1.evidence_links.has("E01"), "logical E01 linked")
-	var count := player.story.evidence.size()
+	var count: int = int(player.story.evidence.size())
 	game.interact()
 	check(player.story.evidence.size() == count, "repeat E does not duplicate evidence")
 	game.open_chapter1_notebook()

@@ -85,6 +85,19 @@ def main() -> int:
                         child.kill()
                         code=-9
                     results["checks"][name]={"code":code}
+                # Same-life reconnection while the authoritative server keeps running.
+                # A previous NPC session was deliberately left open when primary exited.
+                if all(results["checks"].get(name,{}).get("code")==0 for name in ("primary","observer")):
+                    time.sleep(0.75)  # Allow ENet peer_disconnected to release A's identity.
+                    with (logs/"reconnect.log").open("w") as reconnect_log:
+                        try:
+                            code=subprocess.run(
+                                base+["--script","res://tests/network_chapter1.gd","--","--reconnect"],
+                                cwd=root,env=env,stdout=reconnect_log,stderr=subprocess.STDOUT,
+                                timeout=38,check=False).returncode
+                        except subprocess.TimeoutExpired:
+                            code=-9
+                    results["checks"]["reconnect"]={"code":code}
             except (OSError,RuntimeError) as exc:
                 results["reason"]=str(exc)
             finally:
@@ -100,10 +113,10 @@ def main() -> int:
                         except subprocess.TimeoutExpired: server.kill();server.wait()
                     results["checks"]["server"]={"code":server.returncode}
                 for h in handles:h.close()
-            for name in ("primary","observer"):
+            for name in ("primary","observer","reconnect"):
                 path=logs/(name+".log")
                 output=path.read_text(errors="replace") if path.is_file() else ""
-                marker="PASS: ENet Chapter I "+("primary evidence" if name=="primary" else "observer private")
+                marker="PASS: ENet Chapter I "+({"primary":"primary evidence","observer":"observer private","reconnect":"reconnect persistent story"}[name])
                 results["checks"].setdefault(name,{})
                 results["checks"][name].update(
                     {"pass_marker":marker in output,"script_error":"SCRIPT ERROR" in output,
@@ -115,7 +128,7 @@ def main() -> int:
                 "packet_error":"Unable to send packet" in server_text}
             ok=all(results["checks"][n].get("code")==0 and results["checks"][n]["pass_marker"]
                    and not results["checks"][n]["script_error"] and not results["checks"][n]["packet_error"]
-                   for n in ("primary","observer"))
+                   for n in ("primary","observer","reconnect"))
             ok=ok and not results["checks"]["server_log"]["script_error"] and not results["checks"]["server_log"]["packet_error"]
             results["status"]="PASS" if ok else "FAIL"
     (logs/"p1f-report.json").write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding="utf-8")

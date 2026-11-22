@@ -1,5 +1,7 @@
 # VESTIGE — 현재 작업 상태 (AI 협업용 진입점)
 
+> **협업 방향 전환 — 서사 우선 (2026-11-22):** 사용자 확인에 따라 ChatGPT의 다음 최우선 업무는 **캐릭터/세계관/스토리/AI 지식 설계 및 Codex 구현 프롬프트**이고 Codex는 승인된 코드 구현·테스트를 중심으로 한다. `design/chapter1-character-bible-v01`에서 이렌·브란·세라·카엘의 **정본/주장/창작 제안/결정 필요**를 분리한 인물 설정집과 Knowledge Tree 초안을 문서로 작성했다. 현재 **검토용이며 정본 확정·코드 적용 전**. 이전 `feature/chapter1-p1j-building-depth`의 렌더링 순서 실험은 **커밋만 있고 QA 미실행**인 중단 작업으로 보존, 별도 승인 전에 병합/추가 구현하지 않는다. 코드 브랜치와 `main`은 이 방향 전환으로 변경되지 않았다.
+
 > **P1-I Mac 실제 Godot 실행 및 입력 버그 수정 (2026-11-22):** `qa/chapter1-p1i-macos-input@07974da7`의 **macOS 15 GitHub Actions** <https://github.com/InoPiaN/Vestige/actions/runs/45013495217>에서 Godot 4.5.1 **규칙 954 PASS 기록/FAILURES []**, QA 9/9 묶음, 실제 ENet 서버+A/B+재접속 **PASS**. Linux 동일 SHA <https://github.com/InoPiaN/Vestige/actions/runs/45013495180>에서도 성공. 실제 `InputEventKey` 기반 테스트에서 N 수첩 위에 L/M/I 창이 겹쳐 열리는 3개 실패를 재현하고 `main.gd`의 modal guard를 수정해 해소. 게임 충돌/렌더링/저장 구조 변경 없음. **Mac GUI 손조작·사용자 로컬 스태시/새 집 충돌은 미검증.** 인계: 코드 브랜치 `docs/handoffs/chapter1-p1i-macos-input-report.md`. `main` 미병합.
 
 > **P1-H 렌더·충돌 시각 QA (2026-11-22):** `qa/chapter1-p1h-visual-collision@1d5a440b`의 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45013001030>에서 기존 G 회귀 937 PASS 기록, QA 9/9 묶음, 실제 ENet A/B/재접속 **전부 PASS**. Xvfb Godot 4.5.1 화면 1280x800 캡처 6장 생성; Korean Noto CJK 설치로 Linux 화면 네모 글자 해결. 화면에서 집 그래픽/충돌 박스 크기 차이 확인(의도된 처마일 수도 있으므로 collider 미수정). `main.gd` 오른쪽 HUD의 N/F 단축키 표기 개선. **Mac 실기·미반영 로컬 집/스태시 충돌은 미검증**. 증거: `docs/handoffs/chapter1-p1h-visual-collision-report.md`(QA 브랜치). `main` 미병합.

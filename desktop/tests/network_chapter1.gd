@@ -99,6 +99,7 @@ func primary_steps(p: Dictionary) -> bool:
 	elif stage==1 and game.chapter1_board_pending_request==0 and p.story.chapter1.inferences.has("I03"):
 		if not check(p.story.chapter1.inferences.has("I03"),"server accepted only owned I03"):
 			return false
+		print("TRACE: client near Sera=", game.Chapter1.nearby_npc(game.world,game.me), " position=", p.x, ",", p.y, " room=", p.get("room"), " offline=",p.offline)
 		game.chapter1_dialogue_open.rpc_id(1)
 		next_stage()
 	elif stage==2 and not game.dialogue_session_token.is_empty():

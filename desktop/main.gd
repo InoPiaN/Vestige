@@ -599,6 +599,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_1: perform("use_skill","0")
 		KEY_2: perform("use_skill","1")
 		KEY_E: interact()
+		KEY_T: start_chapter1_dialogue()
 		KEY_F: perform("investigate")
 		KEY_SPACE: perform("attack")
 		KEY_SHIFT: perform("dodge")
@@ -614,10 +615,11 @@ func interact() -> void:
 	if Rules.Interior.inside(world.people[me]):
 		perform("interact")
 		return
-	if Chapter1.allowed(world,me) and not Chapter1.nearby_npc(world,me).is_empty():
+	var t:=Rules.nearby(world.people[me],world.time)
+	# Existing facilities and mentors take priority on E; T always addresses a nearby story NPC.
+	if t.is_empty() and Chapter1.allowed(world,me) and not Chapter1.nearby_npc(world,me).is_empty():
 		start_chapter1_dialogue()
 		return
-	var t:=Rules.nearby(world.people[me],world.time)
 	if t.get("kind","")=="home": perform("enter_home")
 	elif t.get("kind","") in Rules.Professions.Mentors: open_professions(t.kind)
 	elif t.get("kind","")=="forge": open_forge()
@@ -767,7 +769,7 @@ func build_ui() -> void:
 			message("하루가 흘렀습니다. J로 일기를 확인하세요.")
 			refresh())
 	new_button=button_at(ui,"새로운 삶 시작",Vector2(1000,606),250,func(): open_dressing("new"))
-	label_at(ui,"WASD  이동   E  상호작용\nSPACE  공격   SHIFT  회피\nQ  약초 사용   J  일기   M  지도\nL  마을 의뢰 / 납품",Vector2(1000,670),14,Color("8fa394"))
+	label_at(ui,"WASD  이동   E  상호작용\nSPACE  공격   SHIFT  회피\nQ  약초 사용   J  일기   M  지도\nL  마을 의뢰 / 납품   T  주민 대화",Vector2(1000,670),14,Color("8fa394"))
 	prompt=label_at(ui,"",Vector2(30,730),16,Color("dfcd97"))
 	notice=label_at(ui,"",Vector2(30,762),14)
 	panel=PanelContainer.new()
@@ -905,7 +907,8 @@ func refresh() -> void:
 		if not clue_id.is_empty(): prompt.text="E · 제1장 증거 조사 · "+Chapter1Investigation.EVIDENCE[clue_id].title+"   N · 조사 수첩"
 		elif not Chapter1.nearby_npc(world,me).is_empty():
 			var npc_id: String=Chapter1.nearby_npc(world,me)
-			prompt.text="E · "+String(Chapter1.Dialogue.NPCS[npc_id].name)+"와 대화"
+			var npc_name: String=String(Chapter1.Dialogue.NPCS[npc_id].name)
+			prompt.text=("E/T · "+npc_name+"와 대화") if t.is_empty() else (prompt.text+"   T · "+npc_name+"와 대화")
 
 	if Rules.Interior.inside(p):
 		var furniture:=Rules.Interior.nearby(p)

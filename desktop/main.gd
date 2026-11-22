@@ -338,7 +338,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		bench.hide()
 		return
 	if event.physical_keycode==KEY_N:
-		open_chapter1_notebook()
+		if panel.visible: panel.hide()
+		elif not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible and not travel.visible and not requests.visible:
+			open_chapter1_notebook()
 		return
 	if event.physical_keycode==KEY_L:
 		if requests.visible: requests.hide()

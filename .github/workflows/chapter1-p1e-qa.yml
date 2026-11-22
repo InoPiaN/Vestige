@@ -5,6 +5,7 @@ on:
       - ci/chapter1-p1e-godot-verification
       - ci/chapter1-p1f-enet-two-client
       - qa/chapter1-p1g-navigation-interactions
+      - qa/chapter1-p1h-visual-collision
     paths:
       - 'desktop/**'
       - 'scripts/**'
@@ -45,6 +46,17 @@ jobs:
             --godot "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" \
             --logs "$RUNNER_TEMP/vestige-p1e-logs"
 
+      - name: Capture real game viewport and collision overlay (P1-H)
+        shell: bash
+        env:
+          VESTIGE_VISUAL_OUTPUT: ${{ runner.temp }}/vestige-p1h-images
+        run: |
+          set -euo pipefail
+          mkdir -p "$VESTIGE_VISUAL_OUTPUT"
+          "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" \
+            --headless --path desktop \
+            --script res://tests/test_p1h_visual_capture.gd
+
       - name: Run Chapter I real ENet server and two clients
         shell: bash
         env:
@@ -63,5 +75,6 @@ jobs:
           path: |
             ${{ runner.temp }}/vestige-p1e-logs/
             ${{ runner.temp }}/vestige-p1f-logs/
+            ${{ runner.temp }}/vestige-p1h-images/
           if-no-files-found: warn
           retention-days: 14

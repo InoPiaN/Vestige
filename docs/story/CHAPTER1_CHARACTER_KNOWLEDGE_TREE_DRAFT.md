@@ -124,7 +124,10 @@ dialogue_unlock_design:
   related_event_id: story_event.storm_aftermath_iren_bran
   qualifying_document: record.storm_gravestone_rubbing  # DEC-02E 승인된 작가용 ID, 현재 미구현
   document_type: gravestone_rubbing
-  document_author: unresolved  # DEC-02F
+  document_author_category: another_ash_village_resident  # DEC-02F 작가 정본
+  document_author_identity: unresolved  # 이름·직업·생사 미정
+  author_relationship_to_iren: unresolved  # DEC-02G
+  author_known_to_player: unresolved  # 플레이어가 제작자를 안다는 뜻 아님
   inscription_person: unresolved
   found_at: unresolved
   source_validation: future_server_approved_discovery_only
@@ -139,7 +142,7 @@ dialogue_unlock_design:
 ```
 
 - 이 구조는 **제안된 지식 접근 계약**이고 실제 새 퀘스트/DB 필드/잠금 조건을 구현했다는 뜻이 아니다.
-- DEC-02D가 확정한 것은 **기록 발견 이후**라는 공개 조건뿐이다. 기록 유형은 DEC-02E에서 **묘비의 낡은 탁본**으로 승인됐다. 제작자와 원본 비문, 발견 위치·구체적인 게임 조사 방법은 DEC-02F 및 후속 결정으로 보류한다.
+- DEC-02D가 확정한 것은 **기록 발견 이후**라는 공개 조건뿐이다. 기록 유형은 DEC-02E에서 **묘비의 낡은 탁본**으로 승인됐다. **DEC-02F 승인:** 제작자는 이렌이 아닌 다른 잿불 마을 주민이다. 그 주민의 구체적 신원, 이렌과의 관계, 원본 비문, 발견 위치와 게임 조사 방법은 **DEC-02G 및 후속 결정**으로 보류한다. 브란이 그 제작자를 아는지도 아직 정본이 아니다.
 - 플레이어의 기존 E01 일기 획득만으로 새 폭풍 기록을 얻은 것으로 간주하지 않는다.
 - 누군가의 기록을 읽은 결과와 브란이 이야기한 결과를 각각 별도 provenance로 저장하도록 향후 Codex 설계를 검토한다. 서버 권한·생애 분리·다른 플레이어 개인 기록의 무단 열람 방지는 종전 원칙 그대로다.
 

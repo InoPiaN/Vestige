@@ -4,6 +4,7 @@ const Rules=preload("res://world.gd")
 const PixelWorld=preload("res://pixel_world.gd")
 const Chapter1=preload("res://story/chapter1_bridge.gd")
 const Chapter1Investigation=preload("res://story/chapter1_investigation.gd")
+const Chapter1BoardPanel=preload("res://story/evidence_board_panel.gd")
 var world: Dictionary={}
 var me: String="local"
 var mode: String="menu"
@@ -37,6 +38,11 @@ var health: ProgressBar
 var stamina: ProgressBar
 var policy: OptionButton
 var panel: PanelContainer
+var chapter1_board: PanelContainer
+var chapter1_board_button: Button
+var chapter1_board_request_serial: int=0
+var chapter1_board_pending_request: int=0
+var chapter1_board_last_response: int=0
 var dialogue_buttons: VBoxContainer
 var dialogue_npc: String=""
 var dialogue_session_token: String=""
@@ -414,16 +420,75 @@ func finish_chapter1_dialogue() -> void:
 		dialogue_buttons.hide()
 	panel.hide()
 
+## The client sends only two logical evidence IDs. Server verifies ownership/room/life.
+@rpc("any_peer","call_remote","reliable")
+func chapter1_reconstruct(first: String, second: String, request_id: int) -> void:
+	if mode!="server": return
+	var peer: int=multiplayer.get_remote_sender_id()
+	if not peers.has(peer) or request_id<=0: return
+	var player_id: String=peers[peer]
+	var now: int=Time.get_ticks_msec()
+	if now-int(last_commands.get(peer,0))<100: return
+	last_commands[peer]=now
+	if first.length()>8 or second.length()>8: return
+	var result: Dictionary=Chapter1.reconstruct(world,player_id,first,second)
+	chapter1_reconstruct_reply.rpc_id(peer,request_id,result)
+	if result.get("accepted",false):
+		Rules.save_world(world,save_path)
+		send_snapshot(peer)
+
+@rpc("authority","call_remote","reliable")
+func chapter1_reconstruct_reply(request_id: int, result: Dictionary) -> void:
+	if mode!="client" or request_id!=chapter1_board_pending_request or request_id<=chapter1_board_last_response: return
+	chapter1_board_last_response=request_id
+	chapter1_board_pending_request=0
+	if chapter1_board!=null:
+		chapter1_board.set_feedback(String(result.get("text","응답이 없습니다.")))
+
+func submit_chapter1_combination(first: String, second: String) -> void:
+	if chapter1_board==null or not chapter1_board.visible: return
+	if first==second or first.is_empty() or second.is_empty(): return
+	if mode=="client":
+		if chapter1_board_pending_request>0: return
+		chapter1_board_request_serial+=1
+		chapter1_board_pending_request=chapter1_board_request_serial
+		chapter1_board.set_feedback("서버에서 증거 출처를 확인하고 있습니다.")
+		chapter1_reconstruct.rpc_id(1,first,second,chapter1_board_pending_request)
+	elif mode=="single":
+		var result: Dictionary=Chapter1.reconstruct(world,me,first,second)
+		chapter1_board.set_feedback(String(result.get("text","")))
+		if result.get("accepted",false):
+			Rules.save_world(world,save_path)
+			refresh()
+
+func open_chapter1_board() -> void:
+	if not mode in ["single","client"] or world.is_empty() or not world.people.has(me): return
+	if not Chapter1.allowed(world,me):
+		message("현재 잿불 마을에 있는 살아 있는 인물만 사건 재구성을 검증할 수 있습니다.")
+		return
+	if chapter1_board==null: return
+	chapter1_board_pending_request=0
+	Chapter1.prepare_person(world.people[me])
+	chapter1_board.open_for(world.people[me])
+	chapter1_board_button.hide()
+	panel.hide()
+
+func close_chapter1_board() -> void:
+	if chapter1_board==null or not chapter1_board.visible: return
+	chapter1_board.hide()
+	chapter1_board_pending_request=0
+	open_chapter1_notebook()
+
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible or requests.visible): return
+	if mode=="single" and (chapter1_board.visible or panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible or requests.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible and not travel.visible and not requests.visible:
+		if not chapter1_board.visible and not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible and not travel.visible and not requests.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -449,6 +514,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
 	if not mode in ["single","client"]: return
 	if event.keycode==KEY_ESCAPE:
+		if chapter1_board.visible:
+			close_chapter1_board()
+			return
 		finish_chapter1_dialogue()
 		dressing.hide()
 		bag.hide()
@@ -463,10 +531,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		bench.hide()
 		return
 	if event.physical_keycode==KEY_N:
+		if chapter1_board.visible:
+			close_chapter1_board()
+			return
 		if panel.visible: finish_chapter1_dialogue()
 		elif not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible and not travel.visible and not requests.visible:
 			open_chapter1_notebook()
 		return
+	if chapter1_board.visible: return
 	if panel.visible and not dialogue_npc.is_empty(): return
 	if event.physical_keycode==KEY_L:
 		if requests.visible: requests.hide()
@@ -495,7 +567,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
 		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
-	if panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible or requests.visible: return
+	if chapter1_board.visible or panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible or requests.visible: return
 	match event.physical_keycode:
 		KEY_R: perform("take_field_loot")
 		KEY_1: perform("use_skill","0")
@@ -692,10 +764,20 @@ func build_ui() -> void:
 	panel_text.add_theme_font_size_override("normal_font_size",18)
 	panel_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	column.add_child(panel_text)
+	chapter1_board_button=Button.new()
+	chapter1_board_button.text="제1장 · 증거 두 개 조합하기"
+	chapter1_board_button.pressed.connect(open_chapter1_board)
+	column.add_child(chapter1_board_button)
+	chapter1_board_button.hide()
 	dialogue_buttons=VBoxContainer.new()
 	column.add_child(dialogue_buttons)
 	dialogue_buttons.hide()
 	panel.hide()
+	chapter1_board=Chapter1BoardPanel.new()
+	root.add_child(chapter1_board)
+	chapter1_board.combination_requested.connect(submit_chapter1_combination)
+	chapter1_board.close_requested.connect(close_chapter1_board)
+	chapter1_board.hide()
 	requests=preload("res://request_panel.gd").new()
 	root.add_child(requests)
 	requests.action.connect(perform)
@@ -838,6 +920,8 @@ func message(text: String) -> void:
 		if forge.visible: forge.feedback.text=text
 
 func show_pages(text: String) -> void:
+	if chapter1_board!=null: chapter1_board.hide()
+	if chapter1_board_button!=null: chapter1_board_button.hide()
 	travel.hide()
 	requests.hide()
 	professions.hide()
@@ -861,6 +945,8 @@ func show_pages(text: String) -> void:
 func open_chapter1_notebook() -> void:
 	if world.is_empty() or not world.people.has(me): return
 	show_pages(Chapter1.notebook(world,me))
+	if Chapter1.allowed(world,me):
+		chapter1_board_button.show()
 
 func open_journal() -> void:
 	if world.is_empty(): return
@@ -1192,7 +1278,7 @@ func open_professions(field: String="") -> void:
 func _input(event: InputEvent) -> void:
 	if mode not in ["single","client"] or not event is InputEventKey or not event.pressed or event.echo: return
 	if event.physical_keycode!=KEY_TAB: return
-	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions,travel,requests]:
+	for modal in [chapter1_board,panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions,travel,requests]:
 		if modal.visible: return
 	perform("cycle_target")
 	get_viewport().set_input_as_handled()

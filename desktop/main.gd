@@ -2,6 +2,8 @@ extends Node
 
 const Rules=preload("res://world.gd")
 const PixelWorld=preload("res://pixel_world.gd")
+const Chapter1=preload("res://story/chapter1_bridge.gd")
+const Chapter1Investigation=preload("res://story/chapter1_investigation.gd")
 var world: Dictionary={}
 var me: String="local"
 var mode: String="menu"
@@ -233,6 +235,7 @@ func send_snapshot(peer: int) -> void:
 		if id!=peers[peer]:
 			snapshot.people[id].journal=[]
 			snapshot.people[id].events=[]
+			snapshot.people[id].erase("story")
 	# Network IDs are session-scoped; don't send other players' identity secrets.
 	var people: Dictionary={}
 	for id in snapshot.people:
@@ -265,6 +268,9 @@ func command(kind: String, value: String="") -> void:
 	var id: String=peers[peer]
 	if kind=="new":
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
+	elif kind=="chapter1_inspect":
+		remote_message.rpc_id(peer,Chapter1.inspect(world,id,value))
+		Rules.save_world(world,save_path)
 	else:
 		remote_message.rpc_id(peer,Rules.act(world,id,kind,value))
 	send_snapshot(peer)
@@ -278,6 +284,7 @@ func perform(kind: String, value: String="") -> void:
 		command.rpc_id(1,kind,value)
 	elif mode=="single":
 		if kind=="new": Rules.born(world,me,dress_name.text,chosen_look)
+		elif kind=="chapter1_inspect": message(Chapter1.inspect(world,me,value))
 		else: message(Rules.act(world,me,kind,value))
 		Rules.save_world(world,save_path)
 		refresh()
@@ -330,6 +337,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		planner.hide()
 		bench.hide()
 		return
+	if event.physical_keycode==KEY_N:
+		open_chapter1_notebook()
+		return
 	if event.physical_keycode==KEY_L:
 		if requests.visible: requests.hide()
 		else: open_requests()
@@ -370,6 +380,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_J: open_journal()
 
 func interact() -> void:
+	if Chapter1.allowed(world,me):
+		var evidence_id: String=Chapter1Investigation.nearby(world.people[me])
+		if not evidence_id.is_empty():
+			perform("chapter1_inspect",evidence_id)
+			return
 	if Rules.Interior.inside(world.people[me]):
 		perform("interact")
 		return
@@ -643,6 +658,10 @@ func refresh() -> void:
 
 	if not Rules.Remains.visible(world,p).is_empty(): prompt.text+="   G · 유품 회수"
 
+	if Chapter1.allowed(world,me):
+		var clue_id: String=Chapter1Investigation.nearby(p)
+		if not clue_id.is_empty(): prompt.text="E · 제1장 증거 조사 · "+Chapter1Investigation.EVIDENCE[clue_id].title+"   N · 조사 수첩"
+
 	if Rules.Interior.inside(p):
 		var furniture:=Rules.Interior.nearby(p)
 		prompt.text="E · "+Rules.Interior.OBJECTS[furniture].name if not furniture.is_empty() else "언덕집 · 가구 가까이에서 E / 아래쪽 문으로 나가기"
@@ -695,6 +714,10 @@ func show_pages(text: String) -> void:
 	dressing.hide()
 	panel_text.text=text
 	panel.show()
+
+func open_chapter1_notebook() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	show_pages(Chapter1.notebook(world,me))
 
 func open_journal() -> void:
 	if world.is_empty(): return

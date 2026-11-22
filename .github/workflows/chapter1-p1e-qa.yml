@@ -46,6 +46,15 @@ jobs:
             --godot "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" \
             --logs "$RUNNER_TEMP/vestige-p1e-logs"
 
+      - name: Install Korean UI glyph coverage for visual QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-cache -f
+          fc-match 'Noto Sans CJK KR'
+
       - name: Capture real game viewport and collision overlay (P1-H)
         shell: bash
         env:

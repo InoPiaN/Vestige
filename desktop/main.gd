@@ -303,12 +303,12 @@ func command(kind: String, value: String="") -> void:
 		dialogue_sessions.erase(peer)
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
 	elif kind=="chapter1_inspect":
-		var report: String=Chapter1.inspect(world,id,value)
-		if can_send_to_peer(peer): remote_message.rpc_id(peer,report)
+		var inspection_report: String=Chapter1.inspect(world,id,value)
+		if can_send_to_peer(peer): remote_message.rpc_id(peer,inspection_report)
 		Rules.save_world(world,save_path)
 	else:
-		var report: String=Rules.act(world,id,kind,value)
-		if can_send_to_peer(peer): remote_message.rpc_id(peer,report)
+		var action_report: String=Rules.act(world,id,kind,value)
+		if can_send_to_peer(peer): remote_message.rpc_id(peer,action_report)
 	send_snapshot(peer)
 
 @rpc("authority","call_remote","reliable")

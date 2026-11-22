@@ -51,6 +51,15 @@ func run() -> void:
 	check(game.dialogue_npc=="kael", "Kael dialogue opens in Ash Village")
 	check(not p.story.evidence.has("kael_statement"), "talk without metal token cannot create E08")
 	game.finish_chapter1_dialogue()
+	# Bran is near a mentor/forge: E must preserve the existing interaction, T must still talk.
+	p.x = Dialogue.NPCS.bran.x
+	p.y = Dialogue.NPCS.bran.y
+	game.interact()
+	check(game.dialogue_npc.is_empty(), "Bran E does not steal nearby facility/mentor")
+	game.professions.hide()
+	game.start_chapter1_dialogue()
+	check(game.dialogue_npc=="bran", "T alternate key route opens Bran dialogue")
+	game.finish_chapter1_dialogue()
 	check(game.Rules.save_world(game.world,path), "v23 save accepts story and dialogue state")
 	var loaded: Dictionary=game.Rules.load_world(path,false)
 	check(loaded.people["local"].story.visits.sera, "visits persist after reload")

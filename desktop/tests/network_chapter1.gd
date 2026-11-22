@@ -9,6 +9,7 @@ const A := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 const B := "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 var game: Node
 var observer := false
+var reconnect := false
 var stage := 0
 var started := 0
 var stage_time := 0
@@ -21,6 +22,7 @@ func _initialize() -> void:
 
 func start() -> void:
 	observer = "--observer" in OS.get_cmdline_user_args()
+	reconnect = "--reconnect" in OS.get_cmdline_user_args()
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--fixture="):
 			var w: Dictionary = World.fresh()
@@ -85,6 +87,8 @@ func _process(_delta: float) -> bool:
 			if id!=game.me and not check(not game.world.people[id].has("story"),"other player's story redacted"):
 				return false
 		privacy_checked = true
+	if reconnect:
+		return reconnect_steps(p)
 	if observer:
 		return observer_steps(p)
 	return primary_steps(p)
@@ -127,7 +131,7 @@ func primary_steps(p: Dictionary) -> bool:
 	elif stage==6 and p.story.iren_missing_rumor:
 		if not check(p.story.visits.sera and p.story.chapter1.inferences.has("I03"),"Sera source-scoped rumor and inference persisted"):
 			return false
-		game.chapter1_dialogue_end.rpc_id(1,game.dialogue_session_token)
+		# Deliberately disconnect with an open server dialogue session: it must not survive reconnect.
 		print("PASS: ENet Chapter I primary evidence reconstruction, server-only NPC session, forged token rejection")
 		quit(0)
 	return false
@@ -148,5 +152,22 @@ func observer_steps(p: Dictionary) -> bool:
 		if not check(p.get("story",{}).get("iren_missing_rumor",false)==false,"dialogue without active session denied"):
 			return false
 		print("PASS: ENet Chapter I observer private evidence, rejected reconstruction and unauthenticated choice")
+		quit(0)
+	return false
+
+func reconnect_steps(p: Dictionary) -> bool:
+	if stage==0:
+		if not check(p.story.chapter1.evidence_links.has("E05") and p.story.chapter1.evidence_links.has("E07"),"reconnect retains owned evidence"):
+			return false
+		if not check(p.story.chapter1.inferences.has("I03") and p.story.iren_missing_rumor,"reconnect retains inference and attributed rumor"):
+			return false
+		if not check(game.dialogue_session_token.is_empty() and game.dialogue_npc.is_empty(),"new connection has no inherited NPC dialogue UI"):
+			return false
+		game.chapter1_dialogue_choose.rpc_id(1,"stale-session-token","rumor")
+		next_stage()
+	elif stage==1 and Time.get_ticks_msec()-stage_time>400:
+		if not check(p.story.chapter1.inferences.has("I03") and not p.story.chapter1.chapter_completed,"stale choice does not invalidate reconstructed story"):
+			return false
+		print("PASS: ENet Chapter I reconnect persistent story and no inherited client dialogue session")
 		quit(0)
 	return false

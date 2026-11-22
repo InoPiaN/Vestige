@@ -1,0 +1,86 @@
+[
+  {
+    "test": "test_chapter1_device_log.gd",
+    "exit": 0,
+    "passes": 31,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_chapter1_reconstruction.gd",
+    "exit": 0,
+    "passes": 24,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_chapter1_story.gd",
+    "exit": 0,
+    "passes": 23,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_customization.gd",
+    "exit": 0,
+    "passes": 12,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_dialogue.gd",
+    "exit": 0,
+    "passes": 28,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_dialogue_ui.gd",
+    "exit": 0,
+    "passes": 9,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_evidence_board.gd",
+    "exit": 0,
+    "passes": 19,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_inventory.gd",
+    "exit": 0,
+    "passes": 9,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_investigation.gd",
+    "exit": 0,
+    "passes": 77,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_investigation_ui.gd",
+    "exit": 0,
+    "passes": 10,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_kael_dialogue.gd",
+    "exit": 0,
+    "passes": 28,
+    "script_error": false,
+    "failed": false
+  },
+  {
+    "test": "test_world.gd",
+    "exit": 0,
+    "passes": 9,
+    "script_error": false,
+    "failed": false
+  }
+]

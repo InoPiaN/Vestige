@@ -1,3 +1,5 @@
+> 2026-11-22 기술 기준점 감사: [분석 문서 모음](technical-baseline/README.md)을 먼저 읽으세요. 역할은 ChatGPT 설계 / Codex 구현·통합·검증으로 분리합니다. 향후 우선순위는 [새 로드맵](technical-baseline/DEVELOPMENT_ROADMAP.md)의 6단계 순서를 따릅니다. 이번에는 문서만 변경했으며 실제 통합·저장 변경은 미실행입니다. 기존 로드맵의 다음 작업 순서보다 새 로드맵을 우선합니다.
+
 > 최신 작업 (2026-11-21): **0.5.19 마을 게시판·반복 납품 의뢰** 완료. 브랜치 `codex/village-requests`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [의뢰 인수인계](handoffs/village-requests.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
 
 > 최신 작업 (2026-11-21): **0.5.18 지역 채집·약초꾼 입문** 완료. 브랜치 `codex/herbalist-foraging`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [채집 인수인계](handoffs/herbalist-foraging.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.

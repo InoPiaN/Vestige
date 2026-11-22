@@ -1,0 +1,80 @@
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: two ENet clients share authoritative appearance, equipment and movement
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: two ENet clients share authoritative appearance, equipment and movement
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: client connects
+PASS: server rejects distant talk
+PASS: server opens first greeting
+PASS: server blocks movement and attack during conversation
+PASS: server grants rumor and sends dialogue
+PASS: other players' story and journal remain private
+PASS: network return and known-rumor branches
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: client connects
+PASS: server rejects distant talk
+PASS: server opens first greeting
+PASS: server blocks movement and attack during conversation
+PASS: server grants rumor and sends dialogue
+PASS: other players' story and journal remain private
+PASS: network return and known-rumor branches
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: investigation client connects
+PASS: server rejects forged distant discovery
+PASS: server rejects unearned evidence dialogue
+PASS: server awards diary at house entrance
+PASS: duplicate RPC preserves first discovery
+PASS: server awards chapel traces independently of relic
+PASS: investigation does not award legacy relic
+PASS: other players' evidence absent from snapshots
+PASS: server selects combined-evidence dialogue
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: investigation client connects
+PASS: server rejects forged distant discovery
+PASS: server rejects unearned evidence dialogue
+PASS: server awards diary at house entrance
+PASS: duplicate RPC preserves first discovery
+PASS: server awards chapel traces independently of relic
+PASS: investigation does not award legacy relic
+PASS: other players' evidence absent from snapshots
+PASS: server selects combined-evidence dialogue
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+Vestige server ready · UDP 27180 · /var/folders/9l/vqxm2t6d3zz9z8nm7jzkqj600000gn/T/vestige-dialogue-net-tzdi1we6/world.json
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: client connects
+PASS: rumor survives server restart and reconnect
+PASS: reconnected dialogue uses return branch
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: client connects
+PASS: rumor survives server restart and reconnect
+PASS: reconnected dialogue uses return branch
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: investigation client connects
+PASS: both evidence records survive server restart
+PASS: reconnected notebook preserves provenance and uncertainty
+PASS: reconnected NPC uses combined-evidence branch
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+PASS: investigation client connects
+PASS: both evidence records survive server restart
+PASS: reconnected notebook preserves provenance and uncertainty
+PASS: reconnected NPC uses combined-evidence branch
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+Vestige server ready · UDP 27180 · /var/folders/9l/vqxm2t6d3zz9z8nm7jzkqj600000gn/T/vestige-dialogue-net-tzdi1we6/world.json
+ERROR: Unable to send packet on channel 0, max channels: 0
+   at: send (modules/enet/enet_packet_peer.cpp:62)
+Traceback (most recent call last):
+  File "/Users/junheejang/Documents/Vestige/scripts/test_desktop_network.py", line 74, in <module>
+    raise RuntimeError("Server logged errors")
+RuntimeError: Server logged errors

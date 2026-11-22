@@ -1,0 +1,242 @@
+{
+  "date": "2026-11-22",
+  "branches": [
+    {
+      "branch": "art/character-detail-preview",
+      "commit": "52a5156a81de67883abc17918a8b0f256c7521b2",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/armor-upgrades",
+      "commit": "f1327134b3222810fe3d52d788a2ba18816b004a",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/ashwood-expedition",
+      "commit": "8220252d2eb9e4c7c6cb21ddc57c0b98a4dc6455",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/equipment-trade-repair",
+      "commit": "39f3a4b42b73c4c929e0e3d3fcc8bd696485b5a5",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/herbalist-foraging",
+      "commit": "e61562e72b3c86d143f7cd307322fb44cce07834",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/mist-harbor-travel",
+      "commit": "8fdc2d831989d0f17e02b7200b82d2dc61148044",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/npc-daily-life",
+      "commit": "bcea53f032250e670064e1be002634b22bce252d",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/offline-crafting-queue",
+      "commit": "ec2681e7c20b39bbc62ddd88699ef4f45c0c59d0",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/professions-and-skills",
+      "commit": "09e2782e3e9c619a0556d7ceee6b58bc1d30f1ca",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/technical-baseline-audit",
+      "commit": "4ba2c21c0b9365394c77a30d7266b708ef4d7eae",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "codex/village-requests",
+      "commit": "4ba2c21c0b9365394c77a30d7266b708ef4d7eae",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/armor-crafting-defense",
+      "commit": "fd80e1eb28050e3366923541ba905146b20ff311",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/character-detail-effects",
+      "commit": "672d4376c29cc5f1a7fc336836587d616e3a62fa",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/crafting-mastery",
+      "commit": "7f7831a4d15c24fcf065fa659fdd64635eb11594",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/crafting-quality",
+      "commit": "1e44ad617254484675732421b2dfd5a6c916cfe6",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/death-belongings",
+      "commit": "aa1ae9b2766454aef92c0bfaaeb1d0a456840213",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/directional-character-animation",
+      "commit": "aad0aa5015fcb19c21d4b16436880aa0549f4121",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/evidence-items",
+      "commit": "8cb40debfe8a288f57837328a039c5b382341845",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/first-journey-rules",
+      "commit": "121ef352f0cfa6e5155da0f02082b2f57e363f14",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/gear-provenance",
+      "commit": "606a15b958bd60e9b0ce4f6644f005bad49b17c1",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/home-crafting",
+      "commit": "490e61eb4d1f27f912d3ccf760a9e08a12ba52ea",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/home-crafting-storage",
+      "commit": "bd9b9bdaea6efef735997bb94347477dbc0fcd5b",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/house-interior",
+      "commit": "b9c10a42bdaa710b24f47522704278696183d341",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/house-investigation",
+      "commit": "927ad6e4bf3146211816b54456006ed43b567353",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/house-storage",
+      "commit": "92b82807a7286d310d6f1cebaf960bfc21914478",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/offline-crafting-plan",
+      "commit": "98cf412378c112c0a49243b2e33ee0bea79da7ec",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/sword-upgrades",
+      "commit": "0ad157e0a300ddaa24dfa2c253c507397a83cb74",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/village-market",
+      "commit": "84d1eb7e6dcfb8f2646bd84555e90e1a70b9386c",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/witness-case",
+      "commit": "9906e16331db5ca31dc69237a8ca8828486f9389",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feat/world-save-recovery",
+      "commit": "e52acbd6eceb1eaecda0a6cc739db7f4c73b1a92",
+      "ancestor_of_game": true,
+      "ancestor_of_story": false
+    },
+    {
+      "branch": "feature/ai-mcp-asset-pipeline",
+      "commit": "d856721d06e6d38bb0bc28daa1a7808dd22e1028",
+      "ancestor_of_game": false,
+      "ancestor_of_story": true
+    },
+    {
+      "branch": "feature/ash-village-dialogue-prototype",
+      "commit": "7c99f8fceede31dc8b183cc3b69bff0ef4542ea9",
+      "ancestor_of_game": false,
+      "ancestor_of_story": true
+    },
+    {
+      "branch": "feature/ash-village-investigation",
+      "commit": "9ae4f8d1fd5de1dc12a6ee127854023006e779ce",
+      "ancestor_of_game": false,
+      "ancestor_of_story": true
+    },
+    {
+      "branch": "feature/chapter1-device-log",
+      "commit": "4e5f577e56752f5f7d7c63be5478e059d8204c8c",
+      "ancestor_of_game": false,
+      "ancestor_of_story": true
+    },
+    {
+      "branch": "feature/chapter1-evidence-board",
+      "commit": "f9c4a35f984b58026947cce44b7b0374f9309adb",
+      "ancestor_of_game": false,
+      "ancestor_of_story": true
+    },
+    {
+      "branch": "feature/chapter1-kael-dialogue",
+      "commit": "2113dbcd392dd6a02b8982dcc61b6977e4fca520",
+      "ancestor_of_game": false,
+      "ancestor_of_story": true
+    },
+    {
+      "branch": "feature/chapter1-reconstruction-prototype",
+      "commit": "78e54585d5fc76f107836263af4fcbeb23a3d876",
+      "ancestor_of_game": false,
+      "ancestor_of_story": true
+    },
+    {
+      "branch": "feature/chapter1-story-foundation",
+      "commit": "d0b137fda2cab9a1be82a7a85c239c08fae70236",
+      "ancestor_of_game": false,
+      "ancestor_of_story": true
+    },
+    {
+      "branch": "main",
+      "commit": "8b1f152228a65d00a1aed352e1aa6334883a0a18",
+      "ancestor_of_game": true,
+      "ancestor_of_story": true
+    }
+  ],
+  "stash_commit": "f2bc64c9a2a410f0b9f51a5bdc0ac95234d776e3",
+  "stash_base": "78e54585d5fc76f107836263af4fcbeb23a3d876",
+  "common_base": "8b1f152228a65d00a1aed352e1aa6334883a0a18"
+}

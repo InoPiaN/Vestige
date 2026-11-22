@@ -160,7 +160,10 @@ record:
     independent_of_iren_influence: true   # DEC-02G 승인
     decided_by_author_themself: true      # DEC-02G 승인
     specific_motivation: recalled_personal_loss  # DEC-02H 정본
-    lost_person_relationship: unresolved  # DEC-02I 예정
+    lost_person_relationship: deliberately_unspecified  # DEC-02I 정본: 끝까지 관계 확정 금지
+    relationship_reveal_policy: never_reveal_or_infer_as_canon
+    writer_secret_relationship: none_defined
+    author_encounter_policy: unresolved  # DEC-02J 예정
     lost_person_fate: unresolved          # 사망/실종 단정 금지
     same_as_gravestone_person: unresolved # 묘비 주인 동일성 미정
     accessible_from_rubbing_alone: false # 제작 동기를 관찰 사실로 유출 금지
@@ -178,7 +181,7 @@ record:
 
 `independent_of_iren_influence`는 탁본 제작의 동기와 결정에 관한 정본일 뿐, 두 사람이 서로 낯선 사이였다는 뜻이 아니다. 출처가 없는 제작자 이름이나 이렌의 소유권을 새 사실로 추정하지 않는다.
 
-**DEC-02H 승인:** 제작 주민은 과거 누군가를 잃었던 기억이 떠올라 스스로 탁본을 만들었다. 잃은 대상·관계·사망 또는 실종 여부는 미확정. **다음 DEC-02I:** 잃은 이와의 관계를 선택한다. 현행 E01/E05/E06/E07/E08/E13 또는 플레이어 생애별 저장 구조는 변경하지 않는다.
+**DEC-02H 승인:** 제작 주민은 과거 누군가를 잃었던 기억이 떠올라 스스로 탁본을 만들었다. 잃은 대상·관계·사망 또는 실종 여부는 미확정. **DEC-02I 승인:** 잃은 이와의 관계는 작품 끝까지 명확히 밝히지 않으며 작가 내부 정답도 임의로 만들지 않는다. **다음 DEC-02J:** 제작 주민의 제1장 등장 방식을 정한다. 현행 E01/E05/E06/E07/E08/E13 또는 플레이어 생애별 저장 구조는 변경하지 않는다.
 
 ## 3. 인물별 Know / Believe / Want / Withhold 설계
 

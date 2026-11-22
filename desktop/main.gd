@@ -216,6 +216,10 @@ func connect_world() -> void:
 func connection_failed() -> void:
 	dialogue_session_token=""
 	dialogue_npc=""
+	chapter1_board_pending_request=0
+	if chapter1_board!=null: chapter1_board.hide()
+	if panel!=null: panel.hide()
+	if chapter1_board_button!=null: chapter1_board_button.hide()
 	mode="menu"
 	multiplayer.multiplayer_peer=null
 	ui.hide()

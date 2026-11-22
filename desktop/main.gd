@@ -37,6 +37,10 @@ var health: ProgressBar
 var stamina: ProgressBar
 var policy: OptionButton
 var panel: PanelContainer
+var dialogue_buttons: VBoxContainer
+var dialogue_npc: String=""
+var dialogue_session_token: String=""
+var dialogue_sessions: Dictionary={}
 var panel_text: RichTextLabel
 var input_name: LineEdit
 var input_host: LineEdit
@@ -153,6 +157,7 @@ func start_server() -> void:
 	print("Vestige server ready · UDP 27180 · ",ProjectSettings.globalize_path(save_path))
 
 func disconnected(peer: int) -> void:
+	dialogue_sessions.erase(peer)
 	if peers.has(peer):
 		world.people[peers[peer]].offline=true
 		inputs.erase(peer)
@@ -199,6 +204,8 @@ func connect_world() -> void:
 	input_name.editable=false
 
 func connection_failed() -> void:
+	dialogue_session_token=""
+	dialogue_npc=""
 	mode="menu"
 	multiplayer.multiplayer_peer=null
 	ui.hide()
@@ -256,6 +263,12 @@ func receive_snapshot(snapshot: Dictionary, identity: String) -> void:
 func movement(direction: Vector2) -> void:
 	var peer:=multiplayer.get_remote_sender_id()
 	if mode=="server" and peers.has(peer) and direction.is_finite():
+		if dialogue_sessions.has(peer):
+			var session: Dictionary=dialogue_sessions[peer]
+			if Time.get_ticks_msec()<=int(session.expires_at) and Chapter1.allowed(world,peers[peer]) and String(world.people[peers[peer]].get("life",""))==String(session.life_id):
+				inputs[peer]=Vector2.ZERO
+				return
+			dialogue_sessions.erase(peer)
 		inputs[peer]=direction.limit_length()
 
 @rpc("any_peer","call_remote","reliable")
@@ -267,6 +280,7 @@ func command(kind: String, value: String="") -> void:
 	last_commands[peer]=now
 	var id: String=peers[peer]
 	if kind=="new":
+		dialogue_sessions.erase(peer)
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
 	elif kind=="chapter1_inspect":
 		remote_message.rpc_id(peer,Chapter1.inspect(world,id,value))
@@ -288,6 +302,114 @@ func perform(kind: String, value: String="") -> void:
 		else: message(Rules.act(world,me,kind,value))
 		Rules.save_world(world,save_path)
 		refresh()
+
+## A dialogue session lives only on the server; clients cannot choose its NPC or legal options.
+@rpc("any_peer","call_remote","reliable")
+func chapter1_dialogue_open() -> void:
+	if mode!="server": return
+	var peer: int=multiplayer.get_remote_sender_id()
+	if not peers.has(peer): return
+	var player_id: String=peers[peer]
+	var npc_id: String=Chapter1.nearby_npc(world,player_id)
+	if npc_id.is_empty(): return
+	var reply: Dictionary=Chapter1.talk(world,player_id,npc_id)
+	if reply.is_empty(): return
+	var token: String=Crypto.new().generate_random_bytes(12).hex_encode()
+	var choices: Array=[]
+	for item in reply.choices: choices.append(String(item.id))
+	dialogue_sessions[peer]={"token":token,"npc_id":npc_id,"life_id":String(world.people[player_id].get("life","")),"expires_at":Time.get_ticks_msec()+60000,"choices":choices}
+	inputs[peer]=Vector2.ZERO
+	chapter1_dialogue_reply.rpc_id(peer,reply,token)
+	Rules.save_world(world,save_path)
+
+@rpc("any_peer","call_remote","reliable")
+func chapter1_dialogue_choose(token: String, choice: String) -> void:
+	if mode!="server": return
+	var peer: int=multiplayer.get_remote_sender_id()
+	if not peers.has(peer) or not dialogue_sessions.has(peer): return
+	var session: Dictionary=dialogue_sessions[peer]
+	if token!=session.token or token.is_empty(): return
+	var player_id: String=peers[peer]
+	if Time.get_ticks_msec()>int(session.expires_at) or not Chapter1.allowed(world,player_id) or String(world.people[player_id].get("life",""))!=String(session.life_id) or Chapter1.nearby_npc(world,player_id)!=String(session.npc_id):
+		dialogue_sessions.erase(peer)
+		return
+	if not choice in session.choices: return
+	if choice=="leave":
+		dialogue_sessions.erase(peer)
+		return
+	var reply: Dictionary=Chapter1.talk(world,player_id,String(session.npc_id),choice,String(session.npc_id))
+	if reply.is_empty(): return
+	var choices: Array=[]
+	for item in reply.choices: choices.append(String(item.id))
+	session.choices=choices
+	session.expires_at=Time.get_ticks_msec()+60000
+	dialogue_sessions[peer]=session
+	chapter1_dialogue_reply.rpc_id(peer,reply,token)
+	Rules.save_world(world,save_path)
+
+@rpc("any_peer","call_remote","reliable")
+func chapter1_dialogue_end(token: String) -> void:
+	if mode!="server": return
+	var peer: int=multiplayer.get_remote_sender_id()
+	if dialogue_sessions.has(peer) and dialogue_sessions[peer].token==token:
+		dialogue_sessions.erase(peer)
+
+@rpc("authority","call_remote","reliable")
+func chapter1_dialogue_reply(reply: Dictionary, token: String) -> void:
+	if mode!="client" or reply.is_empty(): return
+	show_chapter1_dialogue(reply,token)
+
+func start_chapter1_dialogue() -> void:
+	if not Chapter1.allowed(world,me): return
+	var npc_id: String=Chapter1.nearby_npc(world,me)
+	if npc_id.is_empty(): return
+	if mode=="client":
+		chapter1_dialogue_open.rpc_id(1)
+	elif mode=="single":
+		var reply: Dictionary=Chapter1.talk(world,me,npc_id)
+		if reply.is_empty(): return
+		show_chapter1_dialogue(reply,"")
+		Rules.save_world(world,save_path)
+		refresh()
+
+func choose_chapter1_option(choice: String) -> void:
+	if dialogue_npc.is_empty(): return
+	if choice=="leave":
+		finish_chapter1_dialogue()
+		return
+	if mode=="client":
+		if not dialogue_session_token.is_empty():
+			chapter1_dialogue_choose.rpc_id(1,dialogue_session_token,choice)
+	elif mode=="single":
+		if Chapter1.nearby_npc(world,me)!=dialogue_npc: 
+			finish_chapter1_dialogue()
+			return
+		var reply: Dictionary=Chapter1.talk(world,me,dialogue_npc,choice,dialogue_npc)
+		if reply.is_empty(): return
+		show_chapter1_dialogue(reply,"")
+		Rules.save_world(world,save_path)
+		refresh()
+
+func show_chapter1_dialogue(reply: Dictionary, token: String) -> void:
+	show_pages(String(reply.get("name","주민"))+" · 대화\n────────────────────\n\n"+String(reply.get("text","")))
+	dialogue_npc=String(reply.npc_id)
+	dialogue_session_token=token
+	for choice in reply.get("choices",[]):
+		var choice_id: String=String(choice.id)
+		var button:=Button.new()
+		button.text=String(choice.text)
+		button.pressed.connect(func(): choose_chapter1_option(choice_id))
+		dialogue_buttons.add_child(button)
+	dialogue_buttons.show()
+
+func finish_chapter1_dialogue() -> void:
+	if mode=="client" and not dialogue_session_token.is_empty():
+		chapter1_dialogue_end.rpc_id(1,dialogue_session_token)
+	dialogue_session_token=""
+	dialogue_npc=""
+	if dialogue_buttons!=null:
+		dialogue_buttons.hide()
+	panel.hide()
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
@@ -324,7 +446,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
 	if not mode in ["single","client"]: return
 	if event.keycode==KEY_ESCAPE:
-		panel.hide()
+		finish_chapter1_dialogue()
 		dressing.hide()
 		bag.hide()
 		chest.hide()
@@ -389,6 +511,9 @@ func interact() -> void:
 			return
 	if Rules.Interior.inside(world.people[me]):
 		perform("interact")
+		return
+	if Chapter1.allowed(world,me) and not Chapter1.nearby_npc(world,me).is_empty():
+		start_chapter1_dialogue()
 		return
 	var t:=Rules.nearby(world.people[me],world.time)
 	if t.get("kind","")=="home": perform("enter_home")
@@ -555,7 +680,7 @@ func build_ui() -> void:
 	panel.add_child(column)
 	var close:=Button.new()
 	close.text="기록 덮기 · ESC"
-	close.pressed.connect(func(): panel.hide())
+	close.pressed.connect(finish_chapter1_dialogue)
 	column.add_child(close)
 	panel_text=RichTextLabel.new()
 	panel_text.bbcode_enabled=false
@@ -563,6 +688,9 @@ func build_ui() -> void:
 	panel_text.add_theme_font_size_override("normal_font_size",18)
 	panel_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	column.add_child(panel_text)
+	dialogue_buttons=VBoxContainer.new()
+	column.add_child(dialogue_buttons)
+	dialogue_buttons.hide()
 	panel.hide()
 	requests=preload("res://request_panel.gd").new()
 	root.add_child(requests)
@@ -663,6 +791,9 @@ func refresh() -> void:
 	if Chapter1.allowed(world,me):
 		var clue_id: String=Chapter1Investigation.nearby(p)
 		if not clue_id.is_empty(): prompt.text="E · 제1장 증거 조사 · "+Chapter1Investigation.EVIDENCE[clue_id].title+"   N · 조사 수첩"
+		elif not Chapter1.nearby_npc(world,me).is_empty():
+			var npc_id: String=Chapter1.nearby_npc(world,me)
+			prompt.text="E · "+String(Chapter1.Dialogue.NPCS[npc_id].name)+"와 대화"
 
 	if Rules.Interior.inside(p):
 		var furniture:=Rules.Interior.nearby(p)
@@ -714,6 +845,12 @@ func show_pages(text: String) -> void:
 	bag.hide()
 	chest.hide()
 	dressing.hide()
+	if dialogue_buttons!=null:
+		for child in dialogue_buttons.get_children():
+			dialogue_buttons.remove_child(child)
+			child.queue_free()
+		dialogue_buttons.hide()
+	dialogue_npc=""
 	panel_text.text=text
 	panel.show()
 

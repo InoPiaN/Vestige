@@ -1,5 +1,7 @@
 # VESTIGE — 현재 작업 상태 (AI 협업용 진입점)
 
+> **실제 Godot CI 결과 갱신 (2026-11-22):** `ci/chapter1-p1e-godot-verification@9383bd43`의 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45000435950>에서 **8/8 실행 묶음 PASS**. 기존 `verify_rules.py`: 37개 Godot 테스트, PASS 라벨 894개, 실패 없음. 별도 Chapter I 7개 스크립트도 모두 PASS (총 133개 PASS 라벨; 894와 중복되는 범위이므로 합산 금지). 실행 검증 근거는 코드 브랜치 `docs/handoffs/chapter1-p1e-ci-run-report.md`. **2인 ENet 실실행·Mac 수동 이동/충돌·S의 송신 오류 회귀는 미검증.** 따라서 P1-E 전체 완료/메인 병합 승인으로 간주하지 않는다.
+
 > **P1-E 통합 QA 준비 (2026-11-22):** `feature/chapter1-p1e-qa-harness`에서 브란 E/T 겹침 좌표 테스트를 수정하고 `scripts/run_p1e_qa.py`를 작성했다. Godot 4.5.1 기반 G 규칙+7개 Chapter I 테스트의 종료코드·로그·JSON 실행 결과를 수집하도록 구성했으며 실 사용자 데이터 HOME/XDG/APPDATA 분리 기능을 추가했다. **이 세션에는 Godot/저장소 로컬 실행 환경이 없어 테스트는 미실행**이다. P1-E 완료가 아니라 환경 확보 및 실기 테스트 대기 상태. 인계: 해당 브랜치 `docs/handoffs/chapter1-p1e-integration-qa.md`. 코드 문서 브랜치·main에 미병합.
 
 > **P1-D 저장 검증 갱신 (2026-11-22):** `feature/chapter1-story-save-validation`에서 G 월드 v23의 선택적 `story` 검증기, `world_store.gd` 연계, 임시 v22/v23·손상 primary/.bak 복구·미승인 추론 거부 테스트를 작성·커밋했다. **Godot 및 실제 저장 회귀 실행 미검증**이므로 저장 호환성 검증 완료라고 표시하지 않는다. S v1→G v23 자동 병합은 수행하지 않았으며 별도 결정 필요. 인계: 해당 코드 브랜치의 `docs/handoffs/chapter1-story-save-validation.md`. 이 문서 브랜치와 `main`에는 코드 미병합.

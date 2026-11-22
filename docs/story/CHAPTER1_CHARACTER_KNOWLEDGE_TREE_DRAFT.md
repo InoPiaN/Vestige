@@ -82,6 +82,30 @@ inference.I07: E07 + E13 → tool_and_record_connection
 inference.I06: LOCKED (E11 불충족, 카엘의 책임은 미확정)
 ```
 
+## DEC-02 승인된 관계 메타데이터
+
+다음은 2026-11-22 사용자 결정으로 승인된 **작가용 인물 관계 정본**이며, 실제 NPC 발화·증거 획득 권한과는 별도이다.
+
+```yaml
+relationship:
+  id: relationship.iren_bran
+  participants: [npc.iren, npc.bran]
+  type: close_friends
+  status: approved_canon
+  shared_values: "돌봄과 상대의 존엄을 중요하게 여김"
+  value_conflict: "현재 살아 있는 이의 삶을 먼저 지킴 vs 떠난 이의 기억과 의미를 보존"
+  had_disagreements: true
+  conflict_event: null       # DEC-02A 미선택
+  last_meeting: unknown
+  caused_disappearance: unknown
+  player_knows_by_default: false
+  npc_disclosure_condition: unapproved
+```
+
+서사 설계 근거: `CHAPTER1_CHARACTER_BIBLE_DRAFT.md`의 DEC-02, 갈등 장면 후보는 `CHAPTER1_BRAN_IRENE_SCENES_DRAFT.md`. 기존 `npc.bran.claim.glove_repair`는 말한 사실만 보존한다. 친밀 관계가 승인되었다고 해서 대장간 대화 또는 플레이어 수첩에 해당 정보를 자동 공개하지 않는다.
+
+---
+
 ## 3. 인물별 Know / Believe / Want / Withhold 설계
 
 아래의 `want`, `withhold`, `personality`는 **제안**이다. `know`에 기록된 내용도 '인물이 그런 말을 했다'와 '서버가 사실을 입증했다'를 구분한다.
@@ -89,7 +113,7 @@ inference.I06: LOCKED (E11 불충족, 카엘의 책임은 미확정)
 | 인물 | 현재 명시적으로 말한 내용(코드) | 확정되지 않은 인지·동기 — 제안 | AI가 해서는 안 될 말 |
 |---|---|---|---|
 | 이렌 | E01 일기에 해질녘 예배당 약속이 있음 | 다른 사람이 회복할 길을 남기고 싶음 | 누구와 만나 생사/희생을 결정했는지 |
-| 브란 | 이렌이 장갑을 수선, 직접 목격 없는 늑대 소문 | 손에 잡히는 일로 공동체를 돌봄 | 늑대가 원인임, 카엘이 범인임 |
+| 브란 | 이렌이 장갑을 수선, 직접 목격 없는 늑대 소문; **작가 정본: 가까운 친구이자 신념 갈등 관계** | 손에 잡히는 일로 공동체를 돌봄 | 늑대가 원인임, 카엘이 범인임 |
 | 세라 | 이렌의 책 미반납, 출처 분리 필요 | 기록의 완전성과 사람의 감정 사이 갈등 | 미확인 기록에서 조작자 확정 |
 | 카엘 | 이렌에게 과거 도움받았음, E08로 표식 소유·예배당 방문 진술 | 자유와 부채, 언어로 책임을 지는 두려움 | 실제 장치 조작·고의·이렌 최후의 자백 |
 

@@ -28,6 +28,7 @@ TESTS = (
     "test_chapter1_reconstruct_rules.gd",
     "test_chapter1_reconstruct_replay.gd",
     "test_chapter1_save_compatibility.gd",
+    "test_chapter1_navigation_regression.gd",
 )
 
 

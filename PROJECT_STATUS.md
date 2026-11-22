@@ -1,5 +1,7 @@
 # VESTIGE — 현재 작업 상태 (AI 협업용 진입점)
 
+> **P1-F 실제 ENet 검증 완료 (2026-11-22):** `ci/chapter1-p1f-enet-two-client@e779967e`에서 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45009079062> **전체 PASS**. P1-E 기존 Godot QA 8/8 (규칙 PASS 894, 실패 없음) + 실제 서버/2클라이언트 ENet 증거 권한·세라 대화 토큰·타인 story 차단·연결 후 동일 캐릭터 재접속(증거/추론/소문 보존). 서버/클라이언트 검사 로그에서 `SCRIPT ERROR`·`Unable to send packet` 없음. **Mac GUI/실제 동선·게임 종료 race·운영 인증/인터넷 멀티 미검증**. 코드 브랜치에 보고서 `docs/handoffs/chapter1-p1f-enet-report.md` 보관. `main` 미병합.
+
 > **실제 Godot CI 결과 갱신 (2026-11-22):** `ci/chapter1-p1e-godot-verification@9383bd43`의 GitHub Actions <https://github.com/InoPiaN/Vestige/actions/runs/45000435950>에서 **8/8 실행 묶음 PASS**. 기존 `verify_rules.py`: 37개 Godot 테스트, PASS 라벨 894개, 실패 없음. 별도 Chapter I 7개 스크립트도 모두 PASS (총 133개 PASS 라벨; 894와 중복되는 범위이므로 합산 금지). 실행 검증 근거는 코드 브랜치 `docs/handoffs/chapter1-p1e-ci-run-report.md`. **2인 ENet 실실행·Mac 수동 이동/충돌·S의 송신 오류 회귀는 미검증.** 따라서 P1-E 전체 완료/메인 병합 승인으로 간주하지 않는다.
 
 > **P1-E 통합 QA 준비 (2026-11-22):** `feature/chapter1-p1e-qa-harness`에서 브란 E/T 겹침 좌표 테스트를 수정하고 `scripts/run_p1e_qa.py`를 작성했다. Godot 4.5.1 기반 G 규칙+7개 Chapter I 테스트의 종료코드·로그·JSON 실행 결과를 수집하도록 구성했으며 실 사용자 데이터 HOME/XDG/APPDATA 분리 기능을 추가했다. **이 세션에는 Godot/저장소 로컬 실행 환경이 없어 테스트는 미실행**이다. P1-E 완료가 아니라 환경 확보 및 실기 테스트 대기 상태. 인계: 해당 브랜치 `docs/handoffs/chapter1-p1e-integration-qa.md`. 코드 문서 브랜치·main에 미병합.

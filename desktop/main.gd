@@ -565,7 +565,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			open_chapter1_notebook()
 		return
 	if chapter1_board.visible: return
-	if panel.visible and not dialogue_npc.is_empty(): return
+	# Paper notebook, journal, library and conversations are exclusive modals.
+	# Keep G's in-panel death-investigation 1/2 choices functional.
+	if panel.visible:
+		if panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
+			perform("identify","1" if event.physical_keycode==KEY_1 else "2")
+		return
 	if event.physical_keycode==KEY_L:
 		if requests.visible: requests.hide()
 		else: open_requests()
@@ -589,9 +594,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event.physical_keycode==KEY_I:
 		if bag.visible: bag.hide()
 		else: open_inventory()
-		return
-	if panel.visible and panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
-		perform("identify","1" if event.physical_keycode==KEY_1 else "2")
 		return
 	if chapter1_board.visible or panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible or requests.visible: return
 	match event.physical_keycode:

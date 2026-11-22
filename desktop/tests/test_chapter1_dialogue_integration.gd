@@ -52,11 +52,14 @@ func run() -> void:
 	check(not p.story.evidence.has("kael_statement"), "talk without metal token cannot create E08")
 	game.finish_chapter1_dialogue()
 	# Bran is near a mentor/forge: E must preserve the existing interaction, T must still talk.
-	p.x = Dialogue.NPCS.bran.x
-	p.y = Dialogue.NPCS.bran.y
+	# (6.0, 7.5) is within both forge radius (<2.0) and Bran dialogue radius (<1.125).
+	# The original exact NPC position (7.0, 7.5) is OUTSIDE forge radius and cannot test priority.
+	p.x = 6.0
+	p.y = 7.5
 	game.interact()
-	check(game.dialogue_npc.is_empty(), "Bran E does not steal nearby facility/mentor")
-	game.professions.hide()
+	check(game.dialogue_npc.is_empty(), "Bran E does not steal nearby forge")
+	check(game.forge.visible, "forge opens using E in the overlapping interaction area")
+	game.forge.hide()
 	game.start_chapter1_dialogue()
 	check(game.dialogue_npc=="bran", "T alternate key route opens Bran dialogue")
 	game.finish_chapter1_dialogue()

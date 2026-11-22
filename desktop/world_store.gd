@@ -42,6 +42,8 @@ static func valid(w: Dictionary) -> bool:
 			if not event is String: return false
 		for key in ["look","equipment","belongings"]:
 			if p.has(key) and not p[key] is Dictionary: return false
+		# Optional Chapter I story must be validated before any load-time prepare() repairs it.
+		if not preload("res://story/chapter1_save_contract.gd").valid_person(p): return false
 	if w.version>=2: return history_valid(w)
 	return true
 

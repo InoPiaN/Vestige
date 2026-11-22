@@ -80,6 +80,24 @@ func _initialize() -> void:
 	var invalid_type: Dictionary=recovered.duplicate(true)
 	invalid_type.people["a"].story="not-a-dictionary"
 	check(not Store.valid(invalid_type), "broken story type rejected")
+	# Both copies invalid: load must fail closed and keep the exact primary/backup bytes.
+	var bad_path: String="/tmp/vestige-story-both-bad-%d.json" % OS.get_process_id()
+	var bad_bytes: String=JSON.stringify(malformed)
+	var bad_primary:=FileAccess.open(bad_path,FileAccess.WRITE)
+	check(bad_primary!=null, "write isolated malformed primary")
+	if bad_primary!=null:
+		bad_primary.store_string(bad_bytes)
+		bad_primary.close()
+	var bad_backup:=FileAccess.open(bad_path+".bak",FileAccess.WRITE)
+	check(bad_backup!=null, "write isolated malformed backup")
+	if bad_backup!=null:
+		bad_backup.store_string(bad_bytes)
+		bad_backup.close()
+	check(World.load_world(bad_path,false).is_empty(), "invalid primary and backup never create fresh world")
+	check(file_bytes(bad_path)==bad_bytes and file_bytes(bad_path+".bak")==bad_bytes, "both damaged files are preserved for recovery")
+	DirAccess.remove_absolute(bad_path)
+	DirAccess.remove_absolute(bad_path+".bak")
+	DirAccess.remove_absolute(bad_path+".tmp")
 	var future: Dictionary=recovered.duplicate(true)
 	future.version=24
 	check(not Store.valid(future), "future v24 still refused")

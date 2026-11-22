@@ -1,5 +1,7 @@
 # VESTIGE — 현재 작업 상태 (AI 협업용 진입점)
 
+> **P1-D 저장 검증 갱신 (2026-11-22):** `feature/chapter1-story-save-validation`에서 G 월드 v23의 선택적 `story` 검증기, `world_store.gd` 연계, 임시 v22/v23·손상 primary/.bak 복구·미승인 추론 거부 테스트를 작성·커밋했다. **Godot 및 실제 저장 회귀 실행 미검증**이므로 저장 호환성 검증 완료라고 표시하지 않는다. S v1→G v23 자동 병합은 수행하지 않았으며 별도 결정 필요. 인계: 해당 코드 브랜치의 `docs/handoffs/chapter1-story-save-validation.md`. 이 문서 브랜치와 `main`에는 코드 미병합.
+
 > **통합 안정화 갱신 — P1-C (2026-11-22)**: `feature/chapter1-integration-hardening`에서 증거 조합 서버 요청의 응답 누락/재전송 방지, 연결 해제 시 송신 전 피어 검사와 대화·보드 UI 정리, 기존 E 시설/스승 기능과 T NPC 대화 분리 코드를 추가했다. 신규 replay 테스트와 브란 E/T 회귀 테스트를 작성했으나 **Godot/ENet 미실행**, 기존 네트워크 송신 오류는 해결 미확인 상태다. 자세한 내용은 코드 브랜치 `docs/handoffs/chapter1-integration-hardening.md`. `main` 및 이 문서 브랜치에는 해당 코드를 병합하지 않았다.
 
 > **후속 구현 갱신 — P1-B3 (2026-11-22)**: `feature/chapter1-evidence-board-integration`에서 N 수첩→증거 조합 UI와 `chapter1_reconstruct` 서버 RPC가 추가되었다. I03/I04/I07은 서버의 개인 증거 소유권·지역·생존·중복 검사로 제한한다. 새 테스트 두 파일은 **작성되었지만 Godot/ENet 실행 미검증**이다. 인계 문서는 `docs/handoffs/chapter1-evidence-board-integration.md` (해당 코드 브랜치). 문서 브랜치는 기능 변경을 병합하지 않았다.

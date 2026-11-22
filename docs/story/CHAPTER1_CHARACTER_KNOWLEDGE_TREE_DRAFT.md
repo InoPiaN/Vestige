@@ -98,14 +98,17 @@ relationship:
   conflict_event: story_event.storm_aftermath_iren_bran  # DEC-02A 승인 사건 유형; 세부 내용 미정
   conflict_aftermath: resolved_practical_damage_unresolved_emotional_wounds  # DEC-02B 승인
   friendship_continued_after_conflict: true  # DEC-02B 승인
-  hurtful_words_or_actions: unknown  # DEC-02C 예정
+  wound_origin: mutual_failure_to_listen  # DEC-02C 승인
+  emotional_mechanism: "서로의 걱정·두려움을 충분히 듣지 못한 침묵"
+  specific_words_and_actions: unknown  # 새 대사 미승인
+  disclosure_to_player: unresolved  # DEC-02D 예정
   last_meeting: unknown
   caused_disappearance: unknown
   player_knows_by_default: false
   npc_disclosure_condition: unapproved
 ```
 
-`story_event.storm_aftermath_iren_bran`의 승인 범위: 마을 과거 폭풍, 집과 묘비의 피해, 그 복구에서 현재의 안전 vs 사후 기억 보존을 두고 이견. 사건의 정확한 진행/후속 관계는 `unresolved`이며 실제 플레이어 지식·증거에 자동 투입하지 않는다. **DEC-02B 승인:** 당장의 피해는 해결되었지만 감정의 상처는 풀리지 않았고, 두 사람의 가까운 우정은 이어졌다. 감정을 남긴 특정 발언/행동과 복구 방식은 미정이다. **다음 사용자 결정: DEC-02C**.
+`story_event.storm_aftermath_iren_bran`의 승인 범위: 마을 과거 폭풍, 집과 묘비의 피해, 그 복구에서 현재의 안전 vs 사후 기억 보존을 두고 이견. 사건의 정확한 진행/후속 관계는 `unresolved`이며 실제 플레이어 지식·증거에 자동 투입하지 않는다. **DEC-02B 승인:** 당장의 피해는 해결되었지만 감정의 상처는 풀리지 않았고, 두 사람의 가까운 우정은 이어졌다. **DEC-02C 승인:** 상처는 상대의 이야기를 충분히 듣지 못한 침묵에서 비롯되었다. 특정 발언·행동·복구 방식과 플레이어 공개 조건은 미정이다. **다음 사용자 결정: DEC-02D(브란의 고백 공개 조건)**.
 
 서사 설계 근거: `CHAPTER1_CHARACTER_BIBLE_DRAFT.md`의 DEC-02, 갈등 장면 후보는 `CHAPTER1_BRAN_IRENE_SCENES_DRAFT.md`. 기존 `npc.bran.claim.glove_repair`는 말한 사실만 보존한다. 친밀 관계가 승인되었다고 해서 대장간 대화 또는 플레이어 수첩에 해당 정보를 자동 공개하지 않는다.
 

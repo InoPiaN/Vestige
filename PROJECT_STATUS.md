@@ -1,5 +1,7 @@
 # VESTIGE — 현재 작업 상태 (AI 협업용 진입점)
 
+> **P1-E 통합 QA 준비 (2026-11-22):** `feature/chapter1-p1e-qa-harness`에서 브란 E/T 겹침 좌표 테스트를 수정하고 `scripts/run_p1e_qa.py`를 작성했다. Godot 4.5.1 기반 G 규칙+7개 Chapter I 테스트의 종료코드·로그·JSON 실행 결과를 수집하도록 구성했으며 실 사용자 데이터 HOME/XDG/APPDATA 분리 기능을 추가했다. **이 세션에는 Godot/저장소 로컬 실행 환경이 없어 테스트는 미실행**이다. P1-E 완료가 아니라 환경 확보 및 실기 테스트 대기 상태. 인계: 해당 브랜치 `docs/handoffs/chapter1-p1e-integration-qa.md`. 코드 문서 브랜치·main에 미병합.
+
 > **P1-D 저장 검증 갱신 (2026-11-22):** `feature/chapter1-story-save-validation`에서 G 월드 v23의 선택적 `story` 검증기, `world_store.gd` 연계, 임시 v22/v23·손상 primary/.bak 복구·미승인 추론 거부 테스트를 작성·커밋했다. **Godot 및 실제 저장 회귀 실행 미검증**이므로 저장 호환성 검증 완료라고 표시하지 않는다. S v1→G v23 자동 병합은 수행하지 않았으며 별도 결정 필요. 인계: 해당 코드 브랜치의 `docs/handoffs/chapter1-story-save-validation.md`. 이 문서 브랜치와 `main`에는 코드 미병합.
 
 > **통합 안정화 갱신 — P1-C (2026-11-22)**: `feature/chapter1-integration-hardening`에서 증거 조합 서버 요청의 응답 누락/재전송 방지, 연결 해제 시 송신 전 피어 검사와 대화·보드 UI 정리, 기존 E 시설/스승 기능과 T NPC 대화 분리 코드를 추가했다. 신규 replay 테스트와 브란 E/T 회귀 테스트를 작성했으나 **Godot/ENet 미실행**, 기존 네트워크 송신 오류는 해결 미확인 상태다. 자세한 내용은 코드 브랜치 `docs/handoffs/chapter1-integration-hardening.md`. `main` 및 이 문서 브랜치에는 해당 코드를 병합하지 않았다.

@@ -41,6 +41,13 @@ func run() -> void:
 	check(game.mode=="single","isolated game started")
 	var p: Dictionary=game.world.people["local"]
 	check(Vector2(float(p.x),float(p.y))==Vector2(9,9),"default spawn (9,9)")
+	var legend_found:=false
+	for label_node in game.ui.find_children("*","Label",true,false):
+		var label_text: String=String(label_node.get("text"))
+		if label_text.contains("N 조사 수첩") and label_text.contains("F 사망 조사"):
+			legend_found=true
+			break
+	check(legend_found,"HUD legend includes N notebook and F death investigation")
 	await capture("01-spawn-actual",output)
 	var overlay:=Overlay.new()
 	game.view.add_child(overlay)

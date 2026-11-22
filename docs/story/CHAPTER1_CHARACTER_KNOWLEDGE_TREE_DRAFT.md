@@ -101,16 +101,42 @@ relationship:
   wound_origin: mutual_failure_to_listen  # DEC-02C 승인
   emotional_mechanism: "서로의 걱정·두려움을 충분히 듣지 못한 침묵"
   specific_words_and_actions: unknown  # 새 대사 미승인
-  disclosure_to_player: unresolved  # DEC-02D 예정
+  disclosure_to_player: after_related_record_discovered  # DEC-02D 승인
   last_meeting: unknown
   caused_disappearance: unknown
   player_knows_by_default: false
   npc_disclosure_condition: unapproved
 ```
 
-`story_event.storm_aftermath_iren_bran`의 승인 범위: 마을 과거 폭풍, 집과 묘비의 피해, 그 복구에서 현재의 안전 vs 사후 기억 보존을 두고 이견. 사건의 정확한 진행/후속 관계는 `unresolved`이며 실제 플레이어 지식·증거에 자동 투입하지 않는다. **DEC-02B 승인:** 당장의 피해는 해결되었지만 감정의 상처는 풀리지 않았고, 두 사람의 가까운 우정은 이어졌다. **DEC-02C 승인:** 상처는 상대의 이야기를 충분히 듣지 못한 침묵에서 비롯되었다. 특정 발언·행동·복구 방식과 플레이어 공개 조건은 미정이다. **다음 사용자 결정: DEC-02D(브란의 고백 공개 조건)**.
+`story_event.storm_aftermath_iren_bran`의 승인 범위: 마을 과거 폭풍, 집과 묘비의 피해, 그 복구에서 현재의 안전 vs 사후 기억 보존을 두고 이견. 사건의 정확한 진행/후속 관계는 `unresolved`이며 실제 플레이어 지식·증거에 자동 투입하지 않는다. **DEC-02B 승인:** 당장의 피해는 해결되었지만 감정의 상처는 풀리지 않았고, 두 사람의 가까운 우정은 이어졌다. **DEC-02C 승인:** 상처는 상대의 이야기를 충분히 듣지 못한 침묵에서 비롯되었다. 특정 발언·행동·복구 방식은 미정이다. **DEC-02D 승인:** 플레이어의 관련 기록 발견 이후 브란이 과거를 공개한다. **다음 사용자 결정 DEC-02E:** 해당 기록 유형.
 
 서사 설계 근거: `CHAPTER1_CHARACTER_BIBLE_DRAFT.md`의 DEC-02, 갈등 장면 후보는 `CHAPTER1_BRAN_IRENE_SCENES_DRAFT.md`. 기존 `npc.bran.claim.glove_repair`는 말한 사실만 보존한다. 친밀 관계가 승인되었다고 해서 대장간 대화 또는 플레이어 수첩에 해당 정보를 자동 공개하지 않는다.
+
+---
+
+## DEC-02D 승인: 브란의 회상은 기록 발견 이후에만 공개
+
+```yaml
+dialogue_unlock_design:
+  id: dialogue.bran.storm_memory
+  status: approved_disclosure_rule
+  requirement_type: related_record_discovered
+  related_event_id: story_event.storm_aftermath_iren_bran
+  qualifying_document: unresolved  # DEC-02E에서 기록 종류 결정
+  proof_of_discovery: server_validated_future_record
+  disclosure: "브란의 1인칭 회상 및 미처 듣지 못한 이야기"
+  unavailable_before_discovery: true
+  evidence_separation:
+    record: contemporary_external_event
+    bran_statement: subjective_memory
+  does_not_prove: [iren_fate, chapel_operator, last_promise_partner]
+  implementation_status: design_only
+```
+
+- 이 구조는 **제안된 지식 접근 계약**이고 실제 새 퀘스트/DB 필드/잠금 조건을 구현했다는 뜻이 아니다.
+- DEC-02D가 확정한 것은 **기록 발견 이후**라는 공개 조건뿐이다. 어떤 기록인지, 누구의 원본인지, 게임에 어떻게 조사할지는 DEC-02E 이후 결정한다.
+- 플레이어의 기존 E01 일기 획득만으로 새 폭풍 기록을 얻은 것으로 간주하지 않는다.
+- 누군가의 기록을 읽은 결과와 브란이 이야기한 결과를 각각 별도 provenance로 저장하도록 향후 Codex 설계를 검토한다. 서버 권한·생애 분리·다른 플레이어 개인 기록의 무단 열람 방지는 종전 원칙 그대로다.
 
 ---
 

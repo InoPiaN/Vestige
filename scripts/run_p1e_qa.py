@@ -81,6 +81,7 @@ def run_suite(root: Path, godot: Path, logs: Path, timeout: int,
         environment["XDG_CACHE_HOME"] = str(Path(temp) / "cache")
         environment["APPDATA"] = str(Path(temp) / "appdata")
         environment["LOCALAPPDATA"] = str(Path(temp) / "localappdata")
+        environment["GODOT_BIN"] = str(godot)
         if include_rules:
             results["existing_game_rules"] = run_command(
                 [sys.executable, "scripts/verify_rules.py"], root, environment,

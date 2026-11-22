@@ -3,7 +3,9 @@
 - 기록일: 2026-11-22
 - 브랜치: `ci/chapter1-p1f-enet-two-client`
 - 검증 커밋: `e779967ebc7c8a577c93514b1228f576a2a64bd5`
-- 실제 성공 실행: https://github.com/InoPiaN/Vestige/actions/runs/45009079062
+- 실제 최초 성공 실행: https://github.com/InoPiaN/Vestige/actions/runs/45009079062
+- **최종 게임 코드 복원 후 재검증 성공:** `ab4fc38b856f66dccb09dae9011d457229e4356d`, https://github.com/InoPiaN/Vestige/actions/runs/45009250417
+- 최종 비교 결과: 게임의 `desktop/main.gd`는 P1-E 기준과 동일. 변경 파일은 CI 워크플로, 신규 네트워크 테스트, 네트워크 테스트 실행기, 본 보고서의 4개뿐.
 - 로그 아티팩트: https://github.com/InoPiaN/Vestige/actions/runs/45009079062/artifacts/14748504367
 - Godot 4.5.1.stable.official.f62fdbde1 / GitHub Actions Ubuntu 24.04
 

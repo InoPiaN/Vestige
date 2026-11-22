@@ -38,7 +38,7 @@ var health: ProgressBar
 var stamina: ProgressBar
 var policy: OptionButton
 var panel: PanelContainer
-var chapter1_board: PanelContainer
+var chapter1_board
 var chapter1_board_button: Button
 var chapter1_board_request_serial: int=0
 var chapter1_board_pending_request: int=0

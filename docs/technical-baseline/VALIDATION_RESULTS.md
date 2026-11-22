@@ -32,7 +32,7 @@
 ## 재현
 G: codex/village-requests@4ba2c21에서 python3 scripts/verify_rules.py.
 S: feature/chapter1-evidence-board@f9c4a35의 별도 임시 복사본에서 각 test_*.gd에 대해 다음 실행:
-    
+
     <Godot4.5.1> --headless --path <임시복사본>/desktop --script res://tests/<파일명>.gd --log-file /tmp/<개별로그>.log
 
 S 네트워크: 해당 tip에서 python3 scripts/test_desktop_network.py. UDP27180 사용, 다른 서버와 겹치지 않게 실행. runner는 임시 저장/서버 프로세스를 정리한다.

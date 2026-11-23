@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const R=preload("res://world.gd")
 const I=preload("res://items.gd")
 var failures:=0
@@ -87,7 +88,7 @@ func run() -> void:
 		p.y=14
 		R.act(w,"local","take_remains",life+"|"+id)
 		check(R.ArmorUpgrade.level(p,id)==3 and p.gear_records[id].maker==maker,"Successor receives enhancement and original maker: "+kind)
-		var path: String="/tmp/vestige-armor-up-"+str(OS.get_process_id())+kind+".json"
+		var path: String=TestPaths.path("vestige-armor-up-")+str(OS.get_process_id())+kind+".json"
 		check(R.save_world(w,path),"Upgraded armor saves: "+kind)
 		var loaded:=R.load_world(path,false)
 		check(not loaded.is_empty() and R.ArmorUpgrade.level(loaded.people.local,id)==3,"Reload preserves enhancement: "+kind)
@@ -100,7 +101,7 @@ func run() -> void:
 	var old:=preload("res://investigation_demo.gd").armor()
 	old.version=16
 	var expected: Dictionary=old.people.local.gear_quality.duplicate(true)
-	var path: String="/tmp/vestige-armor-up-old-"+str(OS.get_process_id())+".json"
+	var path: String=TestPaths.path("vestige-armor-up-old-")+str(OS.get_process_id())+".json"
 	var f:=FileAccess.open(path,FileAccess.WRITE)
 	f.store_string(JSON.stringify(old))
 	f.close()

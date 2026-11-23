@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const R=preload("res://world.gd")
 var failures:=0
 func check(ok: bool,label: String) -> void:
@@ -70,7 +71,7 @@ func run() -> void:
 	p.y=14
 	R.act(w,"local","take_remains",life+"|"+id)
 	check(R.Upgrade.level(p,id)==3 and p.gear_records[id].maker.life==maker,"Death and successor recovery preserve upgrade and original maker")
-	var path:="/tmp/vestige-upgrade-test-"+str(OS.get_process_id())+".json"
+	var path:=TestPaths.path("vestige-upgrade-test-")+str(OS.get_process_id())+".json"
 	check(R.save_world(w,path),"Upgrade world saves")
 	var loaded:=R.load_world(path,false)
 	check(not loaded.is_empty() and R.Upgrade.level(loaded.people.local,id)==3,"Reload retains upgrade")

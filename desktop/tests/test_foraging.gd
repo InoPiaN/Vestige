@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const R=preload("res://world.gd")
 const F=preload("res://foraging.gd")
 const I=preload("res://items.gd")
@@ -170,7 +171,7 @@ func run() -> void:
 	R.act(w,"local","take_remains",life+"|night_blossom")
 	check(I.quantity(p,"healing_salve_great")==1 and I.quantity(p,"night_blossom")==1,"Regional remains preserve flower and great salve for successor")
 	check(p.herbal_quest=="new" and p.forage_xp==0,"New life has independent apprenticeship and gathering mastery")
-	var path: String="/tmp/vestige-foraging-"+str(OS.get_process_id())+".json"
+	var path: String=TestPaths.path("vestige-foraging-")+str(OS.get_process_id())+".json"
 	check(R.save_world(w,path),"New nodes, items and life history save with schema22")
 	var loaded:=R.load_world(path,false)
 	check(not loaded.is_empty() and loaded.forage_ready==w.forage_ready and I.quantity(loaded.people.local,"healing_salve_great")==1,"Reload preserves depletion and item quality")

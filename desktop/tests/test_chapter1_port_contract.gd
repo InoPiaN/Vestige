@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 ## Standalone G-branch compatibility contract. Does not depend on main.gd or UI.
 const World = preload("res://world.gd")
 const Bridge = preload("res://story/chapter1_bridge.gd")
@@ -38,7 +39,7 @@ func _initialize() -> void:
 	check(not Bridge.reconstruct(w, "a", "E01", "E07").accepted, "missing evidence cannot prove an inference")
 	check(not p.story.chapter1.chapter_completed, "chapter ending remains locked")
 	check(not p.story.chapter1.identity_confirmed, "identity is not invented")
-	var path := "/tmp/vestige-ch1-bridge-%d.json" % OS.get_process_id()
+	var path := TestPaths.path("vestige-ch1-bridge-%d.json") % OS.get_process_id()
 	check(World.save_world(w, path), "v23 safe-save accepts isolated Chapter I fields")
 	var restored: Dictionary = World.load_world(path, false)
 	check(restored.version == 23, "load retains gameplay save format")

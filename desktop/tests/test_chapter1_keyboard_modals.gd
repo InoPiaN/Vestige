@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 ## P1-I keyboard/controller path regression: deliver real InputEventKey objects to Main.
 ## Uses only isolated /tmp save and does not require a GUI display.
 const Main = preload("res://main.gd")
@@ -28,7 +29,7 @@ func run() -> void:
 	var game:=Main.new()
 	root.add_child(game)
 	game.set_physics_process(false)
-	game.save_path="/tmp/vestige-p1i-keys-%d.json" % OS.get_process_id()
+	game.save_path=TestPaths.path("vestige-p1i-keys-%d.json") % OS.get_process_id()
 	game.start_single()
 	var p: Dictionary=game.world.people["local"]
 	check(game.mode=="single","isolated keyboard test started")

@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const Rules=preload("res://world.gd")
 const Items=preload("res://items.gd")
 const Main=preload("res://main.gd")
@@ -14,7 +15,7 @@ func run() -> void:
 	var game:=Main.new()
 	root.add_child(game)
 	game.mode="single"
-	game.save_path="/tmp/vestige-inventory-ui-test.json"
+	game.save_path=TestPaths.path("vestige-inventory-ui-test.json")
 	game.world=Rules.fresh()
 	Rules.born(game.world,"local","가방 시험")
 	var p: Dictionary=game.world.people.local

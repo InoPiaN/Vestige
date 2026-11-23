@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 ## P1-D fixture-only persistence regression. No real user://world is ever opened.
 const World=preload("res://world.gd")
 const Store=preload("res://world_store.gd")
@@ -18,7 +19,7 @@ func file_bytes(path: String) -> String:
 	return FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
 
 func _initialize() -> void:
-	var path: String="/tmp/vestige-story-save-%d.json" % OS.get_process_id()
+	var path: String=TestPaths.path("vestige-story-save-%d.json") % OS.get_process_id()
 	var w: Dictionary=World.fresh()
 	World.born(w,"a","첫 조사자")
 	World.born(w,"b","둘째 조사자")
@@ -32,7 +33,7 @@ func _initialize() -> void:
 	var previous_version: Dictionary=World.fresh()
 	previous_version.version=22
 	World.born(previous_version,"old","이전 저장 주민")
-	var old_path: String="/tmp/vestige-story-v22-%d.json" % OS.get_process_id()
+	var old_path: String=TestPaths.path("vestige-story-v22-%d.json") % OS.get_process_id()
 	check(World.save_world(previous_version,old_path), "v22 fixture saves without Chapter I story")
 	var migrated: Dictionary=World.load_world(old_path,false)
 	check(not migrated.is_empty() and migrated.version==23, "v22 gameplay fixture continues loading as v23")
@@ -81,7 +82,7 @@ func _initialize() -> void:
 	invalid_type.people["a"].story="not-a-dictionary"
 	check(not Store.valid(invalid_type), "broken story type rejected")
 	# Both copies invalid: load must fail closed and keep the exact primary/backup bytes.
-	var bad_path: String="/tmp/vestige-story-both-bad-%d.json" % OS.get_process_id()
+	var bad_path: String=TestPaths.path("vestige-story-both-bad-%d.json") % OS.get_process_id()
 	var bad_bytes: String=JSON.stringify(malformed)
 	var bad_primary:=FileAccess.open(bad_path,FileAccess.WRITE)
 	check(bad_primary!=null, "write isolated malformed primary")

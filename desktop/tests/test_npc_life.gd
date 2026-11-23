@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const R=preload("res://world.gd")
 const L=preload("res://npc_life.gd")
 var failed:=false
@@ -66,7 +67,7 @@ func _initialize() -> void:
 	var count: int=w.npc_activity.size()
 	R.advance(w,0)
 	check(w.npc_activity.size()==count,"Zero elapsed time cannot duplicate activity history")
-	var path: String="/tmp/vestige-npc-rules-"+str(OS.get_process_id())+".json"
+	var path: String=TestPaths.path("vestige-npc-rules-")+str(OS.get_process_id())+".json"
 	w.saved=10000
 	check(R.save_world(w,path,10000),"World with activity history saves")
 	var loaded:=R.load_world(path,false,10000)

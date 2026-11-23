@@ -15,6 +15,9 @@
 기존 게임에서 호출하지 않는 작은 ModuleRuntime과 GameModule을 추가하고 테스트용 observation module을 주입한다. 등록·의존·활성/비활성·정리, 복사 상태, idempotent event, Signal 완료 통지, 독립 JSON envelope 복원, client 변이 거절을 검증한다.
 별도 Manager/Autoload/ECS를 도입하지 않는다. 이 실험은 “실제 게임에 신규 콘텐츠 등록 후 싱글·멀티 재접속까지 성공”이라는 필수 확장 검증을 대체하지 않는다.
 
+## 테스트 하네스 안정화 — 검증 완료
+고정 임시 파일 경로를 실행/프로세스별로 격리했다. [결과와 다음 어댑터 계약](handoffs/core-test-isolation.md)을 참고한다. P1-B 실제 게임 연결은 아직 미착수다.
+
 ## 다음 P1-B/P2
 1. 이번 계약을 기준으로 기존 world 서비스의 읽기 투영/명령 어댑터 하나 설계.
 2. 모듈 snapshot 배치와 v23 호환 정책, 허용되지 않은 콘텐츠 비공개 투영 설계.

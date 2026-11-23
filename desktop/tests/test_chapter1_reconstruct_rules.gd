@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 ## Logical evidence is owned per player-life; other people cannot borrow it.
 const World = preload("res://world.gd")
 const Bridge = preload("res://story/chapter1_bridge.gd")
@@ -54,7 +55,7 @@ func _initialize() -> void:
 	collect(w, "a", "device_key")
 	check(Bridge.reconstruct(w,"a","E13","E07").get("accepted",false), "I07 limited tool/log connection")
 	check(not a.story.chapter1.chapter_completed, "three limited inferences do not resolve missing story truths")
-	var path: String = "/tmp/vestige-ch1-board-rule-%d.json" % OS.get_process_id()
+	var path: String = TestPaths.path("vestige-ch1-board-rule-%d.json") % OS.get_process_id()
 	check(World.save_world(w,path), "v23 records per-life deductions")
 	var loaded: Dictionary = World.load_world(path,false)
 	check(loaded.people["a"].story.chapter1.inferences.size() == 3, "three limited connections persist")

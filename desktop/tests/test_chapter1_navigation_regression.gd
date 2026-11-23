@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 ## P1-G: real World.move replay along traversable paths from default character spawn.
 ## Headless geometry/input QA, NOT a substitute for rendering and macOS manual play.
 const World = preload("res://world.gd")
@@ -63,7 +64,7 @@ func run() -> void:
 	var game:=Main.new()
 	root.add_child(game)
 	game.set_physics_process(false)
-	var fixture: String="/tmp/vestige-p1g-navigation-%d.json" % OS.get_process_id()
+	var fixture: String=TestPaths.path("vestige-p1g-navigation-%d.json") % OS.get_process_id()
 	game.save_path=fixture
 	game.start_single()
 	check(game.mode=="single","isolated single-world QA launched")

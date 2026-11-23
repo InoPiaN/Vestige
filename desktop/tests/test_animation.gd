@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const Rules=preload("res://world.gd")
 const Motion=preload("res://animation.gd")
 var failed:=0
@@ -50,7 +51,7 @@ func _initialize() -> void:
 	steps=p.steps
 	Rules.tick(w,0.1)
 	check(p.steps==steps and p.motion==0,"resident stands still at destination")
-	Rules.save_world(w,"/tmp/vestige-animation-test.json")
-	var loaded:=Rules.load_world("/tmp/vestige-animation-test.json")
+	Rules.save_world(w,TestPaths.path("vestige-animation-test.json"))
+	var loaded:=Rules.load_world(TestPaths.path("vestige-animation-test.json"))
 	check(loaded.people.a.direction==p.direction,"facing survives save reload")
 	quit(1 if failed else 0)

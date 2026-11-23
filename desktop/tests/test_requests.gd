@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const R=preload("res://world.gd")
 const Q=preload("res://village_requests.gd")
 const I=preload("res://items.gd")
@@ -130,7 +131,7 @@ func run() -> void:
 	var view:=w.duplicate(true)
 	R.Investigation.redact(view,"local")
 	check(not view.people.other.has("requests") and view.people.local.has("requests"),"Only viewer's private request progress reaches snapshot")
-	var path: String="/tmp/vestige-requests-"+str(OS.get_process_id())+".json"
+	var path: String=TestPaths.path("vestige-requests-")+str(OS.get_process_id())+".json"
 	check(R.save_world(w,path),"Request progress and cooldown save")
 	var loaded:=R.load_world(path,false)
 	check(not loaded.is_empty() and loaded.people.local.requests.herbs.completed_day==6 and loaded.people.other.requests.herbs.state=="active","Reload preserves active progress and completed day")

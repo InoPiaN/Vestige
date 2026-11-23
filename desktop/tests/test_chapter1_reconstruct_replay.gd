@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 ## Server-side Chapter I replay/denial gate; synthetic peers and isolated save path.
 const Main = preload("res://main.gd")
 const Clues = preload("res://story/chapter1_investigation.gd")
@@ -18,7 +19,7 @@ func run() -> void:
 	var game := Main.new()
 	root.add_child(game)
 	game.set_physics_process(false)
-	var path: String = "/tmp/vestige-ch1-replay-%d.json" % OS.get_process_id()
+	var path: String = TestPaths.path("vestige-ch1-replay-%d.json") % OS.get_process_id()
 	game.save_path = path
 	game.start_single()
 	game.Rules.born(game.world, "b", "두 번째 조사자")

@@ -1,3 +1,5 @@
+> 최신 작업 (2026-11-23): **Core 회귀 테스트 격리**. 브랜치 `feature/core-modular-architecture`. [격리 결과·다음 어댑터 계약](handoffs/core-test-isolation.md) 참고. 기존 게임 동작/저장/RPC 변경 없음. 로컬 커밋만 수행.
+
 > 최신 작업 (2026-11-23): **Core-first P0 문서화와 독립 P1-A 계약**. 브랜치 `feature/core-modular-architecture`, 작업 트리 `worktrees/core-modular-architecture`. [최신 인수인계](handoffs/core-modular-p0-p1.md)와 [Core 로드맵](DEVELOPMENT_ROADMAP.md)을 먼저 읽으세요. 기존 게임 연결은 후속 단계이며 원격 push/PR 없음. 아래는 과거 기록입니다.
 
 > 최신 작업 (2026-11-21): **0.5.19 마을 게시판·반복 납품 의뢰** 완료. 브랜치 `codex/village-requests`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [의뢰 인수인계](handoffs/village-requests.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.

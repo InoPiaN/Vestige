@@ -1,0 +1,40 @@
+{
+  "changed_test_scripts": [
+    "desktop/tests/test_npc_life.gd",
+    "desktop/tests/test_chapter1_save_compatibility.gd",
+    "desktop/tests/test_armor.gd",
+    "desktop/tests/test_chapter1_input_integration.gd",
+    "desktop/tests/test_upgrades.gd",
+    "desktop/tests/test_world.gd",
+    "desktop/tests/test_requests.gd",
+    "desktop/tests/test_chapter1_navigation_regression.gd",
+    "desktop/tests/test_core_runtime.gd",
+    "desktop/tests/test_customization.gd",
+    "desktop/tests/test_chapter1_keyboard_modals.gd",
+    "desktop/tests/test_gear_records.gd",
+    "desktop/tests/test_animation.gd",
+    "desktop/tests/test_chapter1_board_integration.gd",
+    "desktop/tests/test_chapter1_reconstruct_rules.gd",
+    "desktop/tests/test_foraging.gd",
+    "desktop/tests/test_chapter1_reconstruct_replay.gd",
+    "desktop/tests/test_chapter1_port_contract.gd",
+    "desktop/tests/test_inventory.gd",
+    "desktop/tests/test_chapter1_dialogue_integration.gd",
+    "desktop/tests/test_armor_upgrades.gd"
+  ],
+  "assertions_unchanged": true,
+  "parallel_runs": [
+    {
+      "root": "/var/folders/9l/vqxm2t6d3zz9z8nm7jzkqj600000gn/T/vestige-rules-h9_ome2e",
+      "passes": 999,
+      "failures": []
+    },
+    {
+      "root": "/var/folders/9l/vqxm2t6d3zz9z8nm7jzkqj600000gn/T/vestige-rules-i7bgbkhp",
+      "passes": 999,
+      "failures": []
+    }
+  ],
+  "game_runtime_changed": false,
+  "save_protocol_changed": false
+}

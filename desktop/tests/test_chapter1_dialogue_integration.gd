@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 ## P1-B2: local dialogue UI + life-scoped memory smoke test. No user's save files.
 const Main = preload("res://main.gd")
 const Dialogue = preload("res://story/chapter1_dialogue.gd")
@@ -18,7 +19,7 @@ func run() -> void:
 	var game:=Main.new()
 	root.add_child(game)
 	game.set_physics_process(false)
-	var path: String="/tmp/vestige-ch1-dialogue-%d.json" % OS.get_process_id()
+	var path: String=TestPaths.path("vestige-ch1-dialogue-%d.json") % OS.get_process_id()
 	game.save_path=path
 	game.start_single()
 	check(game.mode=="single", "QA game started")

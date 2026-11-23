@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 ## Chapter I input integration: isolated QA save file; never touches user://single-world.json.
 const Main = preload("res://main.gd")
 const Investigation = preload("res://story/chapter1_investigation.gd")
@@ -18,7 +19,7 @@ func run() -> void:
 	var game := Main.new()
 	root.add_child(game)
 	game.set_physics_process(false)
-	var path := "/tmp/vestige-ch1-input-%d.json" % OS.get_process_id()
+	var path := TestPaths.path("vestige-ch1-input-%d.json") % OS.get_process_id()
 	game.save_path = path
 	game.start_single()
 	check(game.mode == "single", "QA world started")

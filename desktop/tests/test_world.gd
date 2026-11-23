@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const Rules=preload("res://world.gd")
 var failed:=0
 func check(condition: bool, description: String) -> void:
@@ -32,7 +33,7 @@ func _initialize() -> void:
 	check(p.herb==items,"dead characters stop producing")
 	Rules.born(w,"a","후계자")
 	check(w.people.a.skill==0 and w.books.size()==1,"new life preserves history, not skills")
-	var path: String="/tmp/vestige-world-test.json"
+	var path: String=TestPaths.path("vestige-world-test.json")
 	Rules.save_world(w,path)
 	var loaded:=Rules.load_world(path)
 	check(loaded.books.size()==1 and loaded.people.a.name=="후계자","save roundtrip")

@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const R=preload("res://world.gd")
 var failures:=0
 func check(ok: bool,label: String) -> void:
@@ -53,7 +54,7 @@ func run() -> void:
 	var view:=w.duplicate(true)
 	R.Investigation.redact(view,"local")
 	check(not view.people.other.has("gear_records") and view.people.local.gear_records.has(id),"Snapshot protects others private inventory records")
-	var path:="/tmp/vestige-records-"+str(OS.get_process_id())+".json"
+	var path:=TestPaths.path("vestige-records-")+str(OS.get_process_id())+".json"
 	check(R.save_world(w,path),"Version thirteen world saves")
 	var loaded:=R.load_world(path,false)
 	check(not loaded.is_empty() and loaded.people.local.gear_records[id].events.size()==3 and loaded.people.local.gear_records[id].maker.life==record.maker.life,"Save reload preserves provenance and history")

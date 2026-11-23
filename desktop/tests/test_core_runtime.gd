@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const Runtime = preload("res://core/module_runtime.gd")
 const Observation = preload("res://tests/fixtures/observation_module.gd")
 var failed := 0
@@ -54,7 +55,7 @@ func run() -> void:
 	detached.modules[module.identity].state.observed.clear()
 	check(runtime.state_for(module.identity).observed.size() == 3, "snapshot cannot mutate runtime state")
 	var saved: Dictionary = runtime.snapshot()
-	var path := "/tmp/vestige-core-runtime-%s.json" % OS.get_process_id()
+	var path := TestPaths.path("vestige-core-runtime-%s.json") % OS.get_process_id()
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	check(file != null, "isolated snapshot file opens")
 	if file == null:

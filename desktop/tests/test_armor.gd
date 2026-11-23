@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const R=preload("res://world.gd")
 var failures:=0
 func check(ok: bool,label: String) -> void:
@@ -109,7 +110,7 @@ func run() -> void:
 	R.act(w,"local","take_remains",life+"|"+iron)
 	R.act(w,"local","equip_body",iron)
 	check(R.Armor.defense(p)==reduction and p.gear_records[iron].maker.life==life and p.gear_records[iron].events.back().kind=="recovered","Successor recovers exact armor stats and history")
-	var path:="/tmp/vestige-armor-test-"+str(OS.get_process_id())+".json"
+	var path:=TestPaths.path("vestige-armor-test-")+str(OS.get_process_id())+".json"
 	check(R.save_world(w,path),"Armor world saves")
 	var loaded:=R.load_world(path,false)
 	check(not loaded.is_empty() and R.Armor.defense(loaded.people.local)==reduction,"Reload preserves worn armor and defense")

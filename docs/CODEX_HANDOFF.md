@@ -1,3 +1,5 @@
+> 최신 작업 (2026-11-23): **P1-C 저장 실패 주입·계약**. 사용자 승인으로 b545155까지 원격 푸시 완료. [저장 실패 검증·후속 구현 계약](handoffs/core-save-failure-contract.md) 참조. 이번 후속 변경은 테스트/문서이며 런타임 저장 실패 UI·재시도는 아직 미구현.
+
 > 최신 작업 (2026-11-23): **P1-B 증거 상호작용 어댑터 연결**. 브랜치 `feature/core-modular-architecture`. [변경·검증·한계](handoffs/core-interaction-adapter.md) 참조. 전체1031 검사와 ENet 재접속 통과. 저장/RPC 형식 유지, Core 이벤트 연결은 후속 단계. 로컬 커밋만 수행.
 
 > 최신 작업 (2026-11-23): **Core 회귀 테스트 격리**. 브랜치 `feature/core-modular-architecture`. [격리 결과·다음 어댑터 계약](handoffs/core-test-isolation.md) 참고. 기존 게임 동작/저장/RPC 변경 없음. 로컬 커밋만 수행.

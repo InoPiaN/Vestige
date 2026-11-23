@@ -30,3 +30,6 @@ main/world/store/기존 콘텐츠 → 새 core 참조는 **추가하지 않는�
 
 ## 영향 확인 방법
 변경 전후 기존 런타임 파일 hash/diff가 동일한지 확인하고 동일 runner로 기준선/회귀를 비교한다. Core에 res://story·world·items·아트 preload가 없어야 한다. 초기 실험 모듈 추가 시 Core·기존 기능 diff가 없어야 한다.
+
+## P1-B 추가 의존
+main → story/chapter1_interaction_adapter → 기존 chapter1_bridge/investigation. Core에는 콘텐츠 참조를 추가하지 않았다. 저장/규칙 소유권은 기존 world.people[actor].story와 Investigation에 유지한다. 어댑터가 Core 이벤트를 발행하거나 별도 증거 상태를 소유하지 않는다.

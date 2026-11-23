@@ -50,3 +50,6 @@ reduce는 자기 상태 복사본과 이벤트 복사본을 받아 {accepted:boo
 ## 엔티티/컴포넌트 경계 (설계, 어댑터 미구현)
 공개 content_id(정의), entity_id(월드 내 개체), life_id(생애), peer_id(일시 연결)를 구분한다. world_id+entity_id로 월드 간 오인 참조를 방지하고, 사망 기록은 life_id를 보존한다. Node instance ID나 peer ID를 영구 식별자로 저장하지 않는다. 기존 life/room/token 필드를 즉시 이름 변경하지 않고 P1-B에서 변환 어댑터로 매핑한다.
 기능 확장은 Godot 자식 Node/RefCounted 서비스로 구성하고 소유자 해제 시 구독과 자원을 정리한다. 이번 Runtime 모듈 ID는 엔티티 ID가 아니며 단일 모듈 내부 다수 인물 상태의 분할·권한 계약은 아직 구현하지 않았다.
+
+## P1-B 구현된 콘텐츠 어댑터
+chapter1_interaction_adapter.candidate(world, actor)는 조회 전용 {target_id,can_collect} 또는 {}를 반환한다. execute(world,actor,target,role,expected_life)는 기존 규칙을 호출하고 {recorded,message}를 반환한다. actor/role은 신뢰된 composition root가 공급한다. recorded는 메모리 변화이며 영구 저장 완료/이벤트가 아니다. main의 inspect_chapter1이 싱글과 서버를 연결하고 로컬 롤백 스위치를 소유한다. 기존 네트워크 명령에는 요청 시점 life가 없다는 한계가 있다. 상세: handoffs/core-interaction-adapter.md.

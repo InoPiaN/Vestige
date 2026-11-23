@@ -2,6 +2,7 @@ extends Node
 
 const Rules=preload("res://world.gd")
 const PixelWorld=preload("res://pixel_world.gd")
+const Chapter1Interaction=preload("res://story/chapter1_interaction_adapter.gd")
 const Chapter1=preload("res://story/chapter1_bridge.gd")
 const Chapter1Investigation=preload("res://story/chapter1_investigation.gd")
 const Chapter1BoardPanel=preload("res://story/evidence_board_panel.gd")
@@ -38,6 +39,7 @@ var health: ProgressBar
 var stamina: ProgressBar
 var policy: OptionButton
 var panel: PanelContainer
+var chapter1_interaction_adapter_enabled := true
 var chapter1_board
 var chapter1_board_button: Button
 var chapter1_board_request_serial: int=0
@@ -303,7 +305,7 @@ func command(kind: String, value: String="") -> void:
 		dialogue_sessions.erase(peer)
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
 	elif kind=="chapter1_inspect":
-		var inspection_report: String=Chapter1.inspect(world,id,value)
+		var inspection_report: String=inspect_chapter1(id,value).message
 		if can_send_to_peer(peer): remote_message.rpc_id(peer,inspection_report)
 		Rules.save_world(world,save_path)
 	else:
@@ -320,7 +322,7 @@ func perform(kind: String, value: String="") -> void:
 		command.rpc_id(1,kind,value)
 	elif mode=="single":
 		if kind=="new": Rules.born(world,me,dress_name.text,chosen_look)
-		elif kind=="chapter1_inspect": message(Chapter1.inspect(world,me,value))
+		elif kind=="chapter1_inspect": message(inspect_chapter1(me,value).message)
 		else: message(Rules.act(world,me,kind,value))
 		Rules.save_world(world,save_path)
 		refresh()
@@ -608,12 +610,25 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_Q: perform("heal")
 		KEY_J: open_journal()
 
+## Composition boundary: actor comes from local identity or server peers, never payload.
+## recorded means in-memory discovery only, not a durable save or a Core event.
+func inspect_chapter1(actor: String, target: String) -> Dictionary:
+	if not chapter1_interaction_adapter_enabled:
+		if mode not in ["single", "server"]: return {"recorded":false, "message":"권한이 없는 조사 요청입니다."}
+		var existed := Chapter1Investigation.has_evidence(world.people.get(actor, {}), target)
+		var report := Chapter1.inspect(world, actor, target)
+		return {"recorded":not existed and Chapter1Investigation.has_evidence(world.people.get(actor, {}), target), "message":report}
+	var life: String = world.get("people", {}).get(actor, {}).get("life", "")
+	return Chapter1Interaction.execute(world, actor, target, mode, life)
+
 func interact() -> void:
-	if Chapter1.allowed(world,me):
-		var evidence_id: String=Chapter1Investigation.nearby(world.people[me])
-		if not evidence_id.is_empty():
-			perform("chapter1_inspect",evidence_id)
-			return
+	var candidate: Dictionary = Chapter1Interaction.candidate(world,me) if chapter1_interaction_adapter_enabled else {}
+	if not chapter1_interaction_adapter_enabled and Chapter1.allowed(world,me):
+		var legacy_id: String = Chapter1Investigation.nearby(world.people[me])
+		if not legacy_id.is_empty(): candidate = {"target_id":legacy_id}
+	if not candidate.is_empty():
+		perform("chapter1_inspect",candidate.target_id)
+		return
 	if Rules.Interior.inside(world.people[me]):
 		perform("interact")
 		return

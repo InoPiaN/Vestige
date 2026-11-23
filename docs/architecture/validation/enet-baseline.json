@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "godot": "/Users/junheejang/Documents/Vestige/.tools/godot/Godot.app/Contents/MacOS/Godot",
+  "checks": {
+    "fixture": {
+      "code": 0,
+      "exists": true
+    },
+    "primary": {
+      "code": 0,
+      "pass_marker": true,
+      "script_error": false,
+      "packet_error": false
+    },
+    "observer": {
+      "code": 0,
+      "pass_marker": true,
+      "script_error": false,
+      "packet_error": false
+    },
+    "reconnect": {
+      "code": 0,
+      "pass_marker": true,
+      "script_error": false,
+      "packet_error": false
+    },
+    "server": {
+      "code": -15
+    },
+    "server_log": {
+      "script_error": false,
+      "packet_error": false
+    }
+  },
+  "logs": "/private/tmp/vestige-core-enet-baseline"
+}

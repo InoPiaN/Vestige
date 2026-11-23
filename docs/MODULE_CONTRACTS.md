@@ -26,6 +26,7 @@ ModuleRuntime:
 - snapshot()/restore(data): 모듈 envelope 복사/검증. restore는 비활성 상태에서만 전체 검증 후 원자적으로 적용. 모르는 모듈/미래 포맷·다른 state_version은 거부; 데이터를 버리거나 자동 다운그레이드하지 않음.
 - shutdown()/tree exit: 역순 비활성/정리. Signal 수신자는 Godot 객체 수명 또는 명시적 disconnect로 해제한다.
 
+등록 시 ID·의존성·버전 메타데이터를 고정한다. 변경하려면 비활성화·등록 해제 후 새로 등록해야 한다. 모듈 코드는 신뢰된 프로그램 코드이며 악성 플러그인을 격리하는 sandbox가 아니다. JSON 깊이는64로 제한한다.
 모듈 ID는 비어 있지 않은 영구 문자열, 버전은 양의 정수. 중복/자기 의존/누락 의존은 거부한다. 선등록 요구로 순환 의존을 만들지 않는다.
 
 ## 이벤트/Signal
@@ -45,3 +46,7 @@ reduce는 자기 상태 복사본과 이벤트 복사본을 받아 {accepted:boo
 - Store는 안전한 파일 I/O를 유지하고 모듈 validator 등록을 composition root로 이동. Core에 Chapter1 이름을 넣지 않기.
 - Network adapter는 peer→actor를 해석, 신뢰된 명령만 서비스 호출, 공개 snapshot을 생성. 새 Runtime의 client 거절은 인증/인터넷 보안을 대체하지 않는다.
 - UI는 결과를 구독하되 규칙 변경은 요청 경로로만. PNG 교체는 Resource 매핑만 바꿔야 하며 현재 procedural art 전체 교체는 P6이다.
+
+## 엔티티/컴포넌트 경계 (설계, 어댑터 미구현)
+공개 content_id(정의), entity_id(월드 내 개체), life_id(생애), peer_id(일시 연결)를 구분한다. world_id+entity_id로 월드 간 오인 참조를 방지하고, 사망 기록은 life_id를 보존한다. Node instance ID나 peer ID를 영구 식별자로 저장하지 않는다. 기존 life/room/token 필드를 즉시 이름 변경하지 않고 P1-B에서 변환 어댑터로 매핑한다.
+기능 확장은 Godot 자식 Node/RefCounted 서비스로 구성하고 소유자 해제 시 구독과 자원을 정리한다. 이번 Runtime 모듈 ID는 엔티티 ID가 아니며 단일 모듈 내부 다수 인물 상태의 분할·권한 계약은 아직 구현하지 않았다.

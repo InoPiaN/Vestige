@@ -3,7 +3,7 @@
 
 | 단계 | 현재 상태 | 선행 조건 / 완료 기준 |
 |---|---|---|
-| P0 구조 분석·설계 | 진행 중(이번 문서/기준선 확정 후 검증 완료) | AGENTS/ARCHITECTURE/CONTRACTS/MIGRATION/DEPENDENCY/ROADMAP, 실제 기준선과 한계 |
+| P0 구조 분석·설계 | 검증 완료(분석·계약·이관 문서 범위) | AGENTS/ARCHITECTURE/CONTRACTS/MIGRATION/DEPENDENCY/ROADMAP, 실제 기준선과 한계 |
 | P1 Core 안정화 | 진행 중(최소 독립 계약만 이번 구현) | 상태→Signal 이벤트→수명→저장/버전→권한 순서. 이번은 독립 모듈 실험, 실제 월드 어댑터 미착수 |
 | P2 Core Gameplay Loop | 미착수 | 실제 접속·이동·상호작용·저장·재접속·좌표 충돌 검사 |
 | P3 공통 기능 모듈 | 미착수 | NPC 지식/기억/관계/대화→생활→조사→퀘스트→역사/Journal→Gameplay |

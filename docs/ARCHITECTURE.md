@@ -48,3 +48,17 @@ v23 load→검증→보완→(싱글 경과 시간)→checkpoint가 기존 안�
 ## P1 제한적 착수 범위
 content-free ModuleRuntime(Node)와 GameModule(RefCounted), 복사된 소유 상태, 등록/의존/활성/비활성/정리, 명시적 이벤트 적용과 Godot Signal 완료 통지, JSON 가능 독립 snapshot을 구현 대상으로 고정한다.
 기존 main/world/store/RPC/씬/저장 v23은 변경하지 않는다. 실험 fixture로 계약을 검증해도 실제 게임 루프나 멀티 지속성 완료로 표시하지 않는다. P2 연결 전에 별도 어댑터·저장 envelope 배치·snapshot 공개 정책을 결정한다.
+
+## 기능 현황과 미완료 경계
+| 분야 | 실제 구현 | 목표 대비 상태 | 검사 근거 |
+|---|---|---|---|
+| 이동·충돌·전투·채집·제작·품질·강화·수리 | world 및 개별 규칙/패널 | 구현 완료(현 시제품 범위) | 기존 규칙 테스트, 이번 실제 조작은 미실행 |
+| 직업·기술·생활 일정·여행·의뢰 | professions/npc_life/travel/requests | 부분 구현; 전체 콘텐츠 목표 미완료 | 분야별 기존 테스트 |
+| 사망·유품·집·보관·일지 | investigation/house/storage/history | 부분 구현; 자유 건축·부활 완성 아님 | 분야별 기존 테스트 |
+| 제1장 증거·대화·수첩·제한적 재구성 | story modules+main 연결 | 구현 완료(현재 제한적 조사 범위) | 제1장 자동 검사·ENet; 이야기 전체 완성 아님 |
+| 싱글/서버 권한·저장 | main/world/store v23 | 부분 구현; Steam 인증/장기 운영 미완료 | 저장 회귀·실제 ENet 합성 fixture |
+| 공통 Core | 독립 ModuleRuntime 실험 | P1 진행 중 | 테스트 전용 모듈, 실제 게임 미연결 |
+| 데이터 등록형 콘텐츠·일반 퀘스트 그래프·NPC 기억 AI | 목표 설계 | 미착수 | 구현 증거 없음 |
+| Steam 출시·최종 Mac/Windows 품질 | 기존 시제품 빌드 이력만 | 미완료 | 이번 재빌드/실사용 QA 미실행 |
+
+각 분야의 검사 수와 제한은 최신 handoff를 기준으로 한다. 상태는 게임 전체의 완성을 의미하지 않는다.

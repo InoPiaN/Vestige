@@ -7,6 +7,8 @@ const Chapter1=preload("res://story/chapter1_bridge.gd")
 const Chapter1Investigation=preload("res://story/chapter1_investigation.gd")
 const Chapter1BoardPanel=preload("res://story/evidence_board_panel.gd")
 const MainStorySnapshot=preload("res://story/main_story_snapshot.gd")
+const MainWaymarker=preload("res://story/main_story_waymarker.gd")
+const MainAct1=preload("res://story/main_story_act1_content.gd")
 var checkpoints = preload("res://core/save_checkpoint.gd").new()
 var save_warning: Label
 var retry_save_button: Button
@@ -311,6 +313,10 @@ func command(kind: String, value: String="") -> void:
 	if kind=="new":
 		dialogue_sessions.erase(peer)
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
+	elif kind=="main_waymarker_inspect":
+		var main_report: Dictionary=inspect_main_waymarker(id,value)
+		if can_send_to_peer(peer): remote_message.rpc_id(peer,String(main_report.get("message","")))
+		checkpoint_current()
 	elif kind=="chapter1_inspect":
 		var inspection_report: String=inspect_chapter1(id,value).message
 		if can_send_to_peer(peer): remote_message.rpc_id(peer,inspection_report)
@@ -329,6 +335,7 @@ func perform(kind: String, value: String="") -> void:
 		command.rpc_id(1,kind,value)
 	elif mode=="single":
 		if kind=="new": Rules.born(world,me,dress_name.text,chosen_look)
+		elif kind=="main_waymarker_inspect": message(inspect_main_waymarker(me,value).message)
 		elif kind=="chapter1_inspect": message(inspect_chapter1(me,value).message)
 		else: message(Rules.act(world,me,kind,value))
 		checkpoint_current()
@@ -649,7 +656,14 @@ func inspect_chapter1(actor: String, target: String) -> Dictionary:
 	var life: String = world.get("people", {}).get(actor, {}).get("life", "")
 	return Chapter1Interaction.execute(world, actor, target, mode, life)
 
+func inspect_main_waymarker(actor: String, target: String) -> Dictionary:
+	var person: Dictionary=world.get("people",{}).get(actor,{})
+	return MainWaymarker.execute(world,actor,target,mode,String(person.get("life","")))
+
 func interact() -> void:
+	if world.get("people",{}).has(me) and MainWaymarker.nearby(world.people[me]):
+		perform("main_waymarker_inspect",MainAct1.WAYMARKER_EVIDENCE)
+		return
 	var candidate: Dictionary = Chapter1Interaction.candidate(world,me) if chapter1_interaction_adapter_enabled else {}
 	if not chapter1_interaction_adapter_enabled and Chapter1.allowed(world,me):
 		var legacy_id: String = Chapter1Investigation.nearby(world.people[me])
@@ -959,6 +973,8 @@ func refresh() -> void:
 			var npc_name: String=String(Chapter1.Dialogue.NPCS[npc_id].name)
 			prompt.text=("E/T · "+npc_name+"와 대화") if t.is_empty() else (prompt.text+"   T · "+npc_name+"와 대화")
 
+	if MainWaymarker.nearby(p): prompt.text="E · 옛 조사단 이정표 조사   N · 조사 수첩"
+
 	if Rules.Interior.inside(p):
 		var furniture:=Rules.Interior.nearby(p)
 		prompt.text="E · "+Rules.Interior.OBJECTS[furniture].name if not furniture.is_empty() else "언덕집 · 가구 가까이에서 E / 아래쪽 문으로 나가기"
@@ -1022,7 +1038,8 @@ func show_pages(text: String) -> void:
 
 func open_chapter1_notebook() -> void:
 	if world.is_empty() or not world.people.has(me): return
-	show_pages(Chapter1.notebook(world,me))
+	var main_notes: String=MainWaymarker.notebook(world.people[me])
+	show_pages(main_notes+Chapter1.notebook(world,me))
 	if Chapter1.allowed(world,me):
 		chapter1_board_button.show()
 

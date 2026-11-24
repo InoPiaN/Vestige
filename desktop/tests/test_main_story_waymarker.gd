@@ -12,6 +12,7 @@ func _initialize() -> void:
 	Rules.born(world, "owner", "현 이름")
 	Rules.born(world, "other", "다른 인물")
 	var p: Dictionary = world.people["owner"]
+	var had_legacy_story: bool = p.has("story")
 	var original_legacy: Dictionary = p.get("story", {}).duplicate(true)
 	p["room"] = "village"
 	p["x"] = Waymarker.LOCATION.x
@@ -35,7 +36,8 @@ func _initialize() -> void:
 	_check(recorded.get("recorded", false), "first discovery accepted", failures)
 	_check(Contract.valid_person(p), "story validated", failures)
 	_check(Store.valid(world), "world save schema accepts story", failures)
-	_check(p["story"] == original_legacy, "legacy story unchanged", failures)
+	_check(p.has("story") == had_legacy_story, "legacy story presence unchanged", failures)
+	_check(p.get("story", {}) == original_legacy, "legacy story contents unchanged", failures)
 	_check(not world.people["other"].has("main_story"), "other character unchanged", failures)
 	_check(p.main_story.completed_events.get(Content.WAYMARKER_EVENT, false), "event marked", failures)
 	_check(p.main_story.knowledge.get(Content.WAYMARKER_KNOWLEDGE, false), "knowledge marked", failures)

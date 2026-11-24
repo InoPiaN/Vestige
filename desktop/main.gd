@@ -6,6 +6,7 @@ const Chapter1Interaction=preload("res://story/chapter1_interaction_adapter.gd")
 const Chapter1=preload("res://story/chapter1_bridge.gd")
 const Chapter1Investigation=preload("res://story/chapter1_investigation.gd")
 const Chapter1BoardPanel=preload("res://story/evidence_board_panel.gd")
+const MainStorySnapshot=preload("res://story/main_story_snapshot.gd")
 var checkpoints = preload("res://core/save_checkpoint.gd").new()
 var save_warning: Label
 var retry_save_button: Button
@@ -265,6 +266,7 @@ func send_snapshot(peer: int) -> void:
 	if not can_send_to_peer(peer): return
 	var snapshot: Dictionary=world.duplicate(true)
 	Rules.Investigation.redact(snapshot,peers[peer])
+	MainStorySnapshot.redact_other_players(snapshot,peers[peer])
 	for id in snapshot.people:
 		if id!=peers[peer]:
 			snapshot.people[id].journal=[]

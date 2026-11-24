@@ -13,6 +13,7 @@ static func initial_state() -> Dictionary:
 		"current_act": MIN_ACT,
 		"completed_events": {},
 		"knowledge": {},
+		"evidence": {},
 		"decisions": {},
 		"relationships": {},
 		"ending": {
@@ -54,6 +55,27 @@ static func valid_state(value: Variant) -> bool:
 		return false
 	if not _boolean_flags(state.get("knowledge")):
 		return false
+	# Optional on older opt-in test states; required records are strictly typed if present.
+	if state.has("evidence"):
+		if not state["evidence"] is Dictionary:
+			return false
+		for evidence_id in state["evidence"]:
+			if not evidence_id is String or not evidence_id.begins_with("main."):
+				return false
+			var record: Variant = state["evidence"][evidence_id]
+			if not record is Dictionary or record.get("id") != evidence_id:
+				return false
+			for field in ["title", "source", "fact", "inference"]:
+				if not record.get(field) is String:
+					return false
+			if not record.get("day") is int and not record.get("day") is float:
+				return false
+			if float(record.day) < 1.0 or floor(float(record.day)) != float(record.day):
+				return false
+			if not record.get("discovered_at") is int and not record.get("discovered_at") is float:
+				return false
+			if not is_finite(float(record.discovered_at)) or float(record.discovered_at) < 0.0:
+				return false
 	if not state.get("decisions") is Dictionary or not state.get("relationships") is Dictionary:
 		return false
 	for decision in state.decisions:

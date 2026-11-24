@@ -53,3 +53,6 @@ reduce는 자기 상태 복사본과 이벤트 복사본을 받아 {accepted:boo
 
 ## P1-B 구현된 콘텐츠 어댑터
 chapter1_interaction_adapter.candidate(world, actor)는 조회 전용 {target_id,can_collect} 또는 {}를 반환한다. execute(world,actor,target,role,expected_life)는 기존 규칙을 호출하고 {recorded,message}를 반환한다. actor/role은 신뢰된 composition root가 공급한다. recorded는 메모리 변화이며 영구 저장 완료/이벤트가 아니다. main의 inspect_chapter1이 싱글과 서버를 연결하고 로컬 롤백 스위치를 소유한다. 기존 네트워크 명령에는 요청 시점 life가 없다는 한계가 있다. 상세: handoffs/core-interaction-adapter.md.
+
+## P1-C 저장 시도 상태 (구현)
+SaveCheckpoint.attempt(world,path,role,writer)는 single/server에서 기존 writer(world,path)의 bool 결과를 반환하고 경로별 pending을 갱신한다. client/빈 월드/빈 경로는 writer 호출 전 거부한다. pending(path)는 마지막 실패 상태이며 일반 dirty flag/영구 이벤트가 아니다. main은 실행 월드의 모든 기존 저장 호출을 이 경계로 통일한다. 싱글 재시도는 현재 상태만 checkpoint하며 도메인 행동을 반복하지 않는다. 상세 및 멀티 안내 제한: handoffs/core-save-status.md.

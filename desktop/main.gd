@@ -6,6 +6,9 @@ const Chapter1Interaction=preload("res://story/chapter1_interaction_adapter.gd")
 const Chapter1=preload("res://story/chapter1_bridge.gd")
 const Chapter1Investigation=preload("res://story/chapter1_investigation.gd")
 const Chapter1BoardPanel=preload("res://story/evidence_board_panel.gd")
+var checkpoints = preload("res://core/save_checkpoint.gd").new()
+var save_warning: Label
+var retry_save_button: Button
 var world: Dictionary={}
 var me: String="local"
 var mode: String="menu"
@@ -175,7 +178,7 @@ func disconnected(peer: int) -> void:
 		inputs.erase(peer)
 		peers.erase(peer)
 		last_commands.erase(peer)
-		Rules.save_world(world,save_path)
+		checkpoint_current()
 
 func request_single() -> void:
 	if FileAccess.file_exists(save_path) or FileAccess.file_exists(save_path+".bak"): start_single()
@@ -252,6 +255,8 @@ func register_player(token: String, display_name: String, look_json: String="{}"
 	world.people[token].offline=false
 	inputs[peer]=Vector2.ZERO
 	send_snapshot(peer)
+	if checkpoints.pending(save_path) and can_send_to_peer(peer):
+		remote_message.rpc_id(peer,"서버에 미저장 내용이 있습니다. 자동 저장으로 재시도 중입니다.")
 
 func can_send_to_peer(peer: int) -> bool:
 	return mode=="server" and peers.has(peer) and multiplayer.multiplayer_peer!=null and peer in multiplayer.get_peers()
@@ -307,7 +312,7 @@ func command(kind: String, value: String="") -> void:
 	elif kind=="chapter1_inspect":
 		var inspection_report: String=inspect_chapter1(id,value).message
 		if can_send_to_peer(peer): remote_message.rpc_id(peer,inspection_report)
-		Rules.save_world(world,save_path)
+		checkpoint_current()
 	else:
 		var action_report: String=Rules.act(world,id,kind,value)
 		if can_send_to_peer(peer): remote_message.rpc_id(peer,action_report)
@@ -324,7 +329,7 @@ func perform(kind: String, value: String="") -> void:
 		if kind=="new": Rules.born(world,me,dress_name.text,chosen_look)
 		elif kind=="chapter1_inspect": message(inspect_chapter1(me,value).message)
 		else: message(Rules.act(world,me,kind,value))
-		Rules.save_world(world,save_path)
+		checkpoint_current()
 		refresh()
 
 ## A dialogue session lives only on the server; clients cannot choose its NPC or legal options.
@@ -347,7 +352,7 @@ func chapter1_dialogue_open() -> void:
 	dialogue_sessions[peer]={"token":token,"npc_id":npc_id,"life_id":String(world.people[player_id].get("life","")),"expires_at":Time.get_ticks_msec()+60000,"choices":choices}
 	inputs[peer]=Vector2.ZERO
 	if can_send_to_peer(peer): chapter1_dialogue_reply.rpc_id(peer,reply,token)
-	Rules.save_world(world,save_path)
+	checkpoint_current()
 
 @rpc("any_peer","call_remote","reliable")
 func chapter1_dialogue_choose(token: String, choice: String) -> void:
@@ -372,7 +377,7 @@ func chapter1_dialogue_choose(token: String, choice: String) -> void:
 	session.expires_at=Time.get_ticks_msec()+60000
 	dialogue_sessions[peer]=session
 	if can_send_to_peer(peer): chapter1_dialogue_reply.rpc_id(peer,reply,token)
-	Rules.save_world(world,save_path)
+	checkpoint_current()
 
 @rpc("any_peer","call_remote","reliable")
 func chapter1_dialogue_end(token: String) -> void:
@@ -396,7 +401,7 @@ func start_chapter1_dialogue() -> void:
 		var reply: Dictionary=Chapter1.talk(world,me,npc_id)
 		if reply.is_empty(): return
 		show_chapter1_dialogue(reply,"")
-		Rules.save_world(world,save_path)
+		checkpoint_current()
 		refresh()
 
 func choose_chapter1_option(choice: String) -> void:
@@ -414,7 +419,7 @@ func choose_chapter1_option(choice: String) -> void:
 		var reply: Dictionary=Chapter1.talk(world,me,dialogue_npc,choice,dialogue_npc)
 		if reply.is_empty(): return
 		show_chapter1_dialogue(reply,"")
-		Rules.save_world(world,save_path)
+		checkpoint_current()
 		refresh()
 
 func show_chapter1_dialogue(reply: Dictionary, token: String) -> void:
@@ -462,7 +467,7 @@ func chapter1_reconstruct(first: String, second: String, request_id: int) -> voi
 	var result: Dictionary=evaluate_chapter1_reconstruct_request(peer,first,second,request_id,Time.get_ticks_msec())
 	if can_send_to_peer(peer): chapter1_reconstruct_reply.rpc_id(peer,request_id,result)
 	if result.get("accepted",false):
-		Rules.save_world(world,save_path)
+		checkpoint_current()
 		send_snapshot(peer)
 
 @rpc("authority","call_remote","reliable")
@@ -486,7 +491,7 @@ func submit_chapter1_combination(first: String, second: String) -> void:
 		var result: Dictionary=Chapter1.reconstruct(world,me,first,second)
 		chapter1_board.set_feedback(String(result.get("text","")))
 		if result.get("accepted",false):
-			Rules.save_world(world,save_path)
+			checkpoint_current()
 			refresh()
 
 func open_chapter1_board() -> void:
@@ -536,7 +541,7 @@ func _physics_process(dt: float) -> void:
 		save_clock+=dt
 		if save_clock>10:
 			save_clock=0
-			Rules.save_world(world,save_path)
+			checkpoint_current()
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
@@ -610,8 +615,29 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_Q: perform("heal")
 		KEY_J: open_journal()
 
-## Composition boundary: actor comes from local identity or server peers, never payload.
-## recorded means in-memory discovery only, not a durable save or a Core event.
+## Every active-world writer uses the same runtime save-status owner.
+func checkpoint_current() -> bool:
+	var was_pending: bool = checkpoints.pending(save_path)
+	var ok: bool = checkpoints.attempt(world, save_path, mode, Rules.save_world)
+	update_save_warning()
+	if mode == "server" and checkpoints.pending(save_path) != was_pending:
+		var report := "서버 저장에 실패했습니다. 진행 내용은 메모리에 유지되며 자동 저장으로 재시도합니다." if not ok else "서버의 미저장 내용을 저장했습니다."
+		for peer in peers:
+			if can_send_to_peer(peer): remote_message.rpc_id(peer, report)
+	return ok
+
+func retry_checkpoint() -> void:
+	if mode != "single" or not checkpoints.pending(save_path): return
+	if checkpoint_current(): message("미저장 내용을 저장했습니다.")
+
+func update_save_warning() -> void:
+	if save_warning == null: return
+	var pending: bool = mode == "single" and checkpoints.pending(save_path)
+	save_warning.visible = pending
+	retry_save_button.visible = pending
+
+## Actor comes from local identity or server peers, never payload.
+## recorded is in-memory discovery, not a durable save or a Core event.
 func inspect_chapter1(actor: String, target: String) -> Dictionary:
 	if not chapter1_interaction_adapter_enabled:
 		if mode not in ["single", "server"]: return {"recorded":false, "message":"권한이 없는 조사 요청입니다."}
@@ -649,11 +675,11 @@ func _notification(what: int) -> void:
 		if mode=="single":
 			var was_offline: bool=world.people[me].offline
 			world.people[me].offline=true
-			if not Rules.save_world(world,save_path):
+			if not checkpoint_current():
 				world.people[me].offline=was_offline
-				message("저장하지 못했습니다. 디스크 공간과 권한을 확인한 뒤 다시 종료하세요.")
+				message("저장하지 못했습니다. 미저장 상태를 확인하고 저장 재시도 후 다시 종료하세요.")
 				return
-		if mode=="server" and not Rules.save_world(world,save_path): return
+		if mode=="server" and not checkpoint_current(): return
 		get_tree().quit()
 
 func label_at(parent: Node,text: String,at: Vector2,size: int=16,color: Color=Color("c5c7b6")) -> Label:
@@ -782,13 +808,16 @@ func build_ui() -> void:
 	day_button=button_at(ui,"실험 · 하루 진행",Vector2(1000,558),250,func():
 		if mode=="single":
 			Rules.advance(world,Rules.DAY)
-			Rules.save_world(world,save_path)
+			checkpoint_current()
 			message("하루가 흘렀습니다. J로 일기를 확인하세요.")
 			refresh())
 	new_button=button_at(ui,"새로운 삶 시작",Vector2(1000,606),250,func(): open_dressing("new"))
 	label_at(ui,"WASD 이동   E 상호작용\nT 주민 대화   N 조사 수첩\nSPACE 공격   SHIFT 회피\nF 사망 조사   J 나의 일기\nL 의뢰   M 지도   Q 약초",Vector2(1000,652),13,Color("8fa394"))
 	prompt=label_at(ui,"",Vector2(30,730),16,Color("dfcd97"))
 	notice=label_at(ui,"",Vector2(30,762),14)
+	save_warning=label_at(ui,"저장 실패 · 진행 내용이 아직 저장되지 않았습니다",Vector2(30,700),14,Color("ffcc88"))
+	retry_save_button=button_at(ui,"저장 재시도",Vector2(750,680),180,retry_checkpoint)
+	update_save_warning()
 	panel=PanelContainer.new()
 	panel.position=Vector2(230,100)
 	panel.size=Vector2(820,590)
@@ -856,6 +885,7 @@ func build_ui() -> void:
 	bench.action.connect(perform)
 
 func refresh() -> void:
+	update_save_warning()
 	if world.is_empty() or not world.people.has(me): return
 	sky_clock.refresh(world.time)
 	var p: Dictionary=world.people[me]

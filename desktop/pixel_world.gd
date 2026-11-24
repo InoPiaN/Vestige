@@ -195,6 +195,12 @@ func _draw() -> void:
 		if not world.is_empty() and world.people.has(player_id):
 			if Rules.pos(world.people[player_id]).distance_to(Rules.pos(t))<2:
 				draw_rect(Rect2(x-14,y+18,28,1),Color("e7c980"))
+	# ACT I waymarker: decoration only, no collision geometry.
+	var waymarker: Vector2=preload("res://story/main_story_waymarker.gd").LOCATION*16.0
+	box(waymarker.x-5,waymarker.y-8,10,12,"5a5d51")
+	box(waymarker.x-4,waymarker.y-10,8,3,"888b77")
+	box(waymarker.x-2,waymarker.y-5,4,1,"c6b585")
+	box(waymarker.x-1,waymarker.y-2,2,4,"c6b585")
 	Rules.Requests.draw(self,"village")
 	for place in Rules.Travel.PLACES.village:
 		if place.kind=="mail": hero(place.x*16,place.y*16,{"look":{"hair":1,"hair_color":2,"cloth":3},"equipment":{"cloak":"traveler"}})

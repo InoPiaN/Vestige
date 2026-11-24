@@ -1,6 +1,6 @@
 extends RefCounted
-## Main Story ACT I content only. No coordinates or physical scene are assigned
-## until waypoint placement and movement collision are verified in Godot.
+## Main Story ACT I content. Position belongs to main_story_waymarker.gd;
+## collision-free visual placement still needs in-game QA.
 ## This is NOT legacy Chapter I/Iren content.
 const WAYMARKER_EVENT := "main.act1.old_waymarker"
 const WAYMARKER_KNOWLEDGE := "main.waymarker_found"
@@ -19,7 +19,7 @@ static func waymarker_evidence() -> Dictionary:
 	return {
 		"id": WAYMARKER_EVIDENCE,
 		"title": "오래된 조사단 이정표",
-		"source": "잿빛 마을 외곽 · 오래된 길 (위치 확정 전)",
+		"source": "마을 남서쪽 외곽 · 오래된 길",
 		"fact": "이정표에 새겨진 표식이 과거 탐사 수첩의 기호와 일치한다.",
 		"inference": "과거 주인공이 이 경로를 이용했을 가능성이 있다. 경로 및 보급 기록과의 추가 대조가 필요하다."
 	}

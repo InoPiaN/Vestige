@@ -1,3 +1,33 @@
+> 최신 작업 (2026-11-24): **미저장 상태·저장 재시도 구현**. [결과와 한계](handoffs/core-save-status.md) 참조. 전체1072 검사 및 정상 ENet 재접속 통과. 실제 UI 배치와 멀티 실패 안내 주입 검증은 후속. 로컬 커밋, 원격 b545155 유지.
+
+> 최신 작업 (2026-11-23): **P1-C 저장 실패 주입·계약**. 사용자 승인으로 b545155까지 원격 푸시 완료. [저장 실패 검증·후속 구현 계약](handoffs/core-save-failure-contract.md) 참조. 이번 후속 변경은 테스트/문서이며 런타임 저장 실패 UI·재시도는 아직 미구현.
+
+> 최신 작업 (2026-11-23): **P1-B 증거 상호작용 어댑터 연결**. 브랜치 `feature/core-modular-architecture`. [변경·검증·한계](handoffs/core-interaction-adapter.md) 참조. 전체1031 검사와 ENet 재접속 통과. 저장/RPC 형식 유지, Core 이벤트 연결은 후속 단계. 로컬 커밋만 수행.
+
+> 최신 작업 (2026-11-23): **Core 회귀 테스트 격리**. 브랜치 `feature/core-modular-architecture`. [격리 결과·다음 어댑터 계약](handoffs/core-test-isolation.md) 참고. 기존 게임 동작/저장/RPC 변경 없음. 로컬 커밋만 수행.
+
+> 최신 작업 (2026-11-23): **Core-first P0 문서화와 독립 P1-A 계약**. 브랜치 `feature/core-modular-architecture`, 작업 트리 `worktrees/core-modular-architecture`. [최신 인수인계](handoffs/core-modular-p0-p1.md)와 [Core 로드맵](DEVELOPMENT_ROADMAP.md)을 먼저 읽으세요. 기존 게임 연결은 후속 단계이며 원격 push/PR 없음. 아래는 과거 기록입니다.
+
+> 최신 작업 (2026-11-21): **0.5.19 마을 게시판·반복 납품 의뢰** 완료. 브랜치 `codex/village-requests`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [의뢰 인수인계](handoffs/village-requests.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
+
+> 최신 작업 (2026-11-21): **0.5.18 지역 채집·약초꾼 입문** 완료. 브랜치 `codex/herbalist-foraging`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [채집 인수인계](handoffs/herbalist-foraging.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
+
+> 최신 작업 (2026-11-19): **0.5.17 NPC 생활 일정·상단 하늘 그림** 완료. 브랜치 `codex/npc-daily-life`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [생활 인수인계](handoffs/npc-daily-life.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
+
+> 최신 작업 (2026-11-19): **0.5.16 안개나루 여행** 완료. 브랜치 `codex/mist-harbor-travel`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [여행 인수인계](handoffs/mist-harbor-travel.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
+
+> 최신 작업 (2026-11-19): **0.5.15 잿빛 숲 원정** 완료. 현재 브랜치 `codex/ashwood-expedition`, 작업 트리 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`. [원정 인수인계](handoffs/ashwood-expedition.md)와 [전체 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래는 과거 기록입니다.
+
+> 최신 작업 (2026-11-17): **0.5.14 전사·사냥꾼 / 스승 / 단궁 / 기술** 완료. 현재 작업 트리는 `/Users/junheejang/Documents/Vestige/worktrees/professions-and-skills`, 브랜치 `codex/professions-and-skills`. 임시 경로에서 영구 경로로 이동했습니다. [최신 인수인계](handoffs/professions-and-skills.md)와 [전체 기능 점검표](PROJECT_STATUS.md)를 먼저 읽으세요. 아래 경로/버전은 과거 기록입니다.
+
+> 추가 요청 (2026-11-13): 직업·NPC·아이템·스킬 확장을 개발 계획에 등록했다. `PROJECT_STATUS.md`와 `DEVELOPMENT_ROADMAP.md`의 신규 확장 계획 참조. 이번 변경은 문서만이며 실행본은0.5.13 유지. 세부 후보는 미확정, 구현 전 참고 조사/승인 필요.
+
+> 최신 작업 (2026-11-13): **0.5.13 장비 거래·되사기·유료 수리**. 작업트리 `/private/tmp/vestige-gear-provenance`, 브랜치 `codex/equipment-trade-repair`. [최신 인수인계](handoffs/equipment-trade-repair.md)와 [전체 기능 점검표](PROJECT_STATUS.md)를 먼저 읽으세요.
+
+> 최신 작업 (2026-11-12): **0.5.12 방어구 강화와 도트 효과**. 실제 작업트리 `/private/tmp/vestige-gear-provenance`, 브랜치 `codex/armor-upgrades`. [최신 인수인계](handoffs/armor-upgrades.md)를 먼저 읽으세요.
+
+> 최신 작업 (2026-11-12): **0.5.11 복수 부재 제작 계획**. 실제 작업트리 `/private/tmp/vestige-gear-provenance`, 브랜치 `codex/offline-crafting-queue`. [최신 인수인계](handoffs/offline-crafting-queue.md)를 먼저 읽으세요. 아래는 초기 단계의 기록입니다.
+
 # Vestige 인계 — 2026-11-05 최신
 
 ## 사용자 의도

@@ -1,0 +1,1871 @@
+{
+  "commit": "673dd1a",
+  "autoloads": [],
+  "edges": [
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/npc_life.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/village_requests.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/foraging.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/travel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/expedition.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/professions.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/craft_supply.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/craft_plan.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/craft_mastery.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/story/chapter1_save_contract.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/village_market.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/house_interior.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/death_belongings.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/evidence_items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world_store.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/craft_plan_panel.gd",
+      "to": "desktop/craft_plan.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/craft_plan_panel.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/foraging_art.gd",
+      "to": "desktop/foraging.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/foraging.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/foraging.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/foraging.gd",
+      "to": "desktop/npc_life.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/chapter1_bridge.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/chapter1_bridge.gd",
+      "to": "desktop/story/chapter1_dialogue.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/chapter1_bridge.gd",
+      "to": "desktop/story/evidence_board_rules.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/chapter1_bridge.gd",
+      "to": "desktop/story/chapter1_rules.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/evidence_board_rules.gd",
+      "to": "desktop/story/chapter1_rules.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/chapter1_save_contract.gd",
+      "to": "desktop/story/chapter1_rules.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/chapter1_investigation.gd",
+      "to": "desktop/story/chapter1_rules.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/evidence_board_panel.gd",
+      "to": "desktop/story/evidence_board_rules.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/story/chapter1_dialogue.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/travel_panel.gd",
+      "to": "desktop/travel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/travel_panel.gd",
+      "to": "desktop/foraging.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/travel_panel.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/pixel_world.gd",
+      "to": "desktop/animation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/pixel_world.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/pixel_world.gd",
+      "to": "desktop/character_detail.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/pixel_world.gd",
+      "to": "desktop/expedition_art.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/pixel_world.gd",
+      "to": "desktop/foraging_art.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/request_panel.gd",
+      "to": "desktop/village_requests.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/house_storage.gd",
+      "to": "desktop/gear_record.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/house_storage.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/house_storage.gd",
+      "to": "desktop/house_interior.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/house_storage.gd",
+      "to": "desktop/armor_stats.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/forge_repair.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/forge_repair.gd",
+      "to": "desktop/gear_record.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_panel.gd",
+      "to": "desktop/armor_crafting.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/village_market.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/village_market.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/forge_panel.gd",
+      "to": "desktop/forge_repair.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/forge_panel.gd",
+      "to": "desktop/sword_upgrade.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/forge_panel.gd",
+      "to": "desktop/armor_upgrade.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/forge_panel.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/forge_panel.gd",
+      "to": "desktop/professions.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/forge_panel.gd",
+      "to": "desktop/professions.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/market_panel.gd",
+      "to": "desktop/village_market.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/market_panel.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/animation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/world_store.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/death_belongings.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/craft_supply.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/craft_plan.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/craft_mastery.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/armor_stats.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/armor_upgrade.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/armor_crafting.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/sword_upgrade.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/forge_repair.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/village_market.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/home_crafting.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/house_interior.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/village_requests.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/foraging.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/travel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/expedition.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/professions.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/world.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/expedition.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/expedition.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/expedition.gd",
+      "to": "desktop/armor_stats.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/village_requests.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/village_requests.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/village_requests.gd",
+      "to": "desktop/npc_life.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/travel.gd",
+      "to": "desktop/npc_life.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/travel.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/travel.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/character_detail.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_upgrade.gd",
+      "to": "desktop/armor_stats.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_upgrade.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_upgrade.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/craft_supply.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/craft_supply.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/pixel_world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/story/chapter1_bridge.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/story/evidence_board_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/sky_clock.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/request_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/travel_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/profession_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/inventory_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/storage_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/market_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/craft_plan_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/armor_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/forge_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/crafting_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/portrait.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/main.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/investigation_demo.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/evidence_items.gd",
+      "to": "desktop/house_interior.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/evidence_items.gd",
+      "to": "desktop/house_interior.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_crafting.gd",
+      "to": "desktop/armor_stats.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_crafting.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_crafting.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_crafting.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/armor_crafting.gd",
+      "to": "desktop/craft_mastery.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/investigation.gd",
+      "to": "desktop/evidence_items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/investigation.gd",
+      "to": "desktop/witness.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/investigation.gd",
+      "to": "desktop/house_interior.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/investigation.gd",
+      "to": "desktop/death_belongings.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/investigation.gd",
+      "to": "desktop/travel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/investigation.gd",
+      "to": "desktop/death_belongings.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/investigation.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_professions.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_professions.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_professions.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_armor_upgrades.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_armor_upgrades.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_armor_upgrades.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_armor_upgrades.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_dialogue_integration.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_dialogue_integration.gd",
+      "to": "desktop/story/chapter1_dialogue.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_npc_life.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_npc_life.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_npc_life.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_inventory.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_inventory.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_inventory.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_remains.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_remains.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_remains.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_save_recovery.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_save_recovery.gd",
+      "to": "desktop/world_store.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_evidence.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_evidence.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_evidence.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_port_contract.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_port_contract.gd",
+      "to": "desktop/story/chapter1_bridge.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_port_contract.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_witness.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_witness.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_witness.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_requests.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_requests.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_requests.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_requests.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_reconstruct_replay.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_reconstruct_replay.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_mastery.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_mastery.gd",
+      "to": "desktop/craft_mastery.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_mastery.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_mastery.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_armor.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_armor.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_armor.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_storage.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_storage.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_storage.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_queue.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_queue.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_queue.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_plan.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_plan.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_plan.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_foraging.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_foraging.gd",
+      "to": "desktop/foraging.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_foraging.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_foraging.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/visual_expedition.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/visual_expedition.gd",
+      "to": "desktop/expedition.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/visual_expedition.gd",
+      "to": "desktop/expedition_art.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_chapter1.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_chapter1.gd",
+      "to": "desktop/story/chapter1_bridge.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_chapter1.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_chapter1.gd",
+      "to": "desktop/story/chapter1_dialogue.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_chapter1.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_quality.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_quality.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_quality.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_interior.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_interior.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_interior.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_reconstruct_rules.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_reconstruct_rules.gd",
+      "to": "desktop/story/chapter1_bridge.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_reconstruct_rules.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_supply.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_supply.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_supply.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_queue.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_queue.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_queue.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_queue.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_board_integration.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_board_integration.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_armor_upgrade.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_armor_upgrade.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_armor_upgrade.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_crafting.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_crafting.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_crafting.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_animation.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_animation.gd",
+      "to": "desktop/animation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_plan.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_plan.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_plan.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_craft_plan.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_supply.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_supply.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_supply.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_supply.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_trade_repair.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_trade_repair.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_trade_repair.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_gear_records.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_gear_records.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_investigation.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_investigation.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_investigation.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_keyboard_modals.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_keyboard_modals.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_keyboard_modals.gd",
+      "to": "desktop/story/chapter1_dialogue.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_expedition.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_expedition.gd",
+      "to": "desktop/expedition.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_expedition.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/capture_p1h_visual.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/capture_p1h_visual.gd",
+      "to": "desktop/tests/p1h_visual_collision_overlay.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_crafting.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_crafting.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_crafting.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_crafting.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_customization.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_customization.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_market.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_market.gd",
+      "to": "desktop/village_market.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_market.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_market.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_client.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_professions.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_professions.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_quality.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_quality.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_quality.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_interior.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_interior.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_interior.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_navigation_regression.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_navigation_regression.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_navigation_regression.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_navigation_regression.gd",
+      "to": "desktop/story/chapter1_dialogue.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_foraging.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_foraging.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_foraging.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_foraging.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_investigation.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_investigation.gd",
+      "to": "desktop/investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_investigation.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_first_journey.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_market.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_market.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_market.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_requests.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_requests.gd",
+      "to": "desktop/village_requests.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_requests.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_requests.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_world.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_upgrades.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_upgrades.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_upgrades.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_input_integration.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_input_integration.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_storage.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_storage.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_storage.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_armor.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_mastery.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_mastery.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_mastery.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/p1h_visual_collision_overlay.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/p1h_visual_collision_overlay.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/p1h_visual_collision_overlay.gd",
+      "to": "desktop/story/chapter1_dialogue.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_legacy.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_legacy.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_legacy.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_travel.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_travel.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_travel.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_expedition.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_expedition.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_expedition.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_upgrade.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_upgrade.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/network_upgrade.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_save_compatibility.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_save_compatibility.gd",
+      "to": "desktop/world_store.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_save_compatibility.gd",
+      "to": "desktop/story/chapter1_save_contract.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_save_compatibility.gd",
+      "to": "desktop/story/chapter1_bridge.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_chapter1_save_compatibility.gd",
+      "to": "desktop/story/chapter1_investigation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_evidence.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_evidence.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_evidence.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_evidence.gd",
+      "to": "desktop/inventory_panel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_travel.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_travel.gd",
+      "to": "desktop/travel.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_travel.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_npc_life.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_npc_life.gd",
+      "to": "desktop/npc_life.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_npc_life.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_npc_life.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_remains.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_remains.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_remains.gd",
+      "to": "desktop/main.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_trade_repair.gd",
+      "to": "desktop/world.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_trade_repair.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_trade_repair.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_trade_repair.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/tests/test_trade_repair.gd",
+      "to": "desktop/investigation_demo.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/craft_plan.gd",
+      "to": "desktop/home_crafting.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/craft_plan.gd",
+      "to": "desktop/craft_supply.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/craft_plan.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/craft_plan.gd",
+      "to": "desktop/armor_crafting.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/sword_upgrade.gd",
+      "to": "desktop/gear_record.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/items.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/items.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/items.gd",
+      "to": "desktop/gear_record.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/items.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/items.gd",
+      "to": "desktop/armor_stats.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/items.gd",
+      "to": "desktop/gear_record.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/death_belongings.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/death_belongings.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/profession_panel.gd",
+      "to": "desktop/expedition.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/profession_panel.gd",
+      "to": "desktop/professions.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/home_crafting.gd",
+      "to": "desktop/craft_supply.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/home_crafting.gd",
+      "to": "desktop/craft_mastery.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/home_crafting.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/home_crafting.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/home_crafting.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/home_crafting.gd",
+      "to": "desktop/house_interior.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/crafting_panel.gd",
+      "to": "desktop/home_crafting.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/crafting_panel.gd",
+      "to": "desktop/craft_mastery.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/crafting_panel.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/sky_clock.gd",
+      "to": "desktop/npc_life.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/professions.gd",
+      "to": "desktop/expedition.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/professions.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/professions.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/professions.gd",
+      "to": "desktop/craft_quality.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/professions.gd",
+      "to": "desktop/animation.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/professions.gd",
+      "to": "desktop/craft_mastery.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/expedition_art.gd",
+      "to": "desktop/expedition.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/storage_panel.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/storage_panel.gd",
+      "to": "desktop/house_storage.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/storage_panel.gd",
+      "to": "desktop/death_belongings.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/house_interior.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    },
+    {
+      "from": "desktop/inventory_panel.gd",
+      "to": "desktop/items.gd",
+      "kind": "literal_script_resource"
+    }
+  ]
+}

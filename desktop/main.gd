@@ -2,6 +2,13 @@ extends Node
 
 const Rules=preload("res://world.gd")
 const PixelWorld=preload("res://pixel_world.gd")
+const Chapter1Interaction=preload("res://story/chapter1_interaction_adapter.gd")
+const Chapter1=preload("res://story/chapter1_bridge.gd")
+const Chapter1Investigation=preload("res://story/chapter1_investigation.gd")
+const Chapter1BoardPanel=preload("res://story/evidence_board_panel.gd")
+var checkpoints = preload("res://core/save_checkpoint.gd").new()
+var save_warning: Label
+var retry_save_button: Button
 var world: Dictionary={}
 var me: String="local"
 var mode: String="menu"
@@ -14,7 +21,20 @@ var menu: Control
 var view: Node2D
 var status: Label
 var inventory: Label
+var market: Panel
+var professions: Panel
+var skills_hud: Label
+var target_hud: Label
+var requests: Panel
+var travel: Panel
+var planner: Panel
+var armor_bench: Panel
+var body_stamp:=""
+var forge: Panel
+var bench: Panel
+var chest: Panel
 var bag: Panel
+var sky_clock: Control
 var date_label: Label
 var notice: Label
 var prompt: Label
@@ -22,6 +42,18 @@ var health: ProgressBar
 var stamina: ProgressBar
 var policy: OptionButton
 var panel: PanelContainer
+var chapter1_interaction_adapter_enabled := true
+var chapter1_board
+var chapter1_board_button: Button
+var chapter1_board_request_serial: int=0
+var chapter1_board_pending_request: int=0
+var chapter1_board_last_response: int=0
+var chapter1_reconstruct_recent: Dictionary={}
+var chapter1_reconstruct_seen: Dictionary={}
+var dialogue_buttons: VBoxContainer
+var dialogue_npc: String=""
+var dialogue_session_token: String=""
+var dialogue_sessions: Dictionary={}
 var panel_text: RichTextLabel
 var input_name: LineEdit
 var input_host: LineEdit
@@ -39,6 +71,8 @@ var dress_name: LineEdit
 var dressing_mode: String="create"
 var dress_status: Label
 var gear_pickers: Dictionary={}
+var weapon_stamp:=""
+var gear_record_button: Button
 
 
 func _ready() -> void:
@@ -47,6 +81,65 @@ func _ready() -> void:
 		start_server()
 		return
 	build_ui()
+	var demos: Dictionary={"requests":"requests","foraging":"foraging","life":"life","travel":"travel","expedition":"expedition","professions":"professions","trade":"trade_repair","armor-upgrade":"armor_upgrade","queue":"queue","armor":"armor","detail":"detail","upgrade":"upgrade","legacy":"legacy","supply":"supply","plan":"plan","mastery":"mastery","market":"market","quality":"quality","craft":"craft","home":"home","remains":"remains","witness":"murder","investigation":"create"}
+	for kind in demos:
+		if ("--"+kind+"-demo") not in OS.get_cmdline_user_args(): continue
+		save_path="user://"+kind+"-demo.json"
+		if not FileAccess.file_exists(save_path) and not FileAccess.file_exists(save_path+".bak"):
+			var demo=preload("res://investigation_demo.gd")
+			var opening: Dictionary={}
+			match kind:
+				"requests": opening=demo.requests()
+				"foraging": opening=demo.foraging()
+				"life": opening=demo.life()
+				"travel": opening=demo.travel()
+				"expedition": opening=demo.expedition()
+				"professions": opening=demo.professions()
+				"trade": opening=demo.trade_repair()
+				"armor-upgrade": opening=demo.armor_upgrade()
+				"queue": opening=demo.queue()
+				"armor": opening=demo.armor()
+				"detail": opening=demo.detail()
+				"upgrade": opening=demo.upgrade()
+				"legacy": opening=demo.legacy()
+				"supply": opening=demo.supply()
+				"plan": opening=demo.plan()
+				"mastery": opening=demo.mastery()
+				"market": opening=demo.market()
+				"quality": opening=demo.quality()
+				"craft": opening=demo.craft()
+				"home": opening=demo.home()
+				"remains": opening=demo.remains()
+				"witness": opening=demo.murder()
+				"investigation": opening=demo.create()
+			if not Rules.save_world(opening,save_path):
+				push_error("체험 월드를 만들 수 없습니다.")
+				return
+		start_single()
+		if mode=="single":
+			if kind=="requests": message("E로 게시판에서 의뢰를 수락하세요. 의뢰인 가까이에서 L → 납품. 기한 없이 진행하며, 완료한 다음 월드 날부터 다시 받을 수 있습니다.")
+			elif kind=="foraging": message("M에서 소하의 약초꾼 입문을 받으세요. E 채집 · 밤안개꽃은 밤8시부터 · 납품 후 집 작업대에서 조제합니다.")
+			elif kind=="life": message("안개나루의 하루 · 소하는 저녁6시에 영업을 마칩니다. 상단 하늘의 해와 달을 보세요. M 주민 활동 · E 대화.")
+			elif kind=="travel": message("E로 전령 유나에게 서신을 받고 동쪽 출구로 향하세요. M 지역 지도 · 출구 E 이동 · 안개나루 도윤에게 전달 후 귀환.")
+			elif kind=="expedition": message("E로 스승에게 원정 의뢰를 받으세요. TAB 대상 전환 · R 전리품 회수 · K 기술 준비. 북동쪽 들멧돼지, 남동쪽 망령 궁수 처치 후 귀환 보고하세요.")
+			elif kind=="professions": message("E로 스승에게 입문 과제를 받으세요. K에서 성장 경로와 준비할 기술을 확인하고, 전투에서 1 / 2로 사용합니다.")
+			elif kind=="trade": message("E로 대장간에서 손상된 갑옷을 수리하세요. 장터에서는 착용을 해제한 장비를 판매하고 되사기에서 같은 장비를 회수할 수 있습니다.")
+			elif kind=="armor-upgrade": message("E로 대장간을 열고 개별 갑옷을 선택해 강화하세요. 외형·장비에서 착용하면 단계별 빛과 방어 효과를 확인할 수 있습니다.")
+			elif kind=="queue": message("부재 중의 하루 → 제작 계획 설정. 붕대·철제 갑옷·가죽 갑옷 순서를 조정하고 생활 맡기기 후 하루 진행으로 확인하세요.")
+			elif kind=="armor": message("E → 가죽 / 철제 갑옷 제작. 외형·장비에서 갑옷의 방어·내구도와 회피 기력을 비교하세요.")
+			elif kind=="detail": message("외형·장비에서 +0~+3 철검을 비교하세요. 이동과 공격으로 세밀해진 도트와 강화 효과를 확인할 수 있습니다.")
+			elif kind=="upgrade": message("E로 대장간을 열고 철검을 선택해 비용과 강화 전후 공격력을 확인하세요.")
+			elif kind=="legacy": message("외형·장비에서 개별 철검을 선택해 착용하세요. 착용 철검 기록에서 은결의 제작 서명과 유품 회수 이력을 읽습니다.")
+			elif kind=="supply": message("E로 작업대를 열어 집 보관함의 천과 약초로 붕대를 만드세요. 완성품은 B로 확인합니다. 부재 계획에도 보관함을 설정할 수 있습니다.")
+			elif kind=="plan": message("부재 중의 하루에서 제작 계획 설정을 선택하세요. 붕대 3개를 맡기고 하루 진행으로 결과를 확인할 수 있습니다.")
+			elif kind=="mastery": message("E로 작업대를 열어 붕대 1개를 만드세요. 약초 조제가 견습으로 성장하고 확률이 바뀝니다. J에서 모든 분야를 확인합니다.")
+			elif kind=="market": message("E로 장터를 열어 재료를 사고 제작품을 판매하세요. 재고는 다음 월드 날짜에 보충됩니다.")
+			elif kind=="quality": message("I에서 일반·양품·대성공 철검의 공격력을 비교하세요. E로 작업대 제작도 가능합니다.")
+			elif kind=="craft": message("E로 작업대를 열어 제작하고 검을 수선하세요. 약초차는 벽난로 불이 필요합니다.")
+			elif kind=="home": message("가구 가까이에서 E · 서랍, 책장, 침대, 보관함, 커튼, 벽난로를 이용하세요.")
+			elif kind=="remains": message("G로 근처 여행자의 유품을 회수하세요. 집에서는 B로 보관합니다.")
+			else: message("마을 서남쪽 묘지에서 F로 조사하세요. J로 일기와 조사 수첩을 읽습니다.")
+		return
 	if "--qa" in OS.get_cmdline_user_args():
 		DisplayServer.window_set_title("Vestige QA · 독립 시험 월드")
 		save_path="user://qa-world.json"
@@ -60,11 +153,16 @@ func start_server() -> void:
 	save_path="user://shared-world.json"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--world-file="): save_path=arg.trim_prefix("--world-file=")
-	world=Rules.load_world(save_path)
 	var net:=ENetMultiplayerPeer.new()
 	var error:=net.create_server(27180,8)
 	if error!=OK:
 		push_error("Server could not open UDP 27180: %s" % error)
+		get_tree().quit(1)
+		return
+	world=Rules.load_world(save_path,false)
+	if world.is_empty():
+		net.close()
+		push_error("서버 저장을 복원할 수 없습니다: "+save_path)
 		get_tree().quit(1)
 		return
 	multiplayer.multiplayer_peer=net
@@ -72,21 +170,33 @@ func start_server() -> void:
 	print("Vestige server ready · UDP 27180 · ",ProjectSettings.globalize_path(save_path))
 
 func disconnected(peer: int) -> void:
+	dialogue_sessions.erase(peer)
+	chapter1_reconstruct_recent.erase(peer)
+	chapter1_reconstruct_seen.erase(peer)
 	if peers.has(peer):
 		world.people[peers[peer]].offline=true
 		inputs.erase(peer)
 		peers.erase(peer)
 		last_commands.erase(peer)
-		Rules.save_world(world,save_path)
+		checkpoint_current()
 
 func request_single() -> void:
-	if FileAccess.file_exists(save_path): start_single()
+	if FileAccess.file_exists(save_path) or FileAccess.file_exists(save_path+".bak"): start_single()
 	else: open_dressing("first")
 
 func start_single() -> void:
 	mode="single"
 	me="local"
 	world=Rules.load_world(save_path)
+	if world.is_empty():
+		mode="menu"
+		var dialog:=AcceptDialog.new()
+		dialog.dialog_text="월드를 불러올 수 없습니다. 저장 파일과 백업, 게임 버전 및 쓰기 권한을 확인하세요."
+		add_child(dialog)
+		dialog.close_requested.connect(dialog.queue_free)
+		dialog.confirmed.connect(dialog.queue_free)
+		dialog.popup_centered()
+		return
 	if not world.people.has(me): Rules.born(world,me,input_name.text,chosen_look)
 	world.people[me].offline=false
 	menu.hide()
@@ -109,6 +219,12 @@ func connect_world() -> void:
 	input_name.editable=false
 
 func connection_failed() -> void:
+	dialogue_session_token=""
+	dialogue_npc=""
+	chapter1_board_pending_request=0
+	if chapter1_board!=null: chapter1_board.hide()
+	if panel!=null: panel.hide()
+	if chapter1_board_button!=null: chapter1_board_button.hide()
 	mode="menu"
 	multiplayer.multiplayer_peer=null
 	ui.hide()
@@ -133,17 +249,27 @@ func register_player(token: String, display_name: String, look_json: String="{}"
 	var peer:=multiplayer.get_remote_sender_id()
 	if peers.has(peer) or peers.values().has(token): return
 	peers[peer]=token
+	chapter1_reconstruct_recent.erase(peer)
+	chapter1_reconstruct_seen.erase(peer)
 	if not world.people.has(token): Rules.born(world,token,display_name,parse_look(look_json))
 	world.people[token].offline=false
 	inputs[peer]=Vector2.ZERO
 	send_snapshot(peer)
+	if checkpoints.pending(save_path) and can_send_to_peer(peer):
+		remote_message.rpc_id(peer,"서버에 미저장 내용이 있습니다. 자동 저장으로 재시도 중입니다.")
+
+func can_send_to_peer(peer: int) -> bool:
+	return mode=="server" and peers.has(peer) and multiplayer.multiplayer_peer!=null and peer in multiplayer.get_peers()
 
 func send_snapshot(peer: int) -> void:
+	if not can_send_to_peer(peer): return
 	var snapshot: Dictionary=world.duplicate(true)
+	Rules.Investigation.redact(snapshot,peers[peer])
 	for id in snapshot.people:
 		if id!=peers[peer]:
 			snapshot.people[id].journal=[]
 			snapshot.people[id].events=[]
+			snapshot.people[id].erase("story")
 	# Network IDs are session-scoped; don't send other players' identity secrets.
 	var people: Dictionary={}
 	for id in snapshot.people:
@@ -164,6 +290,12 @@ func receive_snapshot(snapshot: Dictionary, identity: String) -> void:
 func movement(direction: Vector2) -> void:
 	var peer:=multiplayer.get_remote_sender_id()
 	if mode=="server" and peers.has(peer) and direction.is_finite():
+		if dialogue_sessions.has(peer):
+			var session: Dictionary=dialogue_sessions[peer]
+			if Time.get_ticks_msec()<=int(session.expires_at) and Chapter1.allowed(world,peers[peer]) and String(world.people[peers[peer]].get("life",""))==String(session.life_id):
+				inputs[peer]=Vector2.ZERO
+				return
+			dialogue_sessions.erase(peer)
 		inputs[peer]=direction.limit_length()
 
 @rpc("any_peer","call_remote","reliable")
@@ -175,9 +307,15 @@ func command(kind: String, value: String="") -> void:
 	last_commands[peer]=now
 	var id: String=peers[peer]
 	if kind=="new":
+		dialogue_sessions.erase(peer)
 		Rules.born(world,id,value.get_slice("|",0),parse_look(value.get_slice("|",1)))
+	elif kind=="chapter1_inspect":
+		var inspection_report: String=inspect_chapter1(id,value).message
+		if can_send_to_peer(peer): remote_message.rpc_id(peer,inspection_report)
+		checkpoint_current()
 	else:
-		remote_message.rpc_id(peer,Rules.act(world,id,kind,value))
+		var action_report: String=Rules.act(world,id,kind,value)
+		if can_send_to_peer(peer): remote_message.rpc_id(peer,action_report)
 	send_snapshot(peer)
 
 @rpc("authority","call_remote","reliable")
@@ -189,20 +327,201 @@ func perform(kind: String, value: String="") -> void:
 		command.rpc_id(1,kind,value)
 	elif mode=="single":
 		if kind=="new": Rules.born(world,me,dress_name.text,chosen_look)
+		elif kind=="chapter1_inspect": message(inspect_chapter1(me,value).message)
 		else: message(Rules.act(world,me,kind,value))
-		Rules.save_world(world,save_path)
+		checkpoint_current()
 		refresh()
+
+## A dialogue session lives only on the server; clients cannot choose its NPC or legal options.
+@rpc("any_peer","call_remote","reliable")
+func chapter1_dialogue_open() -> void:
+	if mode!="server": return
+	var peer: int=multiplayer.get_remote_sender_id()
+	if not peers.has(peer): return
+	var player_id: String=peers[peer]
+	var now: int=Time.get_ticks_msec()
+	if now-int(last_commands.get(peer,0))<250: return
+	last_commands[peer]=now
+	var npc_id: String=Chapter1.nearby_npc(world,player_id)
+	if npc_id.is_empty(): return
+	var reply: Dictionary=Chapter1.talk(world,player_id,npc_id)
+	if reply.is_empty(): return
+	var token: String=Crypto.new().generate_random_bytes(12).hex_encode()
+	var choices: Array=[]
+	for item in reply.choices: choices.append(String(item.id))
+	dialogue_sessions[peer]={"token":token,"npc_id":npc_id,"life_id":String(world.people[player_id].get("life","")),"expires_at":Time.get_ticks_msec()+60000,"choices":choices}
+	inputs[peer]=Vector2.ZERO
+	if can_send_to_peer(peer): chapter1_dialogue_reply.rpc_id(peer,reply,token)
+	checkpoint_current()
+
+@rpc("any_peer","call_remote","reliable")
+func chapter1_dialogue_choose(token: String, choice: String) -> void:
+	if mode!="server": return
+	var peer: int=multiplayer.get_remote_sender_id()
+	if not peers.has(peer) or not dialogue_sessions.has(peer): return
+	var session: Dictionary=dialogue_sessions[peer]
+	if token!=session.token or token.is_empty(): return
+	var player_id: String=peers[peer]
+	if Time.get_ticks_msec()>int(session.expires_at) or not Chapter1.allowed(world,player_id) or String(world.people[player_id].get("life",""))!=String(session.life_id) or Chapter1.nearby_npc(world,player_id)!=String(session.npc_id):
+		dialogue_sessions.erase(peer)
+		return
+	if not choice in session.choices: return
+	if choice=="leave":
+		dialogue_sessions.erase(peer)
+		return
+	var reply: Dictionary=Chapter1.talk(world,player_id,String(session.npc_id),choice,String(session.npc_id))
+	if reply.is_empty(): return
+	var choices: Array=[]
+	for item in reply.choices: choices.append(String(item.id))
+	session.choices=choices
+	session.expires_at=Time.get_ticks_msec()+60000
+	dialogue_sessions[peer]=session
+	if can_send_to_peer(peer): chapter1_dialogue_reply.rpc_id(peer,reply,token)
+	checkpoint_current()
+
+@rpc("any_peer","call_remote","reliable")
+func chapter1_dialogue_end(token: String) -> void:
+	if mode!="server": return
+	var peer: int=multiplayer.get_remote_sender_id()
+	if dialogue_sessions.has(peer) and dialogue_sessions[peer].token==token:
+		dialogue_sessions.erase(peer)
+
+@rpc("authority","call_remote","reliable")
+func chapter1_dialogue_reply(reply: Dictionary, token: String) -> void:
+	if mode!="client" or reply.is_empty(): return
+	show_chapter1_dialogue(reply,token)
+
+func start_chapter1_dialogue() -> void:
+	if not Chapter1.allowed(world,me): return
+	var npc_id: String=Chapter1.nearby_npc(world,me)
+	if npc_id.is_empty(): return
+	if mode=="client":
+		chapter1_dialogue_open.rpc_id(1)
+	elif mode=="single":
+		var reply: Dictionary=Chapter1.talk(world,me,npc_id)
+		if reply.is_empty(): return
+		show_chapter1_dialogue(reply,"")
+		checkpoint_current()
+		refresh()
+
+func choose_chapter1_option(choice: String) -> void:
+	if dialogue_npc.is_empty(): return
+	if choice=="leave":
+		finish_chapter1_dialogue()
+		return
+	if mode=="client":
+		if not dialogue_session_token.is_empty():
+			chapter1_dialogue_choose.rpc_id(1,dialogue_session_token,choice)
+	elif mode=="single":
+		if Chapter1.nearby_npc(world,me)!=dialogue_npc: 
+			finish_chapter1_dialogue()
+			return
+		var reply: Dictionary=Chapter1.talk(world,me,dialogue_npc,choice,dialogue_npc)
+		if reply.is_empty(): return
+		show_chapter1_dialogue(reply,"")
+		checkpoint_current()
+		refresh()
+
+func show_chapter1_dialogue(reply: Dictionary, token: String) -> void:
+	show_pages(String(reply.get("name","주민"))+" · 대화\n────────────────────\n\n"+String(reply.get("text","")))
+	dialogue_npc=String(reply.npc_id)
+	dialogue_session_token=token
+	for choice in reply.get("choices",[]):
+		var choice_id: String=String(choice.id)
+		var button:=Button.new()
+		button.text=String(choice.text)
+		button.pressed.connect(func(): choose_chapter1_option(choice_id))
+		dialogue_buttons.add_child(button)
+	dialogue_buttons.show()
+
+func finish_chapter1_dialogue() -> void:
+	if mode=="client" and not dialogue_session_token.is_empty():
+		chapter1_dialogue_end.rpc_id(1,dialogue_session_token)
+	dialogue_session_token=""
+	dialogue_npc=""
+	if dialogue_buttons!=null:
+		dialogue_buttons.hide()
+	panel.hide()
+
+## Pure peer/request gate is separated from the network wrapper so rejections can be tested.
+## Only the authoritative server calls this; caller passes a server-owned peer ID.
+func evaluate_chapter1_reconstruct_request(peer: int, first: String, second: String, request_id: int, now: int) -> Dictionary:
+	if mode!="server" or not peers.has(peer):
+		return {"accepted":false,"text":"등록되지 않은 조사자입니다."}
+	if request_id<=0 or request_id<=int(chapter1_reconstruct_seen.get(peer,0)):
+		return {"accepted":false,"text":"중복되거나 오래된 요청입니다."}
+	chapter1_reconstruct_seen[peer]=request_id
+	if now-int(chapter1_reconstruct_recent.get(peer,-100000))<100:
+		return {"accepted":false,"text":"조금 뒤에 다시 조합해 주세요."}
+	chapter1_reconstruct_recent[peer]=now
+	if first.length()>8 or second.length()>8:
+		return {"accepted":false,"text":"잘못된 증거 식별자입니다."}
+	return Chapter1.reconstruct(world,String(peers[peer]),first,second)
+
+## The client sends only logical evidence IDs; server resolves peer ownership and replies to every valid request.
+@rpc("any_peer","call_remote","reliable")
+func chapter1_reconstruct(first: String, second: String, request_id: int) -> void:
+	if mode!="server": return
+	var peer: int=multiplayer.get_remote_sender_id()
+	if not peers.has(peer) or request_id<=0: return
+	var result: Dictionary=evaluate_chapter1_reconstruct_request(peer,first,second,request_id,Time.get_ticks_msec())
+	if can_send_to_peer(peer): chapter1_reconstruct_reply.rpc_id(peer,request_id,result)
+	if result.get("accepted",false):
+		checkpoint_current()
+		send_snapshot(peer)
+
+@rpc("authority","call_remote","reliable")
+func chapter1_reconstruct_reply(request_id: int, result: Dictionary) -> void:
+	if mode!="client" or request_id!=chapter1_board_pending_request or request_id<=chapter1_board_last_response: return
+	chapter1_board_last_response=request_id
+	chapter1_board_pending_request=0
+	if chapter1_board!=null:
+		chapter1_board.set_feedback(String(result.get("text","응답이 없습니다.")))
+
+func submit_chapter1_combination(first: String, second: String) -> void:
+	if chapter1_board==null or not chapter1_board.visible: return
+	if first==second or first.is_empty() or second.is_empty(): return
+	if mode=="client":
+		if chapter1_board_pending_request>0: return
+		chapter1_board_request_serial+=1
+		chapter1_board_pending_request=chapter1_board_request_serial
+		chapter1_board.set_feedback("서버에서 증거 출처를 확인하고 있습니다.")
+		chapter1_reconstruct.rpc_id(1,first,second,chapter1_board_pending_request)
+	elif mode=="single":
+		var result: Dictionary=Chapter1.reconstruct(world,me,first,second)
+		chapter1_board.set_feedback(String(result.get("text","")))
+		if result.get("accepted",false):
+			checkpoint_current()
+			refresh()
+
+func open_chapter1_board() -> void:
+	if not mode in ["single","client"] or world.is_empty() or not world.people.has(me): return
+	if not Chapter1.allowed(world,me):
+		message("현재 잿불 마을에 있는 살아 있는 인물만 사건 재구성을 검증할 수 있습니다.")
+		return
+	if chapter1_board==null: return
+	chapter1_board_pending_request=0
+	Chapter1.prepare_person(world.people[me])
+	chapter1_board.open_for(world.people[me])
+	chapter1_board_button.hide()
+	panel.hide()
+
+func close_chapter1_board() -> void:
+	if chapter1_board==null or not chapter1_board.visible: return
+	chapter1_board.hide()
+	chapter1_board_pending_request=0
+	open_chapter1_notebook()
 
 func _physics_process(dt: float) -> void:
 	if mode in ["menu","connecting"]: return
-	if mode=="single" and (panel.visible or dressing.visible or bag.visible): return
+	if mode=="single" and (chapter1_board.visible or panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible or requests.visible): return
 	if mode=="server":
 		for peer in inputs:
 			Rules.move(world,peers[peer],inputs[peer],dt)
 		Rules.tick(world,dt)
 	else:
 		var d:=Vector2.ZERO
-		if not panel.visible and not dressing.visible and not bag.visible:
+		if not chapter1_board.visible and not panel.visible and not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible and not travel.visible and not requests.visible:
 			d=Vector2(float(Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT))-float(Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)),float(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))-float(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))).limit_length()
 		if mode=="single":
 			Rules.move(world,me,d,dt)
@@ -222,40 +541,145 @@ func _physics_process(dt: float) -> void:
 		save_clock+=dt
 		if save_clock>10:
 			save_clock=0
-			Rules.save_world(world,save_path)
+			checkpoint_current()
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo: return
 	if not mode in ["single","client"]: return
 	if event.keycode==KEY_ESCAPE:
-		panel.hide()
+		if chapter1_board.visible:
+			close_chapter1_board()
+			return
+		finish_chapter1_dialogue()
 		dressing.hide()
 		bag.hide()
+		chest.hide()
+		travel.hide()
+		requests.hide()
+		professions.hide()
+		armor_bench.hide()
+		forge.hide()
+		market.hide()
+		planner.hide()
+		bench.hide()
+		return
+	if event.physical_keycode==KEY_N:
+		if chapter1_board.visible:
+			close_chapter1_board()
+			return
+		if panel.visible: finish_chapter1_dialogue()
+		elif not dressing.visible and not bag.visible and not chest.visible and not planner.visible and not bench.visible and not market.visible and not forge.visible and not armor_bench.visible and not professions.visible and not travel.visible and not requests.visible:
+			open_chapter1_notebook()
+		return
+	if chapter1_board.visible: return
+	# Paper notebook, journal, library and conversations are exclusive modals.
+	# Keep G's in-panel death-investigation 1/2 choices functional.
+	if panel.visible:
+		if panel_text.text.contains("지목할 이를 고르세요") and event.physical_keycode in [KEY_1,KEY_2]:
+			perform("identify","1" if event.physical_keycode==KEY_1 else "2")
+		return
+	if event.physical_keycode==KEY_L:
+		if requests.visible: requests.hide()
+		else: open_requests()
+		return
+	if event.physical_keycode==KEY_M:
+		if travel.visible: travel.hide()
+		else: open_travel()
+		return
+	if event.physical_keycode==KEY_K:
+		if professions.visible: professions.hide()
+		else: open_professions()
+		return
+	if event.physical_keycode==KEY_G:
+		if chest.visible and chest.remains_mode: chest.hide()
+		else: open_storage(true)
+		return
+	if event.physical_keycode==KEY_B:
+		if chest.visible and not chest.remains_mode: chest.hide()
+		else: open_storage()
 		return
 	if event.physical_keycode==KEY_I:
 		if bag.visible: bag.hide()
 		else: open_inventory()
 		return
-	if panel.visible or dressing.visible or bag.visible: return
+	if chapter1_board.visible or panel.visible or dressing.visible or bag.visible or chest.visible or planner.visible or bench.visible or market.visible or forge.visible or armor_bench.visible or professions.visible or travel.visible or requests.visible: return
 	match event.physical_keycode:
+		KEY_R: perform("take_field_loot")
+		KEY_1: perform("use_skill","0")
+		KEY_2: perform("use_skill","1")
 		KEY_E: interact()
+		KEY_T: start_chapter1_dialogue()
+		KEY_F: perform("investigate")
 		KEY_SPACE: perform("attack")
 		KEY_SHIFT: perform("dodge")
 		KEY_Q: perform("heal")
 		KEY_J: open_journal()
 
+## Every active-world writer uses the same runtime save-status owner.
+func checkpoint_current() -> bool:
+	var was_pending: bool = checkpoints.pending(save_path)
+	var ok: bool = checkpoints.attempt(world, save_path, mode, Rules.save_world)
+	update_save_warning()
+	if mode == "server" and checkpoints.pending(save_path) != was_pending:
+		var report := "서버 저장에 실패했습니다. 진행 내용은 메모리에 유지되며 자동 저장으로 재시도합니다." if not ok else "서버의 미저장 내용을 저장했습니다."
+		for peer in peers:
+			if can_send_to_peer(peer): remote_message.rpc_id(peer, report)
+	return ok
+
+func retry_checkpoint() -> void:
+	if mode != "single" or not checkpoints.pending(save_path): return
+	if checkpoint_current(): message("미저장 내용을 저장했습니다.")
+
+func update_save_warning() -> void:
+	if save_warning == null: return
+	var pending: bool = mode == "single" and checkpoints.pending(save_path)
+	save_warning.visible = pending
+	retry_save_button.visible = pending
+
+## Actor comes from local identity or server peers, never payload.
+## recorded is in-memory discovery, not a durable save or a Core event.
+func inspect_chapter1(actor: String, target: String) -> Dictionary:
+	if not chapter1_interaction_adapter_enabled:
+		if mode not in ["single", "server"]: return {"recorded":false, "message":"권한이 없는 조사 요청입니다."}
+		var existed := Chapter1Investigation.has_evidence(world.people.get(actor, {}), target)
+		var report := Chapter1.inspect(world, actor, target)
+		return {"recorded":not existed and Chapter1Investigation.has_evidence(world.people.get(actor, {}), target), "message":report}
+	var life: String = world.get("people", {}).get(actor, {}).get("life", "")
+	return Chapter1Interaction.execute(world, actor, target, mode, life)
+
 func interact() -> void:
-	var t:=Rules.nearby(world.people[me])
-	if t.get("kind","")=="library": open_library()
+	var candidate: Dictionary = Chapter1Interaction.candidate(world,me) if chapter1_interaction_adapter_enabled else {}
+	if not chapter1_interaction_adapter_enabled and Chapter1.allowed(world,me):
+		var legacy_id: String = Chapter1Investigation.nearby(world.people[me])
+		if not legacy_id.is_empty(): candidate = {"target_id":legacy_id}
+	if not candidate.is_empty():
+		perform("chapter1_inspect",candidate.target_id)
+		return
+	if Rules.Interior.inside(world.people[me]):
+		perform("interact")
+		return
+	var t:=Rules.nearby(world.people[me],world.time)
+	# Existing facilities and mentors take priority on E; T always addresses a nearby story NPC.
+	if t.is_empty() and Chapter1.allowed(world,me) and not Chapter1.nearby_npc(world,me).is_empty():
+		start_chapter1_dialogue()
+		return
+	if t.get("kind","")=="home": perform("enter_home")
+	elif t.get("kind","") in Rules.Professions.Mentors: open_professions(t.kind)
+	elif t.get("kind","")=="forge": open_forge()
+	elif t.get("kind","")=="library": open_library()
 	elif t.get("kind","")=="grave": open_graves()
 	else: perform("interact")
 
 func _notification(what: int) -> void:
 	if what==NOTIFICATION_WM_CLOSE_REQUEST:
 		if mode=="single":
+			var was_offline: bool=world.people[me].offline
 			world.people[me].offline=true
-			Rules.save_world(world,save_path)
-		if mode=="server": Rules.save_world(world,save_path)
+			if not checkpoint_current():
+				world.people[me].offline=was_offline
+				message("저장하지 못했습니다. 미저장 상태를 확인하고 저장 재시도 후 다시 종료하세요.")
+				return
+		if mode=="server" and not checkpoint_current(): return
 		get_tree().quit()
 
 func label_at(parent: Node,text: String,at: Vector2,size: int=16,color: Color=Color("c5c7b6")) -> Label:
@@ -300,7 +724,7 @@ func build_ui() -> void:
 	label_at(menu,"V E S T I G E",Vector2(90,100),64,Color("e1d1a3"))
 	label_at(menu,"잿불의 기록",Vector2(95,183),24)
 	label_at(menu,"당신이 떠난 뒤에도,\n이곳의 삶은 계속된다.",Vector2(95,260),30)
-	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.3.1 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
+	label_at(menu,"검을 만들고, 숲을 건너고, 살아온 날들을 책으로 남기세요.\n설치형 도트 시제품 0.5.19 · Steam 출시를 향한 첫 여정",Vector2(95,365),17)
 	input_name=LineEdit.new()
 	input_name.text="에단"
 	input_name.max_length=20
@@ -318,30 +742,36 @@ func build_ui() -> void:
 	label_at(menu,"싱글은 인터넷 없이 실행됩니다. 공유 세계는 별도 서버가 필요합니다.",Vector2(95,637),14,Color("899a8b"))
 	# Decorative pixel scene on the title screen, using the same original art.
 	var title_view:=SubViewport.new()
-	title_view.size=Vector2i(480,320)
+	title_view.size=Vector2i(960,640)
 	title_view.render_target_update_mode=SubViewport.UPDATE_ALWAYS
 	var title_art:=PixelWorld.new()
 	title_view.add_child(title_art)
 	var title_container:=SubViewportContainer.new()
 	title_container.position=Vector2(600,160)
-	title_container.scale=Vector2(1.2,1.2)
+	title_container.scale=Vector2(0.6,0.6)
 	title_container.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	menu.add_child(title_container)
 	title_container.add_child(title_view)
+	title_view.canvas_transform=Transform2D(0,Vector2(2,2),0,Vector2.ZERO)
 	ui=Control.new()
 	root.add_child(ui)
 	ui.hide()
 	label_at(ui,"V E S T I G E",Vector2(24,17),27,Color("dccb9b"))
-	date_label=label_at(ui,"",Vector2(600,24),16)
+	skills_hud=label_at(ui,"",Vector2(24,54),15)
+	target_hud=label_at(ui,"",Vector2(880,54),14)
+	date_label=label_at(ui,"",Vector2(880,16),14)
+	sky_clock=preload("res://sky_clock.gd").new()
+	ui.add_child(sky_clock)
 	var container:=SubViewportContainer.new()
 	container.position=Vector2(16,80)
-	container.scale=Vector2(2,2)
+	container.scale=Vector2.ONE
 	container.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	ui.add_child(container)
 	var viewport:=SubViewport.new()
-	viewport.size=Vector2i(480,320)
+	viewport.size=Vector2i(960,640)
 	viewport.render_target_update_mode=SubViewport.UPDATE_ALWAYS
 	container.add_child(viewport)
+	viewport.canvas_transform=Transform2D(0,Vector2(2,2),0,Vector2.ZERO)
 	view=PixelWorld.new()
 	viewport.add_child(view)
 	status=label_at(ui,"",Vector2(1000,88),19)
@@ -364,10 +794,13 @@ func build_ui() -> void:
 	button_at(ui,"외형 · 장비",Vector2(1130,321),120,func(): open_dressing("gear"))
 	label_at(ui,"부재 중의 하루",Vector2(1000,365),21,Color("d2bd89"))
 	policy=OptionButton.new()
-	for text in ["휴식과 치료","대장간 제작","근교 약초 채집","기본기 수련"]: policy.add_item(text)
+	policy.allow_reselect=true
+	for text in ["휴식과 치료","대장간 제작","근교 약초 채집","기본기 수련","제작 계획 설정…"]: policy.add_item(text)
 	policy.position=Vector2(1000,410)
 	policy.size=Vector2(250,36)
-	policy.item_selected.connect(func(index): perform("policy",["rest","work","gather","train"][index]))
+	policy.item_selected.connect(func(index):
+		if index==4: open_planner()
+		else: perform("policy",["rest","work","gather","train"][index]))
 	ui.add_child(policy)
 	button_at(ui,"생활 맡기기",Vector2(1000,460),120,func(): perform("leave"))
 	button_at(ui,"직접 조종",Vector2(1130,460),120,func(): perform("resume"))
@@ -375,13 +808,16 @@ func build_ui() -> void:
 	day_button=button_at(ui,"실험 · 하루 진행",Vector2(1000,558),250,func():
 		if mode=="single":
 			Rules.advance(world,Rules.DAY)
-			Rules.save_world(world,save_path)
+			checkpoint_current()
 			message("하루가 흘렀습니다. J로 일기를 확인하세요.")
 			refresh())
 	new_button=button_at(ui,"새로운 삶 시작",Vector2(1000,606),250,func(): open_dressing("new"))
-	label_at(ui,"WASD  이동   E  상호작용\nSPACE  공격   SHIFT  회피\nQ  약초 사용   J  일기",Vector2(1000,670),14,Color("8fa394"))
+	label_at(ui,"WASD 이동   E 상호작용\nT 주민 대화   N 조사 수첩\nSPACE 공격   SHIFT 회피\nF 사망 조사   J 나의 일기\nL 의뢰   M 지도   Q 약초",Vector2(1000,652),13,Color("8fa394"))
 	prompt=label_at(ui,"",Vector2(30,730),16,Color("dfcd97"))
 	notice=label_at(ui,"",Vector2(30,762),14)
+	save_warning=label_at(ui,"저장 실패 · 진행 내용이 아직 저장되지 않았습니다",Vector2(30,700),14,Color("ffcc88"))
+	retry_save_button=button_at(ui,"저장 재시도",Vector2(750,680),180,retry_checkpoint)
+	update_save_warning()
 	panel=PanelContainer.new()
 	panel.position=Vector2(230,100)
 	panel.size=Vector2(820,590)
@@ -394,7 +830,7 @@ func build_ui() -> void:
 	panel.add_child(column)
 	var close:=Button.new()
 	close.text="기록 덮기 · ESC"
-	close.pressed.connect(func(): panel.hide())
+	close.pressed.connect(finish_chapter1_dialogue)
 	column.add_child(close)
 	panel_text=RichTextLabel.new()
 	panel_text.bbcode_enabled=false
@@ -402,33 +838,130 @@ func build_ui() -> void:
 	panel_text.add_theme_font_size_override("normal_font_size",18)
 	panel_text.size_flags_vertical=Control.SIZE_EXPAND_FILL
 	column.add_child(panel_text)
+	chapter1_board_button=Button.new()
+	chapter1_board_button.text="제1장 · 증거 두 개 조합하기"
+	chapter1_board_button.pressed.connect(open_chapter1_board)
+	column.add_child(chapter1_board_button)
+	chapter1_board_button.hide()
+	dialogue_buttons=VBoxContainer.new()
+	column.add_child(dialogue_buttons)
+	dialogue_buttons.hide()
 	panel.hide()
+	chapter1_board=Chapter1BoardPanel.new()
+	root.add_child(chapter1_board)
+	chapter1_board.combination_requested.connect(submit_chapter1_combination)
+	chapter1_board.close_requested.connect(close_chapter1_board)
+	chapter1_board.hide()
+	requests=preload("res://request_panel.gd").new()
+	root.add_child(requests)
+	requests.action.connect(perform)
+	travel=preload("res://travel_panel.gd").new()
+	root.add_child(travel)
+	travel.action.connect(perform)
+	professions=preload("res://profession_panel.gd").new()
+	root.add_child(professions)
+	professions.action.connect(perform)
 	build_dressing(root)
 	bag=preload("res://inventory_panel.gd").new()
 	root.add_child(bag)
 	bag.action.connect(perform)
+	chest=preload("res://storage_panel.gd").new()
+	root.add_child(chest)
+	chest.action.connect(perform)
+	market=preload("res://market_panel.gd").new()
+	root.add_child(market)
+	market.action.connect(perform)
+	planner=preload("res://craft_plan_panel.gd").new()
+	root.add_child(planner)
+	planner.action.connect(perform)
+	armor_bench=preload("res://armor_panel.gd").new()
+	root.add_child(armor_bench)
+	armor_bench.action.connect(perform)
+	forge=preload("res://forge_panel.gd").new()
+	root.add_child(forge)
+	forge.action.connect(perform)
+	bench=preload("res://crafting_panel.gd").new()
+	root.add_child(bench)
+	bench.action.connect(perform)
 
 func refresh() -> void:
+	update_save_warning()
 	if world.is_empty() or not world.people.has(me): return
+	sky_clock.refresh(world.time)
 	var p: Dictionary=world.people[me]
 	if dressing.visible and dressing_mode=="gear":
 		portrait.person=p
-		dress_status.text="철검 착용 중 · 공격력 22" if p.equipment.weapon=="iron_sword" else "맨손 · 공격력 9"
-		for slot in gear_pickers: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
+		dress_status.text="공격력 %d · 물리 피해 감소 %d · 회피 기력 %d" % [Rules.weapon_damage(p),Rules.Armor.defense(p),Rules.Armor.dodge_cost(p)]
+		for slot in gear_pickers:
+			if slot not in ["weapon","body"]: gear_pickers[slot].select(Rules.GEAR[slot].find(p.equipment[slot]))
+		refresh_weapon_picker(p)
+		refresh_body_picker(p)
+	if travel.visible: travel.refresh(world,p)
+	if requests.visible: requests.refresh(world,p)
+	if professions.visible: professions.refresh(p)
+	var skill_text: Array[String]=["K · 성장과 기술"]
+	for i in range(2):
+		var id: String=p.skill_slots[i]
+		if id.is_empty(): skill_text.append("[%d] 미준비" % (i+1)); continue
+		var skill: Dictionary=Rules.Professions.SKILLS[id]
+		var state: String="%.1f초" % p.skill_cooldowns[id] if p.skill_cooldowns[id]>0 else ("준비" if p.equipment.weapon==Rules.Professions.Mentors[skill.field].weapon else "무기 필요")
+		skill_text.append("[%d] %s · 기력%d · %s" % [i+1,skill.name,skill.cost,state])
+	skills_hud.text="    |    ".join(skill_text)
+	var target:=Rules.Expedition.selected(world,p)
+	target_hud.text="TAB · 대상 없음" if target.is_empty() else "TAB · %s · 체력 %d" % [Rules.Expedition.title(target),Rules.Expedition.all(world)[target].hp]
 	if bag.visible: bag.refresh(p)
+	if chest.visible: chest.refresh(world,p)
+	if planner.visible: planner.refresh(world,p)
+	if armor_bench.visible: armor_bench.refresh(world,p)
+	if forge.visible: forge.refresh(world,p)
+	if bench.visible: bench.refresh(world,p)
+	if market.visible: market.refresh(world,p)
 	view.world=world
 	view.player_id=me
 	status.text="%s\n%s · %d세" % [p.name,"주민으로 생활 중" if p.offline else "직접 조종 중",int(p.age/360)]
 	if not p.alive: status.text=p.name+"\n삶을 마쳤습니다"
 	health.value=p.hp
 	stamina.value=p.stamina
-	inventory.text="체력 %d / 100\n철광석     %d\n달빛 약초  %d\n철검       %d\n유물       %d\n은화       %d   ·   숙련 %d" % [p.hp,p.ore,p.herb,p.sword,p.relic,p.gold,p.skill]
-	date_label.text="잿불 마을   /   제 %d일   /   %s" % [int(world.time/Rules.DAY)+1,"나만의 세계" if mode=="single" else "공유 세계"]
-	policy.select(["rest","work","gather","train"].find(p.policy))
+	inventory.text="체력 %d / 100\n철광석     %d\n달빛 약초  %d\n철검       %d\n유물       %d\n은화       %d   ·   기초 숙련 %d" % [p.hp,p.ore,p.herb,p.sword,p.relic,p.gold,p.skill]
+	date_label.text=(Rules.Travel.NAMES[Rules.Travel.region(p)]+" · 제 %d일\n%s · "+Rules.Travel.Life.phase(world.time)) % [int(world.time/Rules.DAY)+1,"나만의 세계" if mode=="single" else "공유 세계"]
+	policy.select(["rest","work","gather","train","plan"].find(p.policy))
 	day_button.visible=mode=="single"
 	new_button.visible=not p.alive
-	var t:=Rules.nearby(p)
+	var t:=Rules.nearby(p,world.time)
 	prompt.text="E · "+t.name if not t.is_empty() else ("여정 완료 · 서재에서 이렌의 기록을 읽어보세요." if p.relic>0 else "첫 여정 · 동쪽 철광맥 → 대장간 → 예배당")
+
+	for id in Rules.Requests.JOBS:
+		var job: Dictionary=Rules.Requests.JOBS[id]
+		if p.requests[id].state!="active" or p.get("room","village")!=job.region: continue
+		var npc:=Rules.Requests.actor(world,id)
+		if Vector2(p.x,p.y).distance_to(Vector2(npc.x,npc.y))<1.9:
+			prompt.text+=" · L 의뢰 납품"
+			break
+	if t.get("kind")=="forage":
+		var why:=Rules.Forage.reason(world,p,t.id)
+		if not why.is_empty(): prompt.text="E · "+t.name+" · "+why
+	if not Rules.Expedition.nearby_loot(world,p).is_empty(): prompt.text="R · 현장 전리품 회수 (소지 한도 초과분은 현장 보존)"
+	if t.get("kind")=="forge": prompt.text="E · 대장간 제작 / 강화 · "+Rules.Mastery.progress(p,"smithing")+"  |  "+Rules.Mastery.rate_text(p,"smithing")+" · 완성 경험치 +%d" % Rules.Mastery.gain(p,"iron_sword")
+	if t.get("kind")=="home" and world.estate.owner!="": prompt.text="E · 언덕집 들어가기   B · 보관함"
+	if t.get("kind") in ["home","grave"] or not Rules.Investigation.traces(world,p).is_empty():
+		prompt.text+="   F · 흔적 조사"
+	elif Rules.Investigation.has_witness(world) and Rules.Investigation.near(p,Rules.Investigation.Witness.STATION): prompt.text="F · 등불지기 미라에게 묻기"
+
+	if not Rules.Remains.visible(world,p).is_empty(): prompt.text+="   G · 유품 회수"
+
+	if Chapter1.allowed(world,me):
+		var clue_id: String=Chapter1Investigation.nearby(p)
+		if not clue_id.is_empty(): prompt.text="E · 제1장 증거 조사 · "+Chapter1Investigation.EVIDENCE[clue_id].title+"   N · 조사 수첩"
+		elif not Chapter1.nearby_npc(world,me).is_empty():
+			var npc_id: String=Chapter1.nearby_npc(world,me)
+			var npc_name: String=String(Chapter1.Dialogue.NPCS[npc_id].name)
+			prompt.text=("E/T · "+npc_name+"와 대화") if t.is_empty() else (prompt.text+"   T · "+npc_name+"와 대화")
+
+	if Rules.Interior.inside(p):
+		var furniture:=Rules.Interior.nearby(p)
+		prompt.text="E · "+Rules.Interior.OBJECTS[furniture].name if not furniture.is_empty() else "언덕집 · 가구 가까이에서 E / 아래쪽 문으로 나가기"
+		if not Rules.Remains.visible(world,p).is_empty(): prompt.text+="   G · 유품 회수"
+		date_label.text="언덕집 내부 · 제 %d일" % [int(world.time/Rules.DAY)+1]
 
 func style_meter(bar: ProgressBar, color: Color) -> void:
 	var background:=StyleBoxFlat.new()
@@ -440,25 +973,72 @@ func style_meter(bar: ProgressBar, color: Color) -> void:
 
 func message(text: String) -> void:
 	if text.is_empty(): return
-	if text=="서재": open_library()
+	if text.begins_with("조사 기록\n"): show_pages(text)
+	elif text=="마을 의뢰": open_requests(true)
+	elif text in ["지역 지도","나루 물자"]: open_travel()
+	elif text=="방어구 제작": open_armor()
+	elif text=="장터": open_market()
+	elif text=="작업대": open_crafting()
+	elif text=="보관함": open_storage()
+	elif text=="서재": open_library()
 	elif text=="묘지": open_graves()
 	else:
 		notice.text=text
 		if bag.visible: bag.feedback.text=text
+		if chest.visible: chest.feedback.text=text
+		if bench.visible: bench.feedback.text=text
+		if planner.visible: planner.feedback.text=text
+		if market.visible: market.feedback.text=text
+		if armor_bench.visible: armor_bench.feedback.text=text
+		if requests.visible: requests.feedback.text=text
+		if travel.visible: travel.feedback.text=text
+		if professions.visible: professions.feedback.text=text
+		if forge.visible: forge.feedback.text=text
 
 func show_pages(text: String) -> void:
+	if chapter1_board!=null: chapter1_board.hide()
+	if chapter1_board_button!=null: chapter1_board_button.hide()
+	travel.hide()
+	requests.hide()
+	professions.hide()
+	armor_bench.hide()
+	forge.hide()
+	market.hide()
+	planner.hide()
+	bench.hide()
 	bag.hide()
+	chest.hide()
 	dressing.hide()
+	if dialogue_buttons!=null:
+		for child in dialogue_buttons.get_children():
+			dialogue_buttons.remove_child(child)
+			child.queue_free()
+		dialogue_buttons.hide()
+	dialogue_npc=""
 	panel_text.text=text
 	panel.show()
+
+func open_chapter1_notebook() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	show_pages(Chapter1.notebook(world,me))
+	if Chapter1.allowed(world,me):
+		chapter1_board_button.show()
 
 func open_journal() -> void:
 	if world.is_empty(): return
 	var p: Dictionary=world.people[me]
 	var text: String=p.name+"의 일기\n────────────────────\n\n"
+	text+="부재 제작 계획\n"+Rules.Plan.summary(p)+"\n\n"
+	text+="제작 숙련도\n"
+	for field in Rules.Mastery.FIELDS: text+=Rules.Mastery.progress(p,field)+"\n"
+	text+="\n"
 	for entry in p.journal: text+="제 %d일\n%s\n\n" % [entry.day,entry.text]
 	if p.journal.is_empty(): text+="아직 하루가 끝나지 않았습니다.\n생활을 맡긴 뒤 ‘하루 진행’으로 첫 기록을 확인할 수 있습니다.\n\n"
 	text+="오늘의 메모\n"+"\n".join(p.events)
+	if not p.notebook.is_empty():
+		text+="\n\n조사 수첩\n"
+		for notes in p.notebook.values():
+			for entry in notes.values(): text+=entry+"\n"
 	show_pages(text)
 
 func open_library() -> void:
@@ -466,6 +1046,7 @@ func open_library() -> void:
 	if world.people[me].relic>0:
 		text+="약초사 이렌의 마지막 장\n\n“종소리가 멎은 지 사흘. 예배당에 약을 두고 간다.\n돌아오지 못하더라도, 누군가는 이 길을 걸을 것이다.”\n\n예배당에서 발견한 고정된 이야기 기록입니다.\n\n"
 	for book in world.books:
+		if not Rules.Investigation.may_read(world.people[me],book): continue
 		text+=book.author+"의 남겨진 일기\n"
 		for e in book.pages: text+="%d일 · %s\n" % [e.day,e.text]
 		text+=book.last+"\n\n"
@@ -497,15 +1078,16 @@ func build_dressing(root: Control) -> void:
 	button_at(dressing,"닫기",Vector2(620,24),100,func(): dressing.hide())
 	var vc:=SubViewportContainer.new()
 	vc.position=Vector2(42,125)
-	vc.scale=Vector2(6,6)
+	vc.scale=Vector2(3,3)
 	vc.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
 	vc.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	dressing.add_child(vc)
 	var vp:=SubViewport.new()
-	vp.size=Vector2i(32,36)
+	vp.size=Vector2i(64,72)
 	vp.transparent_bg=true
 	vp.render_target_update_mode=SubViewport.UPDATE_ALWAYS
 	vc.add_child(vp)
+	vp.canvas_transform=Transform2D(0,Vector2(2,2),0,Vector2.ZERO)
 	portrait=preload("res://portrait.gd").new()
 	vp.add_child(portrait)
 	dress_name=LineEdit.new()
@@ -519,7 +1101,17 @@ func build_dressing(root: Control) -> void:
 	dress_controls.add_theme_constant_override("separation",12)
 	dressing.add_child(dress_controls)
 	dress_status=label_at(dressing,"",Vector2(32,455),15)
-	label_at(dressing,"의복·후드·망토는 시작 장비입니다. 철검은 제작 후 착용합니다.\n외형은 능력치와 독립적이며, 철검 공격력은 착용할 때 적용됩니다.",Vector2(32,490),15)
+	label_at(dressing,"후드·망토는 외형 장비입니다. 갑옷은 방어와 회피 기력에 영향을 줍니다.\n선택한 장비의 능력치와 내구도는 착용할 때 적용됩니다.",Vector2(32,490),15)
+	gear_record_button=button_at(dressing,"착용 장비 기록",Vector2(32,550),220,func():
+		var p: Dictionary=world.people[me]
+		var pages: Array=[]
+		for slot in ["body","weapon"]:
+			var id: String=p.equipped_ids.get(slot,"")
+			if id.is_empty(): continue
+			var def:=preload("res://items.gd").definition(p,id)
+			pages.append(def.name+"\n\n"+def.description)
+		if not pages.is_empty(): show_pages("\n\n────────────────────\n\n".join(pages)))
+	gear_record_button.hide()
 	dress_confirm=button_at(dressing,"외형 선택 완료",Vector2(290,560),420,func():
 		input_name.text=dress_name.text.replace("|","").strip_edges()
 		if input_name.text.is_empty(): input_name.text="여행자"
@@ -530,10 +1122,22 @@ func build_dressing(root: Control) -> void:
 	dressing.hide()
 
 func open_dressing(purpose: String) -> void:
+	travel.hide()
+	requests.hide()
+	professions.hide()
+	armor_bench.hide()
+	forge.hide()
+	market.hide()
+	planner.hide()
+	bench.hide()
 	bag.hide()
+	chest.hide()
 	panel.hide()
 	dressing_mode=purpose
 	gear_pickers.clear()
+	weapon_stamp=""
+	body_stamp=""
+	gear_record_button.visible=purpose=="gear"
 	for child in dress_controls.get_children():
 		dress_controls.remove_child(child)
 		child.queue_free()
@@ -545,6 +1149,22 @@ func open_dressing(purpose: String) -> void:
 	if purpose=="gear":
 		portrait.person=world.people[me]
 		for slot in Rules.GEAR:
+			if slot=="body":
+				var body:=OptionButton.new()
+				body.add_theme_font_size_override("font_size",16)
+				body.custom_minimum_size=Vector2(420,40)
+				body.item_selected.connect(func(i): perform("equip_body",body.get_item_metadata(i)))
+				gear_pickers.body=body
+				dress_controls.add_child(body)
+				continue
+			if slot=="weapon":
+				var weapon:=OptionButton.new()
+				weapon.add_theme_font_size_override("font_size",16)
+				weapon.custom_minimum_size=Vector2(420,40)
+				weapon.item_selected.connect(func(i): perform("equip_weapon",weapon.get_item_metadata(i)))
+				gear_pickers.weapon=weapon
+				dress_controls.add_child(weapon)
+				continue
 			var names: Dictionary={"body":["기본 의복","가죽 갑옷"],"head":["투구 없음","여행 후드"],"cloak":["망토 없음","여행 망토"],"weapon":["맨손","철검"]}
 			var picker:=OptionButton.new()
 			for text in names[slot]: picker.add_item(text)
@@ -568,11 +1188,194 @@ func open_dressing(purpose: String) -> void:
 			picker.item_selected.connect(func(i): chosen_look[key]=i)
 			dress_controls.add_child(picker)
 	dressing.show()
+	if purpose=="gear": refresh()
 
 func open_inventory() -> void:
+	travel.hide()
+	requests.hide()
+	professions.hide()
+	armor_bench.hide()
+	forge.hide()
+	market.hide()
+	planner.hide()
+	bench.hide()
+	chest.hide()
 	if world.is_empty() or not world.people.has(me): return
 	panel.hide()
 	dressing.hide()
 	bag.feedback.text=""
 	bag.refresh(world.people[me])
 	bag.show()
+
+func open_storage(remains_mode: bool=false) -> void:
+	travel.hide()
+	requests.hide()
+	professions.hide()
+	armor_bench.hide()
+	forge.hide()
+	market.hide()
+	planner.hide()
+	bench.hide()
+	if world.is_empty() or not world.people.has(me): return
+	panel.hide()
+	dressing.hide()
+	bag.hide()
+	chest.feedback.text=""
+	chest.signature=""
+	chest.remains_mode=remains_mode
+	chest.refresh(world,world.people[me])
+	chest.show()
+
+func open_crafting() -> void:
+	planner.hide()
+	travel.hide()
+	requests.hide()
+	professions.hide()
+	armor_bench.hide()
+	forge.hide()
+	market.hide()
+	if world.is_empty() or not world.people.has(me): return
+	panel.hide()
+	dressing.hide()
+	bag.hide()
+	chest.hide()
+	bench.feedback.text=""
+	bench.refresh(world,world.people[me])
+	bench.show()
+
+func open_market() -> void:
+	travel.hide()
+	requests.hide()
+	professions.hide()
+	armor_bench.hide()
+	forge.hide()
+	if world.is_empty() or not world.people.has(me): return
+	panel.hide()
+	dressing.hide()
+	bag.hide()
+	chest.hide()
+	planner.hide()
+	bench.hide()
+	market.feedback.text=""
+	market.refresh(world,world.people[me])
+	market.show()
+
+func open_planner() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	panel.hide()
+	dressing.hide()
+	bag.hide()
+	chest.hide()
+	travel.hide()
+	requests.hide()
+	professions.hide()
+	armor_bench.hide()
+	forge.hide()
+	market.hide()
+	bench.hide()
+	planner.setup(world,world.people[me])
+	planner.show()
+
+func refresh_weapon_picker(p: Dictionary) -> void:
+	if not gear_pickers.has("weapon"): return
+	var picker: OptionButton=gear_pickers.weapon
+	var stamp:=JSON.stringify([p.gear_instances,p.gear_condition,p.gear_quality,p.gear_records])
+	if stamp!=weapon_stamp:
+		weapon_stamp=stamp
+		picker.clear()
+		picker.add_item("맨손 · 공격력 9")
+		picker.set_item_metadata(0,"none")
+		for id in p.gear_instances:
+			if p.gear_instances[id] not in ["iron_sword","shortbow"]: continue
+			var item:=preload("res://items.gd").definition(p,id)
+			var damage: int=Rules.Quality.attack(p,id) if p.gear_condition[id]>0 else 9
+			var index:=picker.item_count
+			picker.add_item("%s · 공격 %d · 내구 %d" % [item.name,damage,p.gear_condition[id]])
+			picker.set_item_metadata(index,id)
+			picker.set_item_tooltip(index,item.description)
+	var worn: String=p.equipped_ids.get("weapon","none")
+	for i in range(picker.item_count):
+		if picker.get_item_metadata(i)==worn: picker.select(i)
+	picker.disabled=not p.alive
+	gear_record_button.disabled=worn=="none" and p.equipped_ids.get("body","").is_empty()
+
+func open_forge() -> void:
+	travel.hide()
+	requests.hide()
+	professions.hide()
+	armor_bench.hide()
+	market.hide()
+	planner.hide()
+	bench.hide()
+	bag.hide()
+	chest.hide()
+	dressing.hide()
+	panel.hide()
+	forge.feedback.text=""
+	forge.refresh(world,world.people[me])
+	forge.show()
+
+func open_armor() -> void:
+	open_forge()
+	forge.hide()
+	armor_bench.feedback.text=""
+	armor_bench.refresh(world,world.people[me])
+	armor_bench.show()
+
+func refresh_body_picker(p: Dictionary) -> void:
+	if not gear_pickers.has("body"): return
+	var picker: OptionButton=gear_pickers.body
+	var stamp:=JSON.stringify([p.gear_instances,p.gear_quality,p.gear_condition])
+	if stamp!=body_stamp:
+		body_stamp=stamp
+		picker.clear()
+		picker.add_item("기본 의복 · 피해 감소 0 · 회피 30")
+		picker.set_item_metadata(0,"none")
+		for id in p.gear_instances:
+			if p.gear_instances[id] not in Rules.Armor.KINDS: continue
+			var def:=preload("res://items.gd").definition(p,id)
+			var reduction: int=Rules.Armor.rating(p,id) if p.gear_condition[id]>0 else 0
+			picker.add_item("%s · 방어 %d · 내구 %d" % [def.name,reduction,p.gear_condition[id]])
+			picker.set_item_metadata(picker.item_count-1,id)
+			picker.set_item_tooltip(picker.item_count-1,def.description)
+	var worn: String=p.equipped_ids.get("body","none")
+	for i in range(picker.item_count):
+		if picker.get_item_metadata(i)==worn: picker.select(i)
+	picker.disabled=not p.alive
+
+func open_professions(field: String="") -> void:
+	if world.is_empty() or not world.people.has(me): return
+	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,travel,requests]: modal.hide()
+	if field in Rules.Professions.Mentors: professions.field=field
+	professions.feedback.text=""
+	professions.refresh(world.people[me])
+	professions.show()
+
+func _input(event: InputEvent) -> void:
+	if mode not in ["single","client"] or not event is InputEventKey or not event.pressed or event.echo: return
+	if event.physical_keycode!=KEY_TAB: return
+	for modal in [chapter1_board,panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions,travel,requests]:
+		if modal.visible: return
+	perform("cycle_target")
+	get_viewport().set_input_as_handled()
+
+func open_travel() -> void:
+	if world.is_empty() or not world.people.has(me): return
+	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions,requests]: modal.hide()
+	travel.feedback.text=""
+	travel.refresh(world,world.people[me])
+	travel.show()
+
+func open_requests(board_view: bool=false) -> void:
+	if world.is_empty() or not world.people.has(me): return
+	for modal in [panel,dressing,bag,chest,planner,bench,market,forge,armor_bench,professions,travel]: modal.hide()
+	requests.feedback.text=""
+	if board_view:
+		for i in range(requests.jobs.item_count):
+			var id: String=requests.jobs.get_item_metadata(i)
+			if Rules.Requests.JOBS[id].region==world.people[me].get("room","village"):
+				requests.current=id
+				requests.jobs.select(i)
+				break
+	requests.refresh(world,world.people[me])
+	requests.show()

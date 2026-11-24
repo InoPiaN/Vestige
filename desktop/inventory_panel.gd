@@ -5,8 +5,9 @@ var person: Dictionary={}
 var category: String="전체"
 var selected: String=""
 var slots: Array[Button]=[]
+var grid: GridContainer
 var heading: Label
-var details: Label
+var details: RichTextLabel
 var use_button: Button
 var feedback: Label
 var signature: String=""
@@ -28,28 +29,22 @@ func _ready() -> void:
 	filter.item_selected.connect(func(i): category=filter.get_item_text(i); signature=""; refresh(person))
 	add_child(filter)
 	label("이름순 정렬 · 수량은 착용 중인 장비를 포함",Vector2(285,86),14)
-	var grid:=GridContainer.new()
+	var scroll:=ScrollContainer.new()
+	scroll.position=Vector2(28,135)
+	scroll.size=Vector2(590,380)
+	add_child(scroll)
+	grid=GridContainer.new()
 	grid.columns=6
-	grid.position=Vector2(28,135)
+	grid.position=Vector2.ZERO
 	grid.add_theme_constant_override("h_separation",8)
 	grid.add_theme_constant_override("v_separation",8)
-	add_child(grid)
-	for i in range(24):
-		var cell:=Button.new()
-		cell.custom_minimum_size=Vector2(88,88)
-		cell.add_theme_font_size_override("font_size",12)
-		cell.focus_mode=Control.FOCUS_NONE
-		cell.pressed.connect(func(): choose(String(cell.get_meta("item",""))))
-		var icon:=TextureRect.new()
-		icon.name="Icon"
-		icon.position=Vector2(32,5)
-		icon.size=Vector2(24,24)
-		icon.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
-		icon.mouse_filter=Control.MOUSE_FILTER_IGNORE
-		cell.add_child(icon)
-		grid.add_child(cell)
-		slots.append(cell)
-	details=label("아이템을 선택하세요.",Vector2(630,140),19)
+	scroll.add_child(grid)
+	for i in range(42): add_slot()
+	details=RichTextLabel.new()
+	details.position=Vector2(630,140)
+	details.add_theme_font_size_override("normal_font_size",18)
+	details.bbcode_enabled=false
+	add_child(details)
 	details.size=Vector2(300,320)
 	details.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
 	use_button=button("사용",Vector2(630,465),290)
@@ -80,10 +75,11 @@ func choose(id: String) -> void:
 func refresh(p: Dictionary) -> void:
 	person=p
 	var rows:=Items.entries(p,category)
-	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
+	while slots.size()<rows.size(): add_slot()
+	var stamp:=JSON.stringify([rows,p.get("equipment",{}),p.get("gear_condition",{}),p.get("gear_quality",{}),p.get("gear_records",{}),p.get("equipped_ids",{}),p.get("stamina",0),p.get("hp",0),p.get("alive",true),p.get("offline",false),p.get("gold",0),selected])
 	if signature==stamp: return
 	signature=stamp
-	heading.text="소지품  ·  %d종  /  은화 %d" % [Items.entries(p).size(),p.get("gold",0)]
+	heading.text="소지품  ·  %d항목  /  은화 %d" % [Items.entries(p).size(),p.get("gold",0)]
 	for i in range(slots.size()):
 		var cell:=slots[i]
 		cell.disabled=i>=rows.size()
@@ -94,9 +90,9 @@ func refresh(p: Dictionary) -> void:
 		cell.set_meta("item","")
 		if i>=rows.size(): continue
 		var row: Dictionary=rows[i]
-		var item: Dictionary=Items.CATALOG[row.id]
+		var item: Dictionary=Items.definition(p,row.id)
 		cell.set_meta("item",row.id)
-		var equipped: bool=item.has("slot") and p.get("equipment",{}).get(item.slot)==row.id
+		var equipped: bool=item.has("slot") and (p.get("equipped_ids",{}).get(item.slot)==row.id if row.id.begins_with("gear-") else p.get("equipment",{}).get(item.slot)==row.id)
 		if row.id==selected:
 			var highlight:=StyleBoxFlat.new()
 			highlight.bg_color=Color("34483b")
@@ -104,21 +100,27 @@ func refresh(p: Dictionary) -> void:
 			highlight.set_border_width_all(2)
 			cell.add_theme_stylebox_override("normal",highlight)
 		cell.get_node("Icon").texture=icon_for(row.id)
-		cell.text="\n\n"+item.name+"\n×%d" % row.count+(" · 착용" if equipped else "")
-		cell.tooltip_text=item.description
+		cell.text="\n\n"+item.name.get_slice(" · ",0)+"\n×%d" % row.count+(" · 착용" if equipped else "")
+		cell.tooltip_text=item.name+"\n"+item.description
 		cell.add_theme_color_override("font_color",Color(item.color))
 	if selected.is_empty() or Items.quantity(p,selected)==0:
 		details.text="아이템을 선택하세요." if selected.is_empty() else "이 아이템을 모두 사용했습니다."
 		use_button.disabled=true
 		use_button.text="선택 없음"
 		return
-	var item: Dictionary=Items.CATALOG[selected]
+	var item: Dictionary=Items.definition(person,selected)
 	var count:=Items.quantity(p,selected)
 	details.text=item.name+"\n"+item.category+" · %d / %d\n\n" % [count,item.limit]+item.description
 	use_button.disabled=not p.get("alive",true)
 	if item.has("slot"):
-		var worn: bool=p.equipment.get(item.slot)==selected
+		var worn: bool=(p.get("equipped_ids",{}).get(item.slot)==selected if selected.begins_with("gear-") else p.equipment.get(item.slot)==selected)
 		use_button.text="착용 해제" if worn else "착용"
+	elif Items.base_id(selected) in ["bandage","herbal_tea","healing_salve","vigor_tea"]:
+		use_button.text="사용"
+		use_button.disabled=use_button.disabled or p.offline or ((Items.base_id(selected)=="vigor_tea" or p.hp>=100) and (Items.base_id(selected) in ["bandage","healing_salve"] or p.stamina>=100))
+	elif selected.begins_with("evidence:"):
+		use_button.text="집 보관함에 남기기"
+		use_button.disabled=use_button.disabled or p.offline
 	elif selected=="herb":
 		use_button.text="약초 사용 · 체력 +30"
 		use_button.disabled=use_button.disabled or p.hp>=100 or p.offline
@@ -127,18 +129,44 @@ func refresh(p: Dictionary) -> void:
 		use_button.disabled=true
 func activate() -> void:
 	if selected.is_empty() or Items.quantity(person,selected)<=0 or use_button.disabled: return
-	var item: Dictionary=Items.CATALOG[selected]
-	if item.has("slot"):
+	var item: Dictionary=Items.definition(person,selected)
+	if selected.begins_with("gear-"):
+		action.emit("equip_instance",selected)
+	elif item.has("slot"):
 		var value: String="none" if person.equipment.get(item.slot)==selected else selected
 		action.emit("equip",item.slot+":"+value)
+	elif selected.begins_with("evidence:"): action.emit("store_evidence",selected)
+	elif Items.base_id(selected) in ["bandage","herbal_tea","healing_salve","vigor_tea"]: action.emit("use_crafted",selected)
 	elif selected=="herb": action.emit("heal","")
 
 var icons: Dictionary={}
 func icon_for(id: String) -> ImageTexture:
 	if icons.has(id): return icons[id]
 	var image:=Image.create(16,16,false,Image.FORMAT_RGBA8)
-	var color:=Color(Items.CATALOG[id].color)
-	if id=="iron_sword":
+	var color:=Color(Items.definition(person,id).color)
+	id=Items.base_id(person.get("gear_instances",{}).get(id,id))
+	if id in ["mug","herbal_tea","vigor_tea","broken_cup"]:
+		image.fill_rect(Rect2i(3,5,8,8),color)
+		image.fill_rect(Rect2i(10,6,4,5),color)
+		image.fill_rect(Rect2i(11,7,2,3),Color("172520"))
+		image.fill_rect(Rect2i(4,5,6,2),Color("66543a"))
+	elif id=="forest_mushroom":
+		image.fill_rect(Rect2i(7,7,3,7),Color("c7b693"))
+		image.fill_rect(Rect2i(3,4,11,5),color)
+		image.fill_rect(Rect2i(5,2,7,3),color.lightened(0.15))
+	elif id in ["harbor_reed","night_blossom"]:
+		image.fill_rect(Rect2i(7,5,2,9),Color("789472"))
+		image.fill_rect(Rect2i(4,2,8,5),color)
+		image.fill_rect(Rect2i(3,9,5,2),Color("789472"))
+	elif id=="healing_salve":
+		image.fill_rect(Rect2i(4,5,9,9),color)
+		image.fill_rect(Rect2i(3,3,11,3),Color("b7a47d"))
+		image.fill_rect(Rect2i(7,8,3,3),Color("d8d7ac"))
+	elif id=="bandage":
+		image.fill_rect(Rect2i(3,4,10,8),color)
+		image.fill_rect(Rect2i(6,4,1,8),color.darkened(0.25))
+		image.fill_rect(Rect2i(10,4,1,8),color.darkened(0.25))
+	elif id=="iron_sword":
 		image.fill_rect(Rect2i(7,1,2,10),color)
 		image.fill_rect(Rect2i(4,10,8,2),Color("c5a46b"))
 		image.fill_rect(Rect2i(7,12,2,3),Color("916c4d"))
@@ -151,6 +179,10 @@ func icon_for(id: String) -> ImageTexture:
 		image.fill_rect(Rect2i(3,5,10,8),color.darkened(0.3))
 		image.fill_rect(Rect2i(5,2,6,6),color)
 		image.fill_rect(Rect2i(4,6,4,3),color.lightened(0.2))
+	elif id.begins_with("evidence:"):
+		image.fill_rect(Rect2i(4,3,8,10),color)
+		image.fill_rect(Rect2i(6,5,4,6),Color("172520"))
+		image.fill_rect(Rect2i(9,2,4,5),Color.TRANSPARENT)
 	elif id=="relic":
 		image.fill_rect(Rect2i(4,2,8,12),color)
 		image.fill_rect(Rect2i(6,4,4,8),Color("645742"))
@@ -168,3 +200,19 @@ func icon_for(id: String) -> ImageTexture:
 			image.fill_rect(Rect2i(7,4,2,9),Color("d0b080"))
 	icons[id]=ImageTexture.create_from_image(image)
 	return icons[id]
+
+func add_slot() -> void:
+	var cell:=Button.new()
+	cell.custom_minimum_size=Vector2(88,88)
+	cell.add_theme_font_size_override("font_size",12)
+	cell.focus_mode=Control.FOCUS_NONE
+	cell.pressed.connect(func(): choose(String(cell.get_meta("item",""))))
+	var icon:=TextureRect.new()
+	icon.name="Icon"
+	icon.position=Vector2(32,5)
+	icon.size=Vector2(24,24)
+	icon.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
+	icon.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	cell.add_child(icon)
+	grid.add_child(cell)
+	slots.append(cell)

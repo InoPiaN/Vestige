@@ -1,0 +1,17 @@
+{
+  "source_commit": "673dd1a",
+  "existing_desktop_files_changed": [],
+  "core_imports": [
+    {
+      "from": "desktop/core/module_runtime.gd",
+      "to": "res://core/game_module.gd"
+    }
+  ],
+  "rule_assertions": 999,
+  "existing_assertions": 954,
+  "new_core_assertions": 45,
+  "game_integration": false,
+  "save_version_changed": false,
+  "network_protocol_changed": false,
+  "remote_push": false
+}

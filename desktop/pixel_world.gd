@@ -1,5 +1,6 @@
 extends Node2D
 
+const CharacterMotion=preload("res://animation.gd")
 const Rules=preload("res://world.gd")
 var world: Dictionary={}
 var player_id: String=""
@@ -100,68 +101,22 @@ func house(x: float,y: float,type: String) -> void:
 
 func hero(x: float,y: float,p: Dictionary,other: bool=false) -> void:
 	if not p.get("alive",true): return
-	var bob:=int(p.get("steps",0))%2
-	box(x-5,y+5,11,3,"18251f")
-	var look: Dictionary=Rules.clean_look(p.get("look",{"cloth":2 if other else 0}))
-	var gear: Dictionary=p.get("equipment",{"weapon":"iron_sword" if p.get("sword",0)>0 else "none"})
-	var skin: String=["e0b78a","b88963","805c49"][look.skin]
-	var hair: String=["594a38","aa8854","754a43","a9aaa0"][look.hair_color]
-	var cloth: String=["9b6652","637e9b","63877b","967fa0"][look.cloth]
-	if gear.get("cloak")=="traveler":
-		box(x-7,y-7,14,12,"263a42")
-		box(x-6,y-6,3,10,"55727c")
-		box(x+4,y-3,3,8,"55727c")
-	if p.get("dodge",0)>0: cloth="b8d4cb"
-	# A 16x24 silhouette: swept hair, one steel pauldron, split cloak.
-	box(x-5,y-8,10,12,"222c2c")
-	box(x-4,y-7,8,10,cloth)
-	box(x-4,y-5,2,9,"45423a")
-	box(x+3,y-4,2,7,"45423a")
-	box(x-3,y+3,3,4+bob,"272c2c")
-	box(x+1,y+3,3,5-bob,"272c2c")
-	box(x-3,y+3,2,1,"8c7860")
-	box(x+1,y+3,2,1,"8c7860")
-	box(x-3,y-15,7,8,"292c2d")
-	box(x-2,y-12,5,4,"b88963")
-	box(x-1,y-12,4,2,skin)
-	box(x+2,y-11,1,1,"292c2d")
-	box(x-4,y-15,8,3,hair)
-	box(x-2,y-17,5,3,hair)
-	box(x-2,y-16,4,1,"a48a59")
-	box(x-3,y-14,2,3,hair)
-	if look.hair==1:
-		box(x-5,y-15,3,12,hair)
-		box(x+3,y-14,2,8,hair)
-	elif look.hair==2:
-		box(x-1,y-19,3,3,hair)
-		box(x+4,y-15,3,5,hair)
-	if gear.get("head")=="hood" and not p.get("hide_helmet",false):
-		box(x-4,y-19,8,6,"354c50")
-		box(x+4,y-15,3,5,"354c50")
-		box(x-5,y-14,3,7,"55727c")
-		box(x+3,y-14,2,7,"354c50")
-	box(x-5,y-8,5,4,"45585b")
-	box(x-5,y-8,4,1,"b0bcb0")
-	box(x-4,y-7,3,1,"7b9290")
-	box(x,y-7,2,6,"c0a273")
-	if gear.get("body")=="leather":
-		box(x-3,y-5,7,6,"594432")
-		box(x-2,y-5,5,1,"b09765")
-		box(x,y-4,1,4,"c8b788")
-	box(x-3,y,7,2,"473a30")
-	box(x,y,2,1,"d3ad61")
-	box(x-6,y-4,2,5,"45585b")
-	box(x+4,y-5,2,6,cloth)
-	box(x-6,y,2,2,skin)
-	box(x+4,y,2,2,skin)
-	if gear.get("weapon")=="iron_sword":
-		box(x+7,y-10,2,12,"738e90")
-		box(x+7,y-10,1,11,"dce0c3")
-		box(x+7,y-12,1,2,"dce0c3")
-		box(x+5,y+2,6,2,"b89a5d")
-		box(x+7,y+4,2,3,"584637")
-	if p.get("attack",0)>0.25:
-		draw_arc(Vector2(x,y-3),17,-1.4,1.1,8,Color("f4dc99"),2)
+	var pose:=CharacterMotion.pose(p)
+	var mirror: float=-1.0 if pose.direction=="left" else 1.0
+	var person:=p.duplicate()
+	if not person.has("look"): person.look={"cloth":2 if other else 0}
+	var painter:=preload("res://character_detail.gd").new()
+	painter.canvas=self
+	draw_set_transform(Vector2(roundf(x)-8*mirror,roundf(y)+pose.bob-17.5),0,Vector2(0.5*mirror,0.5))
+	painter.draw_character(person,pose,clock)
+	draw_set_transform(Vector2.ZERO)
+	if p.get("guard_time",0)>0:
+		draw_arc(Vector2(x,y),12,PI,TAU,12,Color("9ccddd"),1,false)
+	if p.get("shot_time",0)>0:
+		var origin:=Vector2(x,y-5)
+		var target:=Vector2(p.shot_x*16,p.shot_y*16-5)
+		var tip:=origin.lerp(target,1.0-float(p.shot_time)/0.2)
+		draw_line(tip-(target-origin).normalized()*7,tip,Color("dfc999"),1,false)
 
 func ruin(x: float,y: float) -> void:
 	box(x-24,y-10,47,25,"4b5448")
@@ -180,6 +135,12 @@ func ruin(x: float,y: float) -> void:
 
 func _draw() -> void:
 	if terrain==null: return
+	if world.get("people",{}).has(player_id) and Rules.Interior.inside(world.people[player_id]):
+		draw_interior()
+		return
+	if world.get("people",{}).has(player_id) and Rules.Travel.region(world.people[player_id])!="village":
+		draw_travel()
+		return
 	draw_texture(terrain,Vector2.ZERO)
 	for x in range(0,480,18):
 		tree(x,17,x%2)
@@ -190,6 +151,7 @@ func _draw() -> void:
 	for x in range(284,450,25):
 		for y in range(38,290,37):
 			if abs(y-152)<30: continue
+			if Vector2(x,y).distance_to(Vector2(416,48))<36 or Vector2(x,y).distance_to(Vector2(432,256))<36: continue
 			if Vector2(x,y).distance_to(Vector2(336,80))<35: continue
 			if Vector2(x,y).distance_to(Vector2(352,224))<30: continue
 			if Vector2(x,y).distance_to(Vector2(432,144))<48: continue
@@ -202,7 +164,20 @@ func _draw() -> void:
 		var x: float=t.x*16
 		var y: float=t.y*16
 		match t.kind:
-			"forge","inn","library": house(x,y,t.kind)
+			"warrior","hunter":
+				var hunter: bool=t.kind=="hunter"
+				hero(x,y,{"look":{"hair":2 if hunter else 0,"hair_color":1 if hunter else 3,"skin":1,"cloth":2 if hunter else 1},"equipment":{"weapon":"shortbow" if hunter else "iron_sword","body":"leather" if hunter else "iron_armor","cloak":"traveler"},"direction":"down"},true)
+				draw_string(font,Vector2(x-13,y+14),"!",HORIZONTAL_ALIGNMENT_LEFT,-1,9,Color("e5d39e"))
+			"market":
+				box(x-16,y-20,2,24,"8b7650")
+				box(x+14,y-20,2,24,"8b7650")
+				box(x-19,y-24,38,7,"697c63")
+				box(x-17,y-23,10,5,"a39a71")
+				box(x+4,y-23,10,5,"a39a71")
+				box(x-16,y-5,32,8,"705c3c")
+				box(x-12,y-9,6,4,"a29a80")
+				box(x+5,y-10,5,5,"8ab88e")
+			"forge","inn","library","home": house(x,y,t.kind)
 			"grave":
 				for i in range(4):
 					box(x-18+i*12,y-7+(i%2)*9,8,13,"89917d")
@@ -220,6 +195,12 @@ func _draw() -> void:
 		if not world.is_empty() and world.people.has(player_id):
 			if Rules.pos(world.people[player_id]).distance_to(Rules.pos(t))<2:
 				draw_rect(Rect2(x-14,y+18,28,1),Color("e7c980"))
+	Rules.Requests.draw(self,"village")
+	for place in Rules.Travel.PLACES.village:
+		if place.kind=="mail": hero(place.x*16,place.y*16,{"look":{"hair":1,"hair_color":2,"cloth":3},"equipment":{"cloak":"traveler"}})
+		else:
+			box(place.x*16-4,place.y*16-8,8,3,"d3bb80")
+			box(place.x*16,place.y*16-6,2,12,"806441")
 	# A well, market crates and two residents make the village readable.
 	box(111,170,20,12,"737967")
 	box(114,168,14,7,"252f2a")
@@ -231,9 +212,13 @@ func _draw() -> void:
 		box(191+i*11,197,9,9,"705c3c")
 		box(192+i*11,198,7,1,"a28b5a")
 	for i in range(4): lamp(65+i*58,158)
-	hero(105+sin(clock*0.3)*8,135,{"steps":clock,"alive":true},true)
+	hero(105+sin(clock*0.3)*8,135,{"steps":clock,"motion":1.0,"direction":"right" if cos(clock*0.3)>0 else "left","alive":true},true)
 	hero(208,210,{"steps":0,"alive":true},true)
 	if world.is_empty(): return
+	if world.people.has(player_id):
+		for trace in Rules.Investigation.traces(world,world.people[player_id]):
+			box(trace.x*16-3,trace.y*16+5,7,3,"877557")
+			box(trace.x*16-2,trace.y*16+4,3,2,"d6bd86")
 	var e: Dictionary=world.wolf
 	if e.hp>0:
 		var x: float=e.x*16
@@ -249,9 +234,155 @@ func _draw() -> void:
 		box(x-14,y-6,5,3,"95968b")
 		box(x-12,y-19,25,2,"382b28")
 		box(x-12,y-19,maxf(0,e.hp/2.0),2,"bf735a")
+	preload("res://expedition_art.gd").draw(self,world,world.people.get(player_id,{}))
 	for id in world.people:
 		var p: Dictionary=world.people[id]
-		hero(p.x*16,p.y*16,p,id!=player_id)
+		if p.get("room","village")=="village": hero(p.x*16,p.y*16,p,id!=player_id)
 	# Subtle night tint; never hides gameplay silhouettes.
-	var night: float=(sin(float(world.time)/Rules.DAY*TAU)+1)*0.5
+	var night: float=clampf(-sin((Rules.Travel.Life.hour(world.time)-6)/24*TAU),0,1)
+	draw_rect(Rect2(0,0,480,320),Color(0.025,0.05,0.12,night*0.12))
+
+func draw_interior() -> void:
+	var state: Dictionary=world.estate.get("interior",{})
+	box(0,0,480,320,"101814")
+	box(66,38,348,246,"262c24")
+	box(72,48,336,232,"554733")
+	for y in range(64,278,16):
+		box(80,y,320,1,"342e25")
+		for x in range(80+(8 if y%32==0 else 0),400,32):
+			box(x,y-14,1,14,"473c2e")
+			box(x+4,y-8,10,1,"63523a")
+	box(72,44,336,20,"77705a")
+	for x in range(76,405,24): box(x,45,1,17,"514e40")
+	box(72,62,8,218,"38372c")
+	box(400,62,8,218,"38372c")
+	box(72,272,152,8,"77705a")
+	box(256,272,152,8,"77705a")
+	box(224,270,32,10,"a08b5c")
+	box(229,274,22,3,"5d4c32")
+	# Faded rug and a repaired dining table.
+	box(194,132,92,82,"644c40")
+	box(198,136,84,74,"4d5142")
+	box(201,140,78,1,"a18b5e")
+	box(201,204,78,1,"a18b5e")
+	for key in Rules.Interior.OBJECTS:
+		var o: Dictionary=Rules.Interior.OBJECTS[key]
+		var x: float=o.x*16
+		var y: float=o.y*16
+		match key:
+			"drawer","cupboard":
+				box(x-14,y-23,28,31,"3c3329")
+				box(x-12,y-22,24,26,"816947")
+				box(x-14,y-25,28,4,"b09360")
+				for offset in [0,9,18]:
+					box(x-11,y-20+offset,22,1,"4c3e2b")
+					box(x-2,y-16+offset,4,2,"d0b980")
+				if state.get("searched",{}).get(key,false): box(x-10,y-10,20,3,"2e2b24")
+			"shelf":
+				box(x-17,y-33,34,42,"47392a")
+				for tier in range(3):
+					for book in range(5):
+						box(x-13+book*5,y-29+tier*12,4,9,["81907b","ae885a","825b4d","586d6c","b2a17d"][book])
+					box(x-15,y-19+tier*12,30,2,"b39762")
+			"bed":
+				box(x-15,y-24,30,35,"493a2b")
+				box(x-12,y-22,24,31,"8b8c73")
+				box(x-10,y-20,20,7,"d2c9a2")
+				box(x-12,y-11,24,20,"4f7068")
+				box(x-8,y-8,2,15,"759385")
+				box(x+9,y-8,2,15,"354e49")
+			"chest":
+				box(x-15,y-16,30,25,"45372a")
+				box(x-13,y-15,26,21,"896b43")
+				box(x-15,y-18,30,6,"b18b54")
+				box(x-9,y-17,3,23,"424d45")
+				box(x+6,y-17,3,23,"424d45")
+				box(x-2,y-7,4,5,"dec28a")
+			"curtain":
+				box(x-18,y-28,36,26,"303d3b")
+				box(x-14,y-25,28,20,"9ea993")
+				box(x-1,y-25,2,20,"5b5b48")
+				box(x-14,y-16,28,2,"5b5b48")
+				var width: int=17 if state.get("curtain",false) else 6
+				box(x-18,y-28,width,27,"6d4b44")
+				box(x+18-width,y-28,width,27,"80594a")
+				if not state.get("curtain",false): draw_colored_polygon(PackedVector2Array([Vector2(x-13,y),Vector2(x+13,y),Vector2(x+50,y+55),Vector2(x-28,y+55)]),Color(0.85,0.8,0.55,0.10))
+			"hearth":
+				box(x-18,y-27,36,35,"696857")
+				box(x-12,y-18,24,23,"282c26")
+				box(x-20,y+4,40,5,"999078")
+				box(x-8,y-1,18,3,"675035")
+				if state.get("fire",false):
+					draw_circle(Vector2(x,y-4),35,Color(1.0,0.58,0.2,0.07))
+					box(x-7,y-10,14,11,"be703b")
+					box(x-4,y-13+(int(clock*4)%2),5,13,"e2a552")
+					box(x+2,y-8,4,7,"f2d089")
+			"table":
+				box(x-15,y-15,30,20,"665036")
+				box(x-17,y-19,34,17,"9a7d50")
+				box(x-13,y-18,1,14,"b99b67")
+				box(x-14,y+3,4,5,"b4aa8a")
+				box(x+5,y-16,6,5,"c5c1a0")
+				box(x-8,y-13,8,3,"574833")
+				box(x-7,y-16,2,8,"58442c")
+				box(x-10,y-17,8,3,"91a095")
+				box(x+1,y-9,8,4,"c1b28e")
+	var me: Dictionary=world.people[player_id]
+	var focused:=Rules.Interior.nearby(me)
+	if not focused.is_empty():
+		var o: Dictionary=Rules.Interior.OBJECTS[focused]
+		box(o.x*16-13,o.y*16+12,26,1,"e1c986")
+	for row in Rules.Remains.visible(world,me).values():
+		box(row.x*16-4,row.y*16+2,8,5,"a68d5b")
+	var residents: Array=[]
+	for id in world.people:
+		if Rules.Interior.inside(world.people[id]): residents.append(id)
+	residents.sort_custom(func(a,b): return world.people[a].y<world.people[b].y)
+	for id in residents:
+		var p: Dictionary=world.people[id]
+		hero(p.x*16,p.y*16,p,id!=player_id)
+	if state.get("curtain",false): draw_rect(Rect2(80,64,320,208),Color(0.02,0.03,0.06,0.13))
+
+func draw_travel() -> void:
+	var p: Dictionary=world.people[player_id]
+	var region:=Rules.Travel.region(p)
+	box(0,0,480,320,"2b3c35")
+	if region=="road":
+		box(0,96,480,100,"555443")
+		for x in range(12,480,24):
+			tree(x,50,x%2)
+			tree(x+6,270,x%2)
+			box(x,143+(x%7),5,2,"8b8463")
+		for i in range(5):
+			box(0,65+i*43,480,9,"a4bdb008")
+		lamp(240,130)
+		box(225,140,26,8,"656655")
+	else:
+		box(365,0,115,320,"294752")
+		for y in range(12,310,19):
+			for x in range(373,475,27): box(x,y,14,1,"6e939765")
+		box(20,140,350,26,"625a45")
+		box(370,190,110,72,"6b5b43")
+		for x in range(374,480,8): box(x,191,1,70,"a28b66")
+		for y in [191,258]: box(369,y,110,3,"c0a87b")
+		house(144,64,"inn")
+		house(288,128,"library")
+		for x in [40,200,340]:
+			tree(x,35)
+			lamp(x,177)
+		for place in Rules.Travel.places("harbor",world.time):
+			if place.kind in ["mail","harbor_shop"] and Rules.Travel.Life.state(place.npc,world.time).awake:
+				hero(place.x*16,place.y*16,{"look":{"hair":1 if place.kind=="harbor_shop" else 0,"cloth":2,"hair_color":3},"equipment":{"cloak":"traveler"},"direction":Rules.Travel.Life.state(place.npc,world.time).direction,"steps":world.time*3.0,"motion":1.0 if Rules.Travel.Life.state(place.npc,world.time).moving else 0.0})
+	for place in Rules.Travel.PLACES[region]:
+		if place.kind in ["gate","coach"]:
+			box(place.x*16-4,place.y*16-12,8,4,"d3bb80")
+			box(place.x*16,place.y*16-8,2,12,"806441")
+	Rules.Requests.draw(self,region)
+	preload("res://foraging_art.gd").draw(self,world,p)
+	for trace in Rules.Investigation.traces(world,p): box(trace.x*16-3,trace.y*16+4,7,3,"cfb985")
+	for id in world.people:
+		var other: Dictionary=world.people[id]
+		if other.get("room","village")==region: hero(other.x*16,other.y*16,other,id!=player_id)
+
+	var night: float=clampf(-sin((Rules.Travel.Life.hour(world.time)-6)/24*TAU),0,1)
 	draw_rect(Rect2(0,0,480,320),Color(0.025,0.05,0.12,night*0.12))

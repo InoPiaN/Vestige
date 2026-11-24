@@ -1,0 +1,36 @@
+Godot Engine v4.5.1.stable.official.f62fdbde1 - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:991)
+PASS: projection exposes only target and availability
+PASS: projection is read only and detached
+PASS: unknown actor has no projection
+PASS: legacy state and message parity: success
+PASS: single/server parity: success
+PASS: structured discovery and actor isolation: success
+PASS: legacy state and message parity: dead
+PASS: single/server parity: dead
+PASS: structured discovery and actor isolation: dead
+PASS: legacy state and message parity: offline
+PASS: single/server parity: offline
+PASS: structured discovery and actor isolation: offline
+PASS: legacy state and message parity: region
+PASS: single/server parity: region
+PASS: structured discovery and actor isolation: region
+PASS: legacy state and message parity: distance
+PASS: single/server parity: distance
+PASS: structured discovery and actor isolation: distance
+PASS: legacy state and message parity: wolf
+PASS: single/server parity: wolf
+PASS: structured discovery and actor isolation: wolf
+PASS: legacy state and message parity: unknown
+PASS: single/server parity: unknown
+PASS: structured discovery and actor isolation: unknown
+PASS: legacy state and message parity: duplicate
+PASS: single/server parity: duplicate
+PASS: structured discovery and actor isolation: duplicate
+PASS: client mutation rejected
+PASS: stale life rejected without mutation
+PASS: unknown actor execution rejected
+PASS: execution rechecks region after projection
+PASS: composition rollback preserves result and state

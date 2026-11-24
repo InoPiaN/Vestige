@@ -1,0 +1,320 @@
+extends RefCounted
+const Rules=preload("res://world.gd")
+# Build a fictional starting point with the same purchase, journal and combat rules as play.
+static func create() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","약초꾼 소율")
+	var owner: Dictionary=w.people.local
+	owner.x=7
+	owner.y=14
+	owner.events.append("내일은 동쪽 예배당 길목으로 약초를 가져갈 생각이다.")
+	Rules.advance(w,Rules.DAY)
+	Rules.act(w,"local","interact")
+	owner.x=25
+	owner.y=10
+	owner.events.append("예배당 근처까지 왔다. 수풀에서 발소리가 들린다.")
+	for frame in range(1200):
+		Rules.tick(w,1.0/60.0)
+		if not owner.alive: break
+	Rules.born(w,"local","기록을 좇는 여행자")
+	return w
+
+static func murder() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","장부지기 은결")
+	var owner: Dictionary=w.people.local
+	owner.x=7
+	owner.y=14
+	var roster: Array=[{"name":"로운","mark":"둥근 고리"},{"name":"하렌","mark":"갈라진 고리"}]
+	owner.events.append("내일 장터 동쪽에서 운송인 두 사람에게 장부를 보여줄 예정이다.")
+	for carrier in roster: owner.events.append("운송 조합 명부 · %s의 소매 표식은 %s." % [carrier.name,carrier.mark])
+	Rules.advance(w,Rules.DAY)
+	Rules.act(w,"local","interact")
+	owner.x=16
+	owner.y=13
+	var attacker: Dictionary=roster[1].duplicate()
+	attacker.x=16.5
+	attacker.y=13
+	Rules.npc_strike(w,"local",attacker,Rules.Investigation.Witness.STATION,roster,100)
+	Rules.born(w,"local","기록을 좇는 여행자")
+	return w
+
+# Independent recovery tutorial; existing investigation saves are never reset.
+static func remains() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","떠난 여행자")
+	var owner: Dictionary=w.people.local
+	owner.x=7
+	owner.y=14
+	owner.herb=3
+	owner.ore=2
+	Rules.act(w,"local","interact")
+	Rules.act(w,"local","store_item","herb")
+	owner.x=5
+	owner.y=8
+	Rules.act(w,"local","interact")
+	owner.x=16
+	owner.y=13
+	owner.events.append("장터 동쪽에 도착했다. 남은 짐은 누군가에게 도움이 되기를.")
+	Rules.die(w,"local","여행 중 사고")
+	Rules.born(w,"local","유품을 찾는 여행자")
+	w.people.local.x=15
+	w.people.local.y=13
+	return w
+
+static func home() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","언덕집의 여행자")
+	var p: Dictionary=w.people.local
+	p.x=7
+	p.y=14
+	p.hp=65
+	p.events.append("오래된 언덕집을 마련했다. 책장에 앞으로의 날들을 남기려 한다.")
+	Rules.act(w,"local","interact")
+	Rules.act(w,"local","enter_home")
+	return w
+
+static func craft() -> Dictionary:
+	var w:=home()
+	var p: Dictionary=w.people.local
+	p.x=15
+	p.y=12
+	p.belongings.cloth=5
+	p.belongings.bent_nail=4
+	p.belongings.broken_cup=1
+	p.herb=3
+	p.sword=1
+	Rules.outfit(p)
+	for id in p.gear_instances:
+		if p.gear_instances[id]=="iron_sword": p.gear_condition[id]=35
+	p.events.append("작업대에 수선할 검과 작은 재료 꾸러미를 준비했다.")
+	return w
+
+static func quality() -> Dictionary:
+	var w:=home()
+	var p: Dictionary=w.people.local
+	p.room="village"
+	p.x=5
+	p.y=8
+	p.ore=6
+	w.craft_rng=8 # Tutorial creates one example of each tier using real crafting.
+	for i in range(3): Rules.act(w,"local","interact")
+	p.room="home"
+	p.x=15
+	p.y=12
+	p.belongings.cloth=6
+	p.belongings.bent_nail=4
+	p.belongings.broken_cup=1
+	p.herb=6
+	return w
+
+static func market() -> Dictionary:
+	var w:=quality()
+	var p: Dictionary=w.people.local
+	p.room="village"
+	p.x=14
+	p.y=15
+	p.gold=30
+	return w
+
+static func mastery() -> Dictionary:
+	var w:=craft()
+	var p: Dictionary=w.people.local
+	p.craft_xp={"smithing":400,"handicraft":1000,"herbalism":96}
+	p.events.append("체험용 인물: 대장 기술 숙련, 생활 공예 장인, 약초 조제 견습까지 경험치 4를 남겨 두었다.")
+	return w
+
+static func plan() -> Dictionary:
+	var w:=craft()
+	w.people.local.hp=100
+	return w
+
+static func supply() -> Dictionary:
+	var w:=plan()
+	var p: Dictionary=w.people.local
+	w.estate.storage.belongings.cloth=6
+	w.estate.storage.herb=6
+	p.belongings.cloth=0
+	p.herb=0
+	p.craft_supply={"source":"home","destination":"home"}
+	return w
+
+static func legacy() -> Dictionary:
+	var w:=Rules.fresh()
+	w.time=Rules.DAY*22
+	Rules.born(w,"local","은결")
+	var p: Dictionary=w.people.local
+	p.x=5
+	p.y=8
+	p.ore=6
+	p.craft_xp.smithing=400
+	w.craft_rng=8
+	for i in range(3): Rules.act(w,"local","interact")
+	var life: String=p.life
+	Rules.die(w,"local","노환")
+	Rules.born(w,"local","흔적을 잇는 여행자")
+	p=w.people.local
+	p.x=5
+	p.y=8
+	var ids: Array=w.remains[life].contents.gear_instances.keys()
+	for id in ids:
+		if w.remains[life].contents.gear_instances[id]=="iron_sword": Rules.act(w,"local","take_remains",life+"|"+id)
+	return w
+
+static func upgrade() -> Dictionary:
+	var w:=legacy()
+	w.people.local.ore=20
+	w.people.local.gold=40
+	return w
+
+static func detail() -> Dictionary:
+	var w:=upgrade()
+	var p: Dictionary=w.people.local
+	Rules.act(w,"local","interact")
+	p.ore=20
+	p.gold=40
+	var grade:=0
+	for id in p.gear_instances:
+		if p.gear_instances[id]!="iron_sword": continue
+		for n in range(grade): Rules.act(w,"local","upgrade_sword",id+"|"+str(n))
+		if grade==3: Rules.act(w,"local","equip_weapon",id)
+		grade+=1
+	return w
+
+static func armor() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","방어구 장인")
+	var p: Dictionary=w.people.local
+	p.x=5
+	p.y=8
+	p.ore=20
+	p.gold=40
+	p.belongings.hide=20
+	p.belongings.cloth=20
+	p.belongings.repair_kit=3
+	p.craft_xp.smithing=400
+	p.craft_xp.handicraft=400
+	w.craft_rng=8
+	for kind in ["leather","leather","iron_armor","iron_armor"]: Rules.act(w,"local","craft_armor",kind)
+	for id in p.gear_instances:
+		if p.gear_instances[id]=="iron_armor": Rules.act(w,"local","equip_body",id)
+	return w
+
+static func queue() -> Dictionary:
+	var w:=plan()
+	var p: Dictionary=w.people.local
+	p.ore=12
+	p.herb=5
+	p.belongings.cloth=12
+	p.belongings.hide=5
+	Rules.Plan.configure(p,"0|bandage|target|2|bag|bag",false)
+	Rules.Plan.configure(p,"1|iron_armor|count|1|bag|bag",false)
+	Rules.Plan.configure(p,"2|leather|count|1|bag|bag",false)
+	return w
+
+static func armor_upgrade() -> Dictionary:
+	var w:=armor()
+	var p: Dictionary=w.people.local
+	p.ore=20
+	p.gold=80
+	p.belongings.hide=20
+	p.belongings.cloth=20
+	p.equipment.cloak="none"
+	return w
+
+static func trade_repair() -> Dictionary:
+	var w:=armor_upgrade()
+	var p: Dictionary=w.people.local
+	var id: String=p.equipped_ids.body
+	Rules.act(w,"local","upgrade_armor",id+"|0")
+	p.gear_condition[id]=35
+	p.gold=80
+	return w
+
+static func professions() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","길을 찾는 여행자")
+	var p: Dictionary=w.people.local
+	p.x=8
+	p.y=7
+	p.ore=6
+	p.herb=4
+	p.gold=30
+	p.belongings.wood=3
+	p.belongings.cloth=2
+	return w
+
+static func expedition() -> Dictionary:
+	var w:=professions()
+	var p: Dictionary=w.people.local
+	p.x=5
+	p.y=8
+	Rules.act(w,"local","interact")
+	var sword: String=p.equipped_ids.weapon
+	Rules.act(w,"local","craft_bow")
+	p.x=8
+	p.y=7
+	Rules.act(w,"local","lesson","warrior")
+	Rules.act(w,"local","lesson","warrior")
+	p.x=16
+	p.y=8
+	for id in p.gear_instances:
+		if p.gear_instances[id]=="shortbow": Rules.act(w,"local","equip_weapon",id)
+	Rules.act(w,"local","lesson","hunter")
+	Rules.act(w,"local","lesson","hunter")
+	Rules.act(w,"local","equip_weapon",sword)
+	p.herb=8
+	p.x=8
+	p.y=7
+	return w
+
+static func travel() -> Dictionary:
+	var w:=Rules.fresh()
+	Rules.born(w,"local","안개길 여행자")
+	var p: Dictionary=w.people.local
+	p.x=3
+	p.y=9
+	p.gold=25
+	p.herb=3
+	return w
+
+static func life() -> Dictionary:
+	var w:=travel()
+	w.time=1170.0 # 17:45; closing in 30 real seconds.
+	var p: Dictionary=w.people.local
+	p.room="harbor"
+	p.x=17.0
+	p.y=11.0
+	p.discovered=["village","road","harbor"]
+	p.mail_quest="outbound"
+	p.name="나루의 방문자"
+	return w
+
+static func foraging() -> Dictionary:
+	var w:=travel()
+	w.time=1400.0 # 19:40; night flowers open after 40 real seconds.
+	var p: Dictionary=w.people.local
+	p.room="harbor"
+	p.x=9.0
+	p.y=6.0
+	p.discovered=["village","road","harbor"]
+	p.name="약초길 여행자"
+	p.gold=25
+	p.belongings.mug=1
+	p.herb=3
+	return w
+
+static func requests() -> Dictionary:
+	var w:=travel()
+	var p: Dictionary=w.people.local
+	p.room="harbor"
+	p.x=15.0
+	p.y=14.0
+	p.discovered=["village","road","harbor"]
+	p.name="마을의 심부름꾼"
+	p.belongings.forest_mushroom=2
+	p.belongings.harbor_reed=2
+	p.belongings.healing_salve=1
+	p.belongings.healing_salve_great=1
+	p.belongings.boar_tusk=1
+	return w

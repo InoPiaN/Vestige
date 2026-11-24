@@ -1,0 +1,68 @@
+extends SceneTree
+const Main=preload("res://main.gd")
+const Rules=preload("res://world.gd")
+var game: Node
+var stage:=0
+var started:=0
+var sent:=0
+var item:=""
+var cache:=""
+func _initialize() -> void:
+	call_deferred("start")
+func start() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--fixture="):
+			var w:=preload("res://investigation_demo.gd").craft()
+			w.craft_rng=685
+			var p: Dictionary=w.people.local
+			w.people.erase("local")
+			w.people["c".repeat(48)]=p
+			p.x=15
+			p.y=12
+			quit(0 if Rules.save_world(w,arg.trim_prefix("--fixture=")) else 1)
+			return
+	game=Main.new()
+	game.name="Vestige"
+	root.add_child(game)
+	game.mode="connecting"
+	var peer:=ENetMultiplayerPeer.new()
+	if peer.create_client("127.0.0.1",27180)!=OK:
+		quit(1)
+		return
+	game.multiplayer.multiplayer_peer=peer
+	game.multiplayer.connected_to_server.connect(func(): game.register_player.rpc_id(1,"c".repeat(48),"조사자"))
+	started=Time.get_ticks_msec()
+func _process(_dt: float) -> bool:
+	if game==null: return false
+	if Time.get_ticks_msec()-started>15000:
+		push_error("Crafting network timeout, stage "+str(stage))
+		quit(1)
+		return false
+	if game.mode!="client": return false
+	if game.world.has("craft_rng") or game.world.has("cases") or game.world.estate.has("shelf"):
+		push_error("Hidden case leaked")
+		quit(1)
+		return false
+	var p: Dictionary=game.world.people[game.me]
+	if stage==0:
+		for id in p.gear_instances:
+			if p.gear_instances[id]=="iron_sword": item=id
+		game.command.rpc_id(1,"craft_home","repair_kit")
+		sent=Time.get_ticks_msec()
+		stage=1
+	elif stage==1 and p.belongings.get("repair_kit_great",0)==1 and Time.get_ticks_msec()-sent>150:
+		game.command.rpc_id(1,"repair_gear",item)
+		sent=Time.get_ticks_msec()
+		stage=2
+	elif stage==2 and p.gear_condition[item]==85 and Time.get_ticks_msec()-sent>150:
+		game.command.rpc_id(1,"repair_gear",item)
+		sent=Time.get_ticks_msec()
+		stage=3
+	elif stage==3 and Time.get_ticks_msec()-sent>300:
+		if p.gear_condition[item]!=85 or p.belongings.get("repair_kit_great",0)!=0 or p.belongings.cloth!=4 or p.belongings.bent_nail!=2:
+			push_error("Remote repair duplicated durability or miscounted materials")
+			quit(1)
+		else:
+			print("PASS: ENet great-success kit restores 50, preserves exact sword and hides RNG; repeated use cannot duplicate effect")
+			quit()
+	return false

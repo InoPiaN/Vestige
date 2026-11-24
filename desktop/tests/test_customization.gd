@@ -1,4 +1,5 @@
 extends SceneTree
+const TestPaths = preload("res://tests/fixtures/test_paths.gd")
 const Rules=preload("res://world.gd")
 const Main=preload("res://main.gd")
 var failures:=0
@@ -32,14 +33,18 @@ func run() -> void:
 	Rules.act(w,"a","helmet","hide")
 	Rules.act(w,"a","equip","weapon:invalid")
 	check(p.equipment.weapon=="none" and p.equipment.head=="hood" and p.hide_helmet,"gear validation and hidden helmet")
-	Rules.save_world(w,"/tmp/vestige-customization-test.json")
-	var restored:=Rules.load_world("/tmp/vestige-customization-test.json")
+	Rules.save_world(w,TestPaths.path("vestige-customization-test.json"))
+	var restored:=Rules.load_world(TestPaths.path("vestige-customization-test.json"))
 	check(restored.people.a.look==p.look and restored.people.a.equipment==p.equipment and restored.people.a.hide_helmet,"appearance and equipment survive reload")
 	p.erase("look")
 	p.erase("equipment")
 	p.erase("hide_helmet")
-	Rules.save_world(w,"/tmp/vestige-customization-legacy.json")
-	var legacy:=Rules.load_world("/tmp/vestige-customization-legacy.json")
+	var old:=w.duplicate(true)
+	old.version=1
+	var legacy_file:=FileAccess.open(TestPaths.path("vestige-customization-legacy.json"),FileAccess.WRITE)
+	legacy_file.store_string(JSON.stringify(old))
+	legacy_file.close()
+	var legacy:=Rules.load_world(TestPaths.path("vestige-customization-legacy.json"))
 	check(legacy.people.a.equipment.weapon=="iron_sword" and legacy.people.a.name=="루안","legacy save keeps name and sword with appearance defaults")
 	Rules.die(w,"a","시험")
 	Rules.born(w,"a","후임",{"hair":1})
@@ -49,7 +54,7 @@ func run() -> void:
 	game.open_dressing("create")
 	game.dress_controls.get_child(0).item_selected.emit(2)
 	check(game.chosen_look.hair==2 and game.portrait.person.look.hair==2,"creation controls update live portrait")
-	game.save_path="/tmp/vestige-customization-ui.json"
+	game.save_path=TestPaths.path("vestige-customization-ui.json")
 	game.world=Rules.fresh()
 	Rules.born(game.world,"local","시험",game.chosen_look)
 	game.mode="single"

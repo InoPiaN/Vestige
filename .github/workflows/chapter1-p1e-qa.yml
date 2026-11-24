@@ -1,0 +1,91 @@
+name: VESTIGE Chapter I P1-E and P1-F Godot ENet QA
+on:
+  push:
+    branches:
+      - ci/chapter1-p1e-godot-verification
+      - ci/chapter1-p1f-enet-two-client
+      - qa/chapter1-p1g-navigation-interactions
+      - qa/chapter1-p1h-visual-collision
+      - qa/chapter1-p1i-macos-input
+    paths:
+      - 'desktop/**'
+      - 'scripts/**'
+      - '.github/workflows/chapter1-p1e-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  godot-p1e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact branch commit
+        uses: actions/checkout@v4
+
+      - name: Verify Python 3 and download official Godot 4.5.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 --version
+          mkdir -p "$RUNNER_TEMP/vestige-godot"
+          curl --fail --location --retry 3 --silent --show-error \
+            'https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_linux.x86_64.zip' \
+            --output "$RUNNER_TEMP/vestige-godot/godot.zip"
+          unzip -q "$RUNNER_TEMP/vestige-godot/godot.zip" -d "$RUNNER_TEMP/vestige-godot"
+          chmod +x "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64"
+          "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" --headless --version
+
+      - name: Run isolated Godot regression matrix
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python3 scripts/run_p1e_qa.py \
+            --godot "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" \
+            --logs "$RUNNER_TEMP/vestige-p1e-logs"
+
+      - name: Install Korean UI glyph coverage for visual QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-cache -f
+          fc-match 'Noto Sans CJK KR'
+
+      - name: Capture real game viewport and collision overlay (P1-H)
+        shell: bash
+        env:
+          VESTIGE_VISUAL_OUTPUT: ${{ runner.temp }}/vestige-p1h-images
+        run: |
+          set -euo pipefail
+          mkdir -p "$VESTIGE_VISUAL_OUTPUT"
+          xvfb-run -a -s "-screen 0 1280x800x24" \
+            "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" \
+            --path desktop \
+            --script res://tests/capture_p1h_visual.gd
+
+      - name: Run Chapter I real ENet server and two clients
+        shell: bash
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          set -euo pipefail
+          python3 scripts/run_p1f_enet.py \
+            --godot "$RUNNER_TEMP/vestige-godot/Godot_v4.5.1-stable_linux.x86_64" \
+            --logs "$RUNNER_TEMP/vestige-p1f-logs"
+
+      - name: Publish all QA logs and JSON even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p1e-godot-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/vestige-p1e-logs/
+            ${{ runner.temp }}/vestige-p1f-logs/
+            ${{ runner.temp }}/vestige-p1h-images/
+          if-no-files-found: warn
+          retention-days: 14

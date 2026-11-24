@@ -1,0 +1,128 @@
+extends Panel
+signal action(kind: String,value: String)
+const C=preload("res://home_crafting.gd")
+const M=preload("res://craft_mastery.gd")
+const Items=preload("res://items.gd")
+var source_picker: OptionButton
+var destination_picker: OptionButton
+var recipes: ItemList
+var description: Label
+var feedback: Label
+var craft_button: Button
+var repair_button: Button
+var gear: OptionButton
+var condition: Label
+var current:="bandage"
+var sword:=""
+var gear_stamp:=""
+var world: Dictionary={}
+var person: Dictionary={}
+func _ready() -> void:
+	position=Vector2(160,80)
+	size=Vector2(960,640)
+	var style:=StyleBoxFlat.new()
+	style.bg_color=Color("172520")
+	style.border_color=Color("a28e64")
+	style.set_border_width_all(2)
+	add_theme_stylebox_override("panel",style)
+	label("집 작업대 · 제작과 수선",Vector2(28,24),24)
+	button("닫기 · ESC",Vector2(770,20),160,hide)
+	recipes=ItemList.new()
+	recipes.position=Vector2(28,90)
+	recipes.size=Vector2(340,170)
+	recipes.add_theme_font_size_override("font_size",20)
+	for id in C.RECIPES:
+		var index:=recipes.add_item(C.RECIPES[id].name)
+		recipes.set_item_metadata(index,id)
+	for i in range(recipes.item_count):
+		if recipes.get_item_metadata(i)==current: recipes.select(i)
+	recipes.item_selected.connect(func(i): current=recipes.get_item_metadata(i); refresh(world,person))
+	add_child(recipes)
+	source_picker=OptionButton.new()
+	source_picker.position=Vector2(28,280)
+	source_picker.size=Vector2(340,38)
+	source_picker.add_item("재료 · 소지품만")
+	source_picker.add_item("재료 · 집 보관함 우선 + 소지품")
+	add_child(source_picker)
+	destination_picker=OptionButton.new()
+	destination_picker.position=Vector2(28,330)
+	destination_picker.size=Vector2(340,38)
+	destination_picker.add_item("완성품 · 소지품")
+	destination_picker.add_item("완성품 · 집 보관함")
+	add_child(destination_picker)
+	source_picker.item_selected.connect(func(_i): save_supply())
+	destination_picker.item_selected.connect(func(_i): save_supply())
+	description=label("",Vector2(400,90),16)
+	description.size=Vector2(510,300)
+	description.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	craft_button=button("1개 만들기",Vector2(400,365),240,func(): action.emit("craft_home",current))
+	label("장비 수선 · 도구 1개로 내구도 +40~50",Vector2(28,420),19)
+	gear=OptionButton.new()
+	gear.position=Vector2(28,460)
+	gear.size=Vector2(340,40)
+	gear.item_selected.connect(func(i): sword=gear.get_item_metadata(i); refresh(world,person))
+	add_child(gear)
+	condition=label("",Vector2(400,422),17)
+	repair_button=button("선택한 장비 수선",Vector2(400,460),240,func(): action.emit("repair_gear",sword))
+	feedback=label("",Vector2(28,525),17)
+	feedback.size=Vector2(900,45)
+	feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+	label("집 보관함 연동은 본인 집의 생활 제작에만 적용됩니다. 장비 수선은 소지 도구를 사용합니다.\n완성품은 I에서 사용합니다. 싱글은 작업대 창을 여는 동안 멈춥니다.",Vector2(28,580),16)
+	hide()
+func label(text: String,at: Vector2,font_size: int) -> Label:
+	var node:=Label.new()
+	node.text=text
+	node.position=at
+	node.add_theme_font_size_override("font_size",font_size)
+	add_child(node)
+	return node
+func button(text: String,at: Vector2,width: float,callback: Callable) -> Button:
+	var node:=Button.new()
+	node.text=text
+	node.position=at
+	node.size=Vector2(width,40)
+	node.focus_mode=Control.FOCUS_NONE
+	node.pressed.connect(callback)
+	add_child(node)
+	return node
+func refresh(w: Dictionary,p: Dictionary) -> void:
+	world=w
+	person=p
+	if p.is_empty(): return
+	var recipe: Dictionary=C.RECIPES[current]
+	var supply: Dictionary=p.craft_supply
+	source_picker.select(1 if supply.source=="home" else 0)
+	destination_picker.select(1 if supply.destination=="home" else 0)
+	var tool: String=C.Supply.tool(w,p,"mug",supply) if recipe.has("tool") else ""
+	var bonus: int=5 if tool.ends_with("_great") else (2 if tool.ends_with("_fine") else 0)
+	var field: String=M.RECIPES[current].field
+	var lines: PackedStringArray=[recipe.name,M.progress(p,field),"이번 완성 경험치 +%d · 쉬운 제작은 성장 효율 감소" % M.gain(p,current),M.rate_text(p,field,bonus),recipe.description]
+	for id in recipe.cost: lines.append("%s · 소지 %d / 집 %d · 필요 %d" % [Items.CATALOG[id].name,Items.quantity(p,id),Items.quantity(C.Supply.box(w,p),id),recipe.cost[id]])
+	if recipe.has("tool"): lines.append("찻잔 · "+("없음" if tool.is_empty() else Items.CATALOG[tool].name)+" (소비하지 않음)")
+	lines.append("집 보관함 %d / 40개 · 재료 소비 후 보관 공간 확인" % C.Storage.total(C.Supply.box(w,p)))
+	var why:=C.reason(w,p,current)
+	lines.append(("제작 가능" if why.is_empty() else why))
+	description.text="\n".join(lines)
+	craft_button.disabled=not why.is_empty()
+	var stamp:=JSON.stringify([p.gear_instances,p.gear_condition])
+	if gear_stamp!=stamp:
+		gear_stamp=stamp
+		gear.clear()
+		for id in p.gear_instances:
+			if p.gear_instances[id] not in ["iron_sword","shortbow","leather","iron_armor"]: continue
+			gear.add_item("%s · %d / 100" % [Items.definition(p,id).name,p.gear_condition[id]])
+			gear.set_item_metadata(gear.item_count-1,id)
+		if p.gear_instances.get(sword,"") not in ["iron_sword","shortbow","leather","iron_armor"]:
+			sword=gear.get_item_metadata(0) if gear.item_count else ""
+			for i in range(gear.item_count):
+				var candidate: String=gear.get_item_metadata(i)
+				if p.gear_condition[candidate]<100:
+					sword=candidate
+					break
+		for i in range(gear.item_count):
+			if gear.get_item_metadata(i)==sword: gear.select(i)
+	condition.text="수선 도구 %d개 · 좋은 품질부터 사용합니다." % Items.family_quantity(p,"repair_kit")
+	repair_button.disabled=not C.allowed(p) or sword.is_empty() or p.gear_condition.get(sword,100)>=100 or Items.family_quantity(p,"repair_kit")<1
+
+func save_supply() -> void:
+	action.emit("craft_supply",("home" if source_picker.selected==1 else "bag")+"|"+("home" if destination_picker.selected==1 else "bag"))

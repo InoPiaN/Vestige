@@ -140,8 +140,16 @@ func activate() -> void:
 	elif selected=="herb": action.emit("heal","")
 
 var icons: Dictionary={}
-func icon_for(id: String) -> ImageTexture:
+func icon_for(id: String) -> Texture2D:
 	if icons.has(id): return icons[id]
+	# AI-generated art is optional. Keep existing procedural icons as a safe fallback.
+	if id=="herb":
+		var asset_path:="res://assets/items/herb.png"
+		if ResourceLoader.exists(asset_path):
+			var texture:=load(asset_path) as Texture2D
+			if texture!=null and texture.get_width()==16 and texture.get_height()==16:
+				icons[id]=texture
+				return icons[id]
 	var image:=Image.create(16,16,false,Image.FORMAT_RGBA8)
 	var color:=Color(Items.definition(person,id).color)
 	id=Items.base_id(person.get("gear_instances",{}).get(id,id))
